@@ -6,6 +6,23 @@ import {
   getTemplatePath,
   TemplateVariables,
 } from "../../utils/template-loader.js";
+import {
+  DATABASES,
+  WEBSOCKETS,
+  TEMPLATES,
+  ERRORS,
+  APP,
+  SERVER_IMPORTS,
+  SERVER_CLASS_PROPERTIES,
+  SERVER_CONSTRUCTOR_CALLS,
+  SERVER_WEBSOCKET_METHODS,
+  SERVER_ROUTER_INIT,
+  SERVER_VIEW_ENGINE_SETUP,
+  SERVER_ROOT_ROUTE_HANDLER,
+  SERVER_TYPE_DECLARATIONS,
+  VIEW_ENGINES,
+} from "../../constants/index.js";
+import { getDatabaseConnectionCode } from "../../utils/database-helper.js";
 
 // Import interface from index.ts
 import { ServerGeneratorOptions } from "./index.js";
@@ -48,212 +65,179 @@ function generateServerFile(
     middlewareSetup: "",
     databaseMethod: "",
     websocketMethod: "",
-    socketRouterInit: "const router = initializeRoutes();", // Default without socket
-    rootRouteHandler: "res.json({ message: 'Welcome to the API' });",
+    socketRouterInit: SERVER_ROUTER_INIT.DEFAULT,
+    rootRouteHandler: SERVER_ROOT_ROUTE_HANDLER.DEFAULT,
   };
 
   // Add database imports if a database was selected
-  if (options.database && options.database !== "none") {
-    try {
-      const databaseImportsPath = getTemplatePath(
-        `project-structure/database/${options.database.toLowerCase()}-imports.ts`
-      );
-      templateVars.databaseImports = fs.readFileSync(
-        databaseImportsPath,
-        "utf8"
-      );
-    } catch (error) {
-      // Fallback to generated imports if template doesn't exist
-      if (options.database === "sequelize") {
-        templateVars.databaseImports =
-          "// Database imports\nimport sequelize from './config/database';\n";
-      } else if (options.database === "mongoose") {
-        templateVars.databaseImports =
-          "// Database imports\nimport mongoose from 'mongoose';\n";
-      } else if (options.database === "prisma") {
-        templateVars.databaseImports =
-          "// Database imports\nimport prisma from '@prisma/client';\n";
-      } else if (options.database === "typeorm") {
-        templateVars.databaseImports =
-          "// Database imports\nimport AppDataSource from './config/database';\n";
-      }
+  if (options.database && options.database !== DATABASES.TYPES.NONE) {
+    // Add database imports based on selected database
+    switch (options.database) {
+      case DATABASES.TYPES.SEQUELIZE:
+        templateVars.databaseImports = SERVER_IMPORTS.DATABASE.SEQUELIZE;
+        break;
+      case DATABASES.TYPES.MONGOOSE:
+        templateVars.databaseImports = SERVER_IMPORTS.DATABASE.MONGOOSE;
+        break;
+      case DATABASES.TYPES.PRISMA:
+        templateVars.databaseImports = SERVER_IMPORTS.DATABASE.PRISMA;
+        templateVars.classProperties += SERVER_CLASS_PROPERTIES.PRISMA;
+        break;
+      case DATABASES.TYPES.TYPEORM:
+        templateVars.databaseImports = SERVER_IMPORTS.DATABASE.TYPEORM;
+        break;
     }
 
-    // Add database connection method
-    try {
-      const databaseMethodPath = getTemplatePath(
-        `project-structure/database/${options.database.toLowerCase()}-method.ts`
-      );
-      let methodContent = fs.readFileSync(databaseMethodPath, "utf8");
+    // Generate proper database connection method using the utility function
+    const dbName =
+      options.databaseName ||
+      path
+        .basename(destination)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "_");
 
-      // Replace database name placeholder if it exists
-      if (options.databaseName) {
-        methodContent = methodContent.replace(
-          /{{databaseName}}/g,
-          options.databaseName
-        );
-      } else {
-        // Default database name based on project name
-        const defaultDbName = path
-          .basename(destination)
-          .toLowerCase()
-          .replace(/[^a-z0-9]/g, "_");
-        methodContent = methodContent.replace(
-          /{{databaseName}}/g,
-          defaultDbName
-        );
-      }
-
-      templateVars.databaseMethod = methodContent;
-
-      // Add class properties for Prisma
-      if (options.database === "prisma") {
-        templateVars.classProperties += "  public prisma: PrismaClient;\n";
-      }
-    } catch (error) {
-      // Fallback to generated methods
-      if (options.database === "sequelize") {
-        templateVars.databaseMethod = `
-  private async connectToDatabase(): Promise<void> {
-    try {
-      await sequelize.authenticate();
-      console.log('Database connection established successfully.');
-    } catch (error) {
-      console.error('Database connection error:', error);
-      process.exit(1);
-    }
-  }`;
-      } else if (options.database === "mongoose") {
-        templateVars.databaseMethod = `
-  private async connectToDatabase(): Promise<void> {
-    try {
-      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myapp');
-      console.log('MongoDB connected successfully.');
-    } catch (error) {
-      console.error('Database connection error:', error);
-      process.exit(1);
-    }
-  }`;
-      } else if (options.database === "prisma") {
-        templateVars.classProperties = "  public prisma: PrismaClient;\n";
-        templateVars.databaseMethod = `
-  private async connectToDatabase(): Promise<void> {
-    try {
-      this.prisma = new PrismaClient();
-      console.log('Prisma Client initialized successfully.');
-    } catch (error) {
-      console.error('Database connection error:', error);
-      process.exit(1);
-    }
-  }`;
-      } else if (options.database === "typeorm") {
-        templateVars.databaseMethod = `
-  private async connectToDatabase(): Promise<void> {
-    try {
-      await createConnection();
-      console.log('TypeORM connected successfully.');
-    } catch (error) {
-      console.error('Database connection error:', error);
-      process.exit(1);
-    }
-  }`;
-      }
-    }
+    templateVars.databaseMethod = getDatabaseConnectionCode(options.database, {
+      databaseName: dbName,
+      pgUser: DATABASES.DEFAULTS.POSTGRES.USER,
+      pgPassword: DATABASES.DEFAULTS.POSTGRES.PASSWORD,
+      pgHost: DATABASES.DEFAULTS.POSTGRES.HOST,
+      pgPort: DATABASES.DEFAULTS.POSTGRES.PORT,
+    });
 
     // Add constructor call for database
-    templateVars.constructorCalls += "    this.connectToDatabase();\n";
+    templateVars.constructorCalls += SERVER_CONSTRUCTOR_CALLS.DATABASE;
   }
 
   // Add passport import if authentication is enabled
   if (options.authentication) {
-    templateVars.authImports =
-      "// Authentication imports\nimport passport from './auth/passport.js';\n";
+    templateVars.authImports = SERVER_IMPORTS.AUTH.PASSPORT;
   }
 
-  // Add websocket imports and setup if selected
-  if (options.websocketLib && options.websocketLib !== "none") {
-    if (
-      options.websocketLib === "socketio" ||
-      options.websocketLib === "Socket.io"
-    ) {
-      templateVars.websocketImports =
-        "// Websocket imports\nimport { Server as SocketIOServer } from 'socket.io';\nimport { setupSocketHandlers } from './sockets';\n";
-      templateVars.classProperties += "  public io!: SocketIOServer;\n";
-      templateVars.websocketMethod = `
-  private initializeWebSockets(): void {
-    this.io = new SocketIOServer(this.server, {
-      cors: {
-        origin: process.env.CLIENT_URL || '*',
-        methods: ['GET', 'POST']
+  // Add websocket imports if a websocket library was selected
+  if (
+    options.websocketLib &&
+    options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
+  ) {
+    try {
+      const websocketImportsPath = getTemplatePath(
+        `${TEMPLATES.WEBSOCKETS.SOCKETIO.IMPORTS.replace(
+          "socketio",
+          options.websocketLib.toLowerCase()
+        )}`
+      );
+      templateVars.websocketImports = fs.readFileSync(
+        websocketImportsPath,
+        "utf8"
+      );
+    } catch (error) {
+      // Fallback to generated imports if template doesn't exist
+      if (options.websocketLib === WEBSOCKETS.LIBRARIES.SOCKETIO) {
+        templateVars.websocketImports = SERVER_IMPORTS.WEBSOCKET.SOCKETIO;
+      } else if (options.websocketLib === WEBSOCKETS.LIBRARIES.WS) {
+        templateVars.websocketImports = SERVER_IMPORTS.WEBSOCKET.WS;
       }
-    });
-    
-    // Setup Socket.io event handlers
-    setupSocketHandlers(this.io);
-  }`;
-      // Pass socket to router
-      templateVars.socketRouterInit =
-        "const router = initializeRoutes(this.io);";
-    } else if (options.websocketLib === "ws" || options.websocketLib === "WS") {
-      templateVars.websocketImports =
-        "// Websocket imports\nimport WebSocket from 'ws';\nimport { setupWebSocketHandlers } from './sockets';\n";
-      templateVars.classProperties += "  public wss: WebSocket.Server;\n";
-      templateVars.websocketMethod = `
-  private initializeWebSockets(): void {
-    this.wss = new WebSocket.Server({ server: this.server });
-    
-    // Setup WebSocket event handlers
-    setupWebSocketHandlers(this.wss);
-  }`;
-      // Pass socket to router
-      templateVars.socketRouterInit =
-        "const router = initializeRoutes(this.wss);";
+    }
+
+    // Add websocket method if selected
+    try {
+      const methodPath = getTemplatePath(
+        `${TEMPLATES.WEBSOCKETS.SOCKETIO.METHOD.replace(
+          "socketio",
+          options.websocketLib.toLowerCase()
+        )}`
+      );
+      templateVars.websocketMethod = fs.readFileSync(methodPath, "utf8");
+    } catch (error) {
+      // Fallback to generated methods if template doesn't exist
+      if (options.websocketLib === WEBSOCKETS.LIBRARIES.SOCKETIO) {
+        templateVars.classProperties += SERVER_CLASS_PROPERTIES.SOCKETIO;
+        templateVars.websocketMethod = SERVER_WEBSOCKET_METHODS.SOCKETIO;
+        templateVars.socketRouterInit = SERVER_ROUTER_INIT.SOCKETIO;
+      } else if (options.websocketLib === WEBSOCKETS.LIBRARIES.WS) {
+        templateVars.classProperties += SERVER_CLASS_PROPERTIES.WS;
+        templateVars.websocketMethod = SERVER_WEBSOCKET_METHODS.WS;
+        templateVars.socketRouterInit = SERVER_ROUTER_INIT.WS;
+      }
     }
 
     // Add constructor call for websockets
-    templateVars.constructorCalls += "    this.initializeWebSockets();\n";
+    templateVars.constructorCalls += SERVER_CONSTRUCTOR_CALLS.WEBSOCKET;
   }
 
-  // Add view engine setup if selected
-  if (options.viewEngine && options.viewEngine !== "none") {
-    let viewEngineName: string;
-    switch (options.viewEngine) {
-      case "Pug (Jade)":
-        viewEngineName = "pug";
-        break;
-      case "EJS":
-        viewEngineName = "ejs";
-        break;
-      case "Handlebars":
-        viewEngineName = "handlebars";
-        break;
-      default:
-        viewEngineName = options.viewEngine.toLowerCase();
+  // Add view engine imports if a view engine was selected
+  if (options.viewEngine && options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
+    // Convert view engine name to a key for accessing templates
+    let viewEngineKey: "PUG" | "EJS" | "HANDLEBARS";
+
+    if (options.viewEngine === VIEW_ENGINES.TYPES.PUG) {
+      viewEngineKey = "PUG";
+    } else if (options.viewEngine === VIEW_ENGINES.TYPES.EJS) {
+      viewEngineKey = "EJS";
+    } else if (options.viewEngine === VIEW_ENGINES.TYPES.HANDLEBARS) {
+      viewEngineKey = "HANDLEBARS";
+    } else {
+      // Default to PUG if not recognized
+      viewEngineKey = "PUG";
     }
 
-    templateVars.middlewareSetup += `
-    // View engine setup
-    this.app.set('views', path.join(__dirname, 'views'));
-    this.app.set('view engine', '${viewEngineName}');\n`;
+    try {
+      const viewImportsPath = getTemplatePath(
+        TEMPLATES.VIEWS[viewEngineKey].IMPORTS
+      );
+      templateVars.viewImports = fs.readFileSync(viewImportsPath, "utf8");
+    } catch (error) {
+      // Use default imports if template file not found
+      templateVars.viewImports =
+        "// View engine imports\nimport path from 'path';\n";
+      if (options.viewEngine === VIEW_ENGINES.TYPES.EJS) {
+        templateVars.viewImports +=
+          "import expressLayouts from 'express-ejs-layouts';\n";
+      } else if (options.viewEngine === VIEW_ENGINES.TYPES.HANDLEBARS) {
+        templateVars.viewImports +=
+          "import { engine as handlebars } from 'express-handlebars';\n";
+      }
+    }
 
-    // Change root route handler to render a view
-    templateVars.rootRouteHandler = `res.render('index', { title: 'Express TypeScript Application' });`;
+    // Add view engine initialization
+    try {
+      const viewMiddlewarePath = getTemplatePath(
+        TEMPLATES.VIEWS[viewEngineKey].MIDDLEWARE
+      );
+      templateVars.middlewareSetup += fs.readFileSync(
+        viewMiddlewarePath,
+        "utf8"
+      );
+    } catch (error) {
+      // Fallback to generated middleware if template doesn't exist
+      if (options.viewEngine === VIEW_ENGINES.TYPES.PUG) {
+        templateVars.middlewareSetup += SERVER_VIEW_ENGINE_SETUP.PUG;
+      } else if (options.viewEngine === VIEW_ENGINES.TYPES.EJS) {
+        templateVars.middlewareSetup += SERVER_VIEW_ENGINE_SETUP.EJS;
+      } else if (options.viewEngine === VIEW_ENGINES.TYPES.HANDLEBARS) {
+        templateVars.middlewareSetup += SERVER_VIEW_ENGINE_SETUP.HANDLEBARS;
+      }
+    }
+
+    // Set the root route handler for view engines
+    templateVars.rootRouteHandler = SERVER_ROOT_ROUTE_HANDLER.VIEW_ENGINE;
   }
 
-  // Write server.ts file using the template
-  const serverFilePath = path.join(destination, "src", "server.ts");
-  writeTemplate(
-    getTemplatePath("project-structure/server.ts"),
-    serverFilePath,
-    templateVars
+  // Generate server.ts content from template
+  const serverTemplatePath = getTemplatePath(
+    TEMPLATES.PROJECT_STRUCTURE.SERVER.MAIN
   );
+  const serverContent = loadTemplate(serverTemplatePath, templateVars);
 
-  // Generate server.d.ts file with type declarations
+  // Write server.ts file
+  const serverFilePath = path.join(destination, "src", "server.ts");
+  fs.writeFileSync(serverFilePath, serverContent);
+
+  // Generate server.d.ts with type declarations
   generateServerTypesFile(destination, options);
 }
 
 /**
- * Generate server.d.ts file with type declarations
+ * Generate server.d.ts file with type declarations based on options
  * @param destination - Project destination directory
  * @param options - User selected options
  */
@@ -261,32 +245,34 @@ function generateServerTypesFile(
   destination: string,
   options: ServerGeneratorOptions
 ): void {
-  // Create a variables object to replace placeholders in the template
-  const templateVars: {
-    imports: string;
-    interfaceProperties: string;
-  } = {
-    imports:
-      "import { Application } from 'express';\nimport http from 'http';\n",
+  // Create template vars for types file
+  const templateVars = {
+    imports: SERVER_TYPE_DECLARATIONS.BASE_IMPORTS,
     interfaceProperties: "",
   };
 
   // Add additional imports based on options
-  if (options.database === "prisma") {
+  if (options.database === DATABASES.TYPES.PRISMA) {
     templateVars.imports += "import { PrismaClient } from '@prisma/client';\n";
-    templateVars.interfaceProperties += "  prisma: PrismaClient;\n";
+    templateVars.interfaceProperties +=
+      SERVER_TYPE_DECLARATIONS.INTERFACE_PROPERTIES.PRISMA;
   }
 
   if (
-    options.websocketLib === "socketio" ||
-    options.websocketLib === "Socket.io"
+    options.websocketLib === WEBSOCKETS.LIBRARIES.SOCKETIO ||
+    options.websocketLib === WEBSOCKETS.LIBRARIES.SOCKETIO
   ) {
     templateVars.imports +=
       "import { Server as SocketIOServer } from 'socket.io';\n";
-    templateVars.interfaceProperties += "  io: SocketIOServer;\n";
-  } else if (options.websocketLib === "ws" || options.websocketLib === "WS") {
+    templateVars.interfaceProperties +=
+      SERVER_TYPE_DECLARATIONS.INTERFACE_PROPERTIES.SOCKETIO;
+  } else if (
+    options.websocketLib === WEBSOCKETS.LIBRARIES.WS ||
+    options.websocketLib === WEBSOCKETS.LIBRARIES.WS
+  ) {
     templateVars.imports += "import WebSocket from 'ws';\n";
-    templateVars.interfaceProperties += "  wss: WebSocket.Server;\n";
+    templateVars.interfaceProperties +=
+      SERVER_TYPE_DECLARATIONS.INTERFACE_PROPERTIES.WS;
   }
 
   // Generate server.d.ts content
@@ -294,30 +280,13 @@ function generateServerTypesFile(
 
   // Add Express namespace augmentation for user in request if authentication is enabled
   if (options.authentication) {
-    typesContent += `\ndeclare global {
-  namespace Express {
-    interface User {
-      id: number;
-      email: string;
-      firstName?: string;
-      lastName?: string;
-      [key: string]: any;
-    }
-    
-    interface Request {
-      user?: User;
-    }
-  }
-}\n\n`;
+    typesContent += SERVER_TYPE_DECLARATIONS.AUTH_NAMESPACE;
   }
 
   // Add Server interface
-  typesContent += `interface Server {
-  app: Application;
-  server: http.Server;
-${templateVars.interfaceProperties}}\n\n`;
-
-  typesContent += "export default Server;\n";
+  typesContent += SERVER_TYPE_DECLARATIONS.BASE_INTERFACE;
+  typesContent += templateVars.interfaceProperties;
+  typesContent += SERVER_TYPE_DECLARATIONS.INTERFACE_CLOSING;
 
   // Write server.d.ts file
   const typesFilePath = path.join(destination, "src", "server.d.ts");
@@ -325,7 +294,7 @@ ${templateVars.interfaceProperties}}\n\n`;
 }
 
 /**
- * Generate a types.d.ts file with global type declarations
+ * Generate global.d.ts file with environment type declarations
  * @param destination - Project destination directory
  * @param options - User selected options
  */
@@ -341,17 +310,17 @@ function generateGlobalTypesFile(
   };
 
   // Add database environment variables
-  if (options.database === "sequelize") {
+  if (options.database === DATABASES.TYPES.SEQUELIZE) {
     templateVars.environmentVariables += `    DB_HOST: string;
     DB_PORT: string;
     DB_NAME: string;
     DB_USER: string;
     DB_PASSWORD: string;\n`;
-  } else if (options.database === "mongoose") {
+  } else if (options.database === DATABASES.TYPES.MONGOOSE) {
     templateVars.environmentVariables += "    MONGODB_URI: string;\n";
-  } else if (options.database === "prisma") {
+  } else if (options.database === DATABASES.TYPES.PRISMA) {
     templateVars.environmentVariables += "    DATABASE_URL: string;\n";
-  } else if (options.database === "typeorm") {
+  } else if (options.database === DATABASES.TYPES.TYPEORM) {
     templateVars.environmentVariables += `    DB_HOST: string;
     DB_PORT: string;
     DB_NAME: string;
