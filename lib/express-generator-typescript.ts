@@ -8,10 +8,19 @@ import {
   BASE_DEPENDENCIES,
   BASE_DEV_DEPENDENCIES,
   FEATURE_DEPENDENCIES,
-} from "./dependencies.js";
+} from "./constants/dependencies.js";
+import {
+  MESSAGES,
+  DATABASES,
+  WEBSOCKETS,
+  VIEW_ENGINES,
+} from "./constants/index.js";
+import { normalizeDatabaseName } from "./utils/database-helper.js";
 
 // Import setup modules
 import setup from "./setup/index.js";
+import setupProjectStructure from "./setup/project-structure/index.js";
+import setupDatabase from "./setup/database/index.js";
 
 // Get dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -31,7 +40,7 @@ const execPromise = promisify(exec);
  * @param destination - Destination path for the project
  * @param options - User selected options
  */
-async function expressGenTs(
+export async function generateExpressTypeScriptApp(
   destination: string,
   options: GeneratorOptions
 ): Promise<void> {
@@ -46,13 +55,10 @@ async function expressGenTs(
     // Get database name from options or use default based on project name
     if (
       options.database &&
-      options.database !== "none" &&
+      options.database !== DATABASES.TYPES.NONE &&
       !options.databaseName
     ) {
-      options.databaseName = path
-        .basename(destination)
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "_");
+      options.databaseName = normalizeDatabaseName(path.basename(destination));
     }
 
     // Normalize options to ensure consistent casing and values
@@ -72,10 +78,11 @@ async function expressGenTs(
     }
 
     const setupOptions: SetupOptions = {
-      database: (options.database as string) || "none",
+      database: (options.database as string) || DATABASES.TYPES.NONE,
       authentication: Boolean(options.authentication),
-      websocketLib: (options.websocketLib as string) || "none",
-      viewEngine: (options.viewEngine as string) || "none",
+      websocketLib:
+        (options.websocketLib as string) || WEBSOCKETS.LIBRARIES.NONE,
+      viewEngine: (options.viewEngine as string) || VIEW_ENGINES.TYPES.NONE,
       databaseName: options.databaseName,
       dialect: options.dialect,
     };
@@ -94,10 +101,20 @@ async function expressGenTs(
     // Initialize git repository
     await initializeGitRepository(destination);
 
+    // Step 3: Setup database (if selected)
+    if (options.database && options.database !== DATABASES.TYPES.NONE) {
+      await setupDatabase({
+        destination,
+        database: options.database,
+        databaseName: options.databaseName,
+        dialect: options.dialect,
+      });
+    }
+
     // Print next steps
     printNextSteps(destination);
   } catch (error) {
-    console.error("Error generating Express TypeScript application:", error);
+    console.error(MESSAGES.ERROR.GENERAL, error);
     process.exit(1);
   }
 }
@@ -125,7 +142,7 @@ function normalizeOptions(options: GeneratorOptions): void {
 
     // Map "Socket.io" to "socketio" for consistency
     if (options.websocketLib === "socket.io") {
-      options.websocketLib = "socketio";
+      options.websocketLib = WEBSOCKETS.LIBRARIES.SOCKETIO;
     }
   }
 
@@ -135,7 +152,7 @@ function normalizeOptions(options: GeneratorOptions): void {
 
     // Map "Pug (Jade)" to "pug" for consistency
     if (options.viewEngine === "pug (jade)") {
-      options.viewEngine = "pug";
+      options.viewEngine = VIEW_ENGINES.TYPES.PUG;
     }
   }
 }
@@ -250,7 +267,7 @@ function addFeatureDependencies(
   options: GeneratorOptions
 ): void {
   // Add database dependencies
-  if (options.database && options.database !== "none") {
+  if (options.database && options.database !== DATABASES.TYPES.NONE) {
     const dbDeps =
       FEATURE_DEPENDENCIES.database[
         options.database as keyof typeof FEATURE_DEPENDENCIES.database
@@ -280,7 +297,10 @@ function addFeatureDependencies(
   }
 
   // Add websocket dependencies
-  if (options.websocketLib && options.websocketLib !== "none") {
+  if (
+    options.websocketLib &&
+    options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
+  ) {
     const wsDeps =
       FEATURE_DEPENDENCIES.websockets[
         options.websocketLib as keyof typeof FEATURE_DEPENDENCIES.websockets
@@ -292,7 +312,7 @@ function addFeatureDependencies(
   }
 
   // Add view engine dependencies
-  if (options.viewEngine && options.viewEngine !== "none") {
+  if (options.viewEngine && options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
     const viewDeps =
       FEATURE_DEPENDENCIES.views[
         options.viewEngine as keyof typeof FEATURE_DEPENDENCIES.views
@@ -437,5 +457,3 @@ async function copyYarnFiles(destination: string): Promise<void> {
     console.warn("You may need to configure Yarn manually");
   }
 }
-
-export default expressGenTs;
