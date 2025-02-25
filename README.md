@@ -117,26 +117,39 @@ Your application will be available at `http://localhost:3000/`.
 
 ## Project Structure
 
+The generator creates a well-organized project structure with proper separation of concerns:
+
 ```
 my-express-app/
 ├── src/
-│   ├── controllers/    # Request handlers
-│   ├── models/         # Data models
-│   ├── routes/         # Express routes
-│   ├── services/       # Business logic
-│   ├── middlewares/    # Express middlewares
-│   ├── utils/          # Utility functions
-│   ├── types/          # TypeScript type definitions
-│   ├── config/         # Configuration files
-│   └── app.ts          # Express application setup
-├── tests/              # Test files
-├── dist/               # Compiled JavaScript files
-├── .eslintrc.js        # ESLint configuration
-├── .gitignore          # Git ignore file
-├── tsconfig.json       # TypeScript configuration
-├── package.json        # Project dependencies and scripts
-└── README.md           # Project documentation
+│   ├── bin/               # Application startup
+│   ├── config/            # Configuration files
+│   ├── controllers/       # Route controllers
+│   ├── middleware/        # Express middlewares
+│   ├── migrations/        # Database migrations
+│   ├── models/            # Data models
+│   ├── public/            # Static assets
+│   │   ├── css/           # Stylesheets
+│   │   ├── js/            # Client-side JavaScript
+│   │   └── images/        # Images
+│   ├── routes/            # Express routes
+│   ├── services/          # Business logic services
+│   ├── sockets/           # WebSocket handlers (if enabled)
+│   └── utils/             # Utility functions
+├── .env                   # Environment variables
+├── .gitignore             # Git ignore file
+├── package.json           # Project dependencies and scripts
+├── README.md              # Project documentation
+├── server.ts              # Application entry point
+└── tsconfig.json          # TypeScript configuration
 ```
+
+Additional directories may be generated based on your selected options:
+
+- **Database integration**: Creates appropriate configuration files and model examples
+- **Authentication**: Generates auth middleware, strategies, and controllers
+- **WebSockets**: Sets up Socket.io or WS configuration
+- **View Engine**: Configures template directories for EJS, Pug, or Handlebars
 
 ## Customization Options
 
