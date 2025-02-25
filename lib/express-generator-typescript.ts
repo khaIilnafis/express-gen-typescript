@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs";
+import { promises as fsPromises } from "fs";
 import { promisify } from "util";
 import { GeneratorOptions } from "./prompt.js";
 import { exec } from "child_process";
@@ -27,10 +28,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Convert callback-based functions to promise-based
-const mkdir = promisify(fs.mkdir);
-const writeFile = promisify(fs.writeFile);
-const readFile = promisify(fs.readFile);
-const copyFile = promisify(fs.copyFile);
+const mkdir = fsPromises.mkdir;
+const writeFile = fsPromises.writeFile;
+const readFile = fsPromises.readFile;
+const copyFile = fsPromises.copyFile;
 const execPromise = promisify(exec);
 
 // Feature-specific dependencies moved to dependencies.js
@@ -186,6 +187,26 @@ async function initPackageManager(
 
     // Add feature-specific dependencies
     addFeatureDependencies(dependencies, devDependencies, options);
+
+    // Check for stored database scripts and add them
+    const dbScriptsPath = path.join(destination, ".db-scripts.json");
+    if (fs.existsSync(dbScriptsPath)) {
+      try {
+        const dbScripts = JSON.parse(fs.readFileSync(dbScriptsPath, "utf-8"));
+        if (!generatedPackageJson.scripts) {
+          generatedPackageJson.scripts = {};
+        }
+
+        // Merge database scripts with existing scripts
+        Object.assign(generatedPackageJson.scripts, dbScripts);
+
+        // Remove the temporary file
+        fs.unlinkSync(dbScriptsPath);
+        console.log("Added stored database scripts to package.json");
+      } catch (error) {
+        console.warn("Error loading stored database scripts:", error);
+      }
+    }
 
     // Read our template package.json file
     const templatePath = path.join(

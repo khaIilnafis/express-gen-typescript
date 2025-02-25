@@ -37,7 +37,7 @@ async function setupTypeORM(
     destination,
     DIRECTORIES.ROOT.SRC,
     FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.DATA_SOURCE
+    FILE_PATHS.DATABASE.FILES.CONNECTION
   );
   const exampleEntityPath = path.join(
     destination,
@@ -45,13 +45,6 @@ async function setupTypeORM(
     DIRECTORIES.SRC.MODELS,
     FILE_PATHS.MODELS.FILES.EXAMPLE
   );
-  const dbInitPath = path.join(
-    destination,
-    DIRECTORIES.ROOT.SRC,
-    FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.INIT
-  );
-
   // Create entities directory if it doesn't exist
   const entitiesDir = path.join(
     destination,
@@ -68,7 +61,7 @@ async function setupTypeORM(
 
   // Create database config file using template
   writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.TYPEORM.DATA_SOURCE),
+    getTemplatePath(TEMPLATES.DATABASE.TYPEORM.CONFIG),
     dbConfigPath,
     {
       databaseName,
@@ -76,12 +69,12 @@ async function setupTypeORM(
   );
   // Create Example entity file using template
   writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.TYPEORM.EXAMPLE),
+    getTemplatePath(TEMPLATES.DATABASE.TYPEORM.EXAMPLE_MODEL),
     exampleEntityPath
   );
 
-  // Create database init file using template
-  writeTemplate(getTemplatePath(TEMPLATES.DATABASE.TYPEORM.INIT), dbInitPath);
+  //   // Create database init file using template
+  //   writeTemplate(getTemplatePath(TEMPLATES.DATABASE.TYPEORM.INIT), dbInitPath);
 
   // Create entities index file
   createModelsIndexFile(destination, DATABASES.TYPES.TYPEORM, "Example");

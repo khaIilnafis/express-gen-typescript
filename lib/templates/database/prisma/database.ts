@@ -1,20 +1,35 @@
 // @ts-nocheck - Template file, not meant to be validated directly
-import prisma from "./client";
+import { PrismaClient } from "@prisma/client";
+
+// Create a singleton PrismaClient instance
+const prisma = new PrismaClient({
+  log:
+    process.env.NODE_ENV === "development"
+      ? ["query", "error", "warn"]
+      : ["error"],
+});
 
 /**
- * Initialize the database connection
+ * Initialize Prisma client connection
+ * @returns PrismaClient instance
  */
-export async function initializeDatabase(): Promise<void> {
+export async function initializeDatabase(): Promise<PrismaClient> {
   try {
-    // Connect to the database
     await prisma.$connect();
-    console.log("Prisma connection has been established successfully.");
+
+    // Register cleanup handler
+    process.on("SIGINT", async () => {
+      await prisma.$disconnect();
+      process.exit(0);
+    });
+
+    return prisma;
   } catch (error) {
-    console.error("Error connecting to database:", error);
+    console.error("Error connecting to database with Prisma:", error);
+    await prisma.$disconnect();
     throw error;
   }
 }
-
 /**
  * Close the database connection
  */
@@ -35,3 +50,4 @@ async function handleShutdown(): Promise<void> {
   await closeDatabaseConnection();
   process.exit(0);
 }
+export default prisma;

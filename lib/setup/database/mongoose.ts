@@ -43,12 +43,6 @@ async function setupMongoose(
     DIRECTORIES.SRC.MODELS,
     FILE_PATHS.MODELS.FILES.EXAMPLE
   );
-  const dbInitPath = path.join(
-    destination,
-    DIRECTORIES.ROOT.SRC,
-    FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.INIT
-  );
 
   // Get database name from options or use default
   const databaseName =
@@ -56,7 +50,7 @@ async function setupMongoose(
 
   // Create database config file using template
   writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.CONNECTION),
+    getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.CONFIG),
     dbConfigPath,
     {
       databaseName,
@@ -65,12 +59,12 @@ async function setupMongoose(
 
   // Create example model using template
   writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.EXAMPLE),
+    getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.EXAMPLE_MODEL),
     exampleModelPath
   );
 
-  // Create database init file using template
-  writeTemplate(getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.INIT), dbInitPath);
+  //   // Create database init file using template
+  //   writeTemplate(getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.INIT), dbInitPath);
 
   // Create models index.ts file
   createModelsIndexFile(destination, DATABASES.TYPES.MONGOOSE, "Example");

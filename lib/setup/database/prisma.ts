@@ -40,10 +40,12 @@ async function setupPrisma(
   );
   const prismaSchemaPath = path.join(
     prismaDir,
-    FILE_PATHS.DATABASE.FILES.SCHEMA
+    FILE_PATHS.DATABASE.FILES.CONNECTION
   );
-  const dbClientPath = path.join(prismaDir, FILE_PATHS.DATABASE.FILES.CLIENT);
-  const dbInitPath = path.join(prismaDir, FILE_PATHS.DATABASE.FILES.INIT);
+  const dbClientPath = path.join(
+    prismaDir,
+    FILE_PATHS.DATABASE.FILES.CONNECTION
+  );
 
   // Create prisma directory if it doesn't exist
   if (!fs.existsSync(prismaDir)) {
@@ -56,7 +58,7 @@ async function setupPrisma(
 
   // Create Prisma schema file using template with Example model
   writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.PRISMA.SCHEMA),
+    getTemplatePath(TEMPLATES.DATABASE.PRISMA.EXAMPLE_MODEL),
     prismaSchemaPath,
     {
       databaseName,
@@ -65,12 +67,12 @@ async function setupPrisma(
 
   // Create database client file using template
   writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.PRISMA.CLIENT),
+    getTemplatePath(TEMPLATES.DATABASE.PRISMA.CONFIG),
     dbClientPath
   );
 
-  // Create database init file using template
-  writeTemplate(getTemplatePath(TEMPLATES.DATABASE.PRISMA.INIT), dbInitPath);
+  //   // Create database init file using template
+  //   writeTemplate(getTemplatePath(TEMPLATES.DATABASE.PRISMA.INIT), dbInitPath);
 
   // Add example model type definitions
   const modelsDir = path.join(

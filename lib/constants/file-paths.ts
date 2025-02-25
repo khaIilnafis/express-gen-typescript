@@ -11,12 +11,11 @@ export const FILE_PATHS = Object.freeze({
 
     // Files in database directory
     FILES: {
-      INIT: "init.ts",
-      CONNECTION: "connection.ts",
-      SEQUELIZE: "sequelize.ts",
-      DATA_SOURCE: "data-source.ts",
-      CLIENT: "client.ts",
-      SCHEMA: "schema.prisma",
+      CONNECTION: "database.ts",
+      //   SEQUELIZE: "sequelize.ts",
+      //   DATA_SOURCE: "data-source.ts",
+      //   CLIENT: "client.ts",
+      //   SCHEMA: "schema.prisma",
     },
   },
 
@@ -25,7 +24,6 @@ export const FILE_PATHS = Object.freeze({
     // Default model filenames
     FILES: {
       EXAMPLE: "Example.ts",
-      USER: "User.ts",
       INDEX: "index.ts",
     },
   },

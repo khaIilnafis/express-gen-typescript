@@ -67,6 +67,7 @@ export class Server {
     {{middlewareSetup}}
   }
 
+  // Database connection methods
   {{databaseMethod}}
 
   {{websocketMethod}}

@@ -4,7 +4,15 @@
 
 import path from "path";
 import fs from "fs";
-import { DATABASES, TEMPLATES, ERRORS, MESSAGES } from "../constants/index.js";
+import {
+  DATABASES,
+  TEMPLATES,
+  ERRORS,
+  MESSAGES,
+  DIRECTORIES,
+  FILE_PATHS,
+  APP,
+} from "../constants/index.js";
 import {
   getTemplatePath,
   loadTemplate,
@@ -50,11 +58,15 @@ export class DatabaseSetupHelper {
     const { destination } = context;
 
     // Create main database directories
-    const modelsDir = path.join(destination, "src", "models");
-    const configDir = path.join(destination, "src", "config");
+    const modelsDir = path.join(destination, "src", DIRECTORIES.SRC.MODELS);
+    const databaseDir = path.join(
+      destination,
+      "src",
+      FILE_PATHS.DATABASE.DIRECTORY
+    );
 
     ensureDirectoryExists(modelsDir);
-    ensureDirectoryExists(configDir);
+    ensureDirectoryExists(databaseDir);
 
     // Create additional subdirectories if specified
     for (const subdir of subdirectories) {
@@ -139,7 +151,14 @@ export class DatabaseSetupHelper {
     const packageJsonPath = path.join(destination, "package.json");
 
     if (!fs.existsSync(packageJsonPath)) {
-      console.error(`File not found: package.json`);
+      console.log(
+        "Package.json not found. Database scripts will be added during package initialization."
+      );
+
+      // Store scripts to be added later
+      // We'll add these scripts when package.json is created
+      const dbScriptsPath = path.join(destination, ".db-scripts.json");
+      fs.writeFileSync(dbScriptsPath, JSON.stringify(scripts, null, 2));
       return;
     }
 
@@ -158,7 +177,7 @@ export class DatabaseSetupHelper {
     context: DatabaseSetupContext,
     serverFilePath: string
   ): void {
-    const { options } = context;
+    const { options, databaseName } = context;
     const databaseType = options?.database || "";
 
     if (!fs.existsSync(serverFilePath)) {
@@ -171,87 +190,28 @@ export class DatabaseSetupHelper {
       case DATABASES.TYPES.SEQUELIZE:
         addImportIfNotExists(
           serverFilePath,
-          "import sequelize from './config/database.js';"
+          `import { initializeSequelize } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECTION}';`
         );
         break;
       case DATABASES.TYPES.TYPEORM:
         addImportIfNotExists(
           serverFilePath,
-          "import { AppDataSource } from './config/database.js';"
+          `import { initializeTypeORM } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECTION}';`
         );
         break;
       case DATABASES.TYPES.PRISMA:
         addImportIfNotExists(
           serverFilePath,
-          "import { PrismaClient } from '@prisma/client';\nconst prisma = new PrismaClient();"
+          `import { initializePrisma } from './${FILE_PATHS.DATABASE.DIRECTORY}/prisma-client';`
         );
         break;
       case DATABASES.TYPES.MONGOOSE:
-        addImportIfNotExists(serverFilePath, "import './config/database.js';");
+        addImportIfNotExists(
+          serverFilePath,
+          `import { initializeMongoose } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECTION}';`
+        );
         break;
     }
-
-    // Add database connection code
-    let connectionCode = "";
-    switch (databaseType) {
-      case DATABASES.TYPES.SEQUELIZE:
-        connectionCode = `
-// Database connection
-sequelize
-  .authenticate()
-  .then(() => {
-    console.log('Database connection established successfully');
-  })
-  .catch((err) => {
-    console.error('Unable to connect to the database:', err);
-  });`;
-        break;
-      case DATABASES.TYPES.TYPEORM:
-        connectionCode = `
-// Database connection
-AppDataSource.initialize()
-  .then(() => {
-    console.log('Database connection established successfully');
-  })
-  .catch((err) => {
-    console.error('Unable to connect to the database:', err);
-  });`;
-        break;
-      case DATABASES.TYPES.PRISMA:
-        connectionCode = `
-// Database connection
-(async () => {
-  try {
-    await prisma.$connect();
-    console.log('Database connection established successfully');
-  } catch (err) {
-    console.error('Unable to connect to the database:', err);
-    await prisma.$disconnect();
-    process.exit(1);
-  }
-})();
-
-// Close Prisma connection when app terminates
-process.on('SIGINT', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});`;
-        break;
-      case DATABASES.TYPES.MONGOOSE:
-        // Connection is handled in the database config file
-        break;
-    }
-
-    if (connectionCode) {
-      // Insert connection code at the appropriate marker
-      insertContentAtMarker(
-        serverFilePath,
-        FILE_MARKERS.SERVER.DATABASE_CONNECTION,
-        connectionCode,
-        "after"
-      );
-    }
-
     console.log("Updated server.ts with database connection");
   }
 
@@ -277,34 +237,62 @@ process.on('SIGINT', async () => {
 
       // Read existing content
       let envContent = fs.readFileSync(envFilePath, "utf8");
+      const dbSectionMarker = FILE_MARKERS.ENV.DATABASE;
 
-      // Check if database section exists
-      if (!envContent.includes(FILE_MARKERS.ENV.DATABASE)) {
-        envContent += `\n${FILE_MARKERS.ENV.DATABASE}\n`;
+      // Determine if we need to update or append
+      if (envContent.includes(dbSectionMarker)) {
+        // Find the section and extract the content following it
+        const markerIndex = envContent.indexOf(dbSectionMarker);
+        const nextSectionIndex = findNextSectionMarker(envContent, markerIndex);
 
-        // Add each env var
+        // Extract the portion before and after the section to replace
+        const beforeSection = envContent.substring(
+          0,
+          markerIndex + dbSectionMarker.length
+        );
+        const afterSection =
+          nextSectionIndex !== -1 ? envContent.substring(nextSectionIndex) : "";
+
+        // Format the new env variables
+        const newDbVars = Object.entries(envVars)
+          .map(([key, value]) => `${key}=${value}`)
+          .join("\n");
+
+        // Create the updated content
+        const updatedContent =
+          beforeSection + "\n" + newDbVars + "\n" + afterSection;
+
+        // Write back to the file
+        fs.writeFileSync(envFilePath, updatedContent);
+      } else {
+        // If the section doesn't exist, append it
+        let updatedContent = envContent;
+        // Ensure there's a newline at the end if not already present
+        if (!updatedContent.endsWith("\n")) {
+          updatedContent += "\n";
+        }
+
+        // Add a blank line for separation
+        updatedContent += "\n" + dbSectionMarker + "\n";
+
+        // Add the environment variables
         Object.entries(envVars).forEach(([key, value]) => {
-          envContent += `${key}=${value}\n`;
+          updatedContent += `${key}=${value}\n`;
         });
 
         // Write updated content
-        fs.writeFileSync(envFilePath, envContent);
-      } else {
-        // Update existing section
-        replaceContentBetweenMarkers(
-          envFilePath,
-          FILE_MARKERS.ENV.DATABASE,
-          "\n",
-          Object.entries(envVars)
-            .map(([key, value]) => `${key}=${value}`)
-            .join("\n") + "\n"
-        );
+        fs.writeFileSync(envFilePath, updatedContent);
       }
     } else {
       console.log("Creating .env file with database environment variables");
 
-      // Create new .env file
-      let envContent = `${FILE_MARKERS.ENV.DATABASE}\n`;
+      // Create new .env file with proper sections
+      let envContent = `${FILE_MARKERS.ENV.APP}\n`;
+      envContent += `PORT=${APP.DEFAULTS.PORT}\n`;
+      envContent += `NODE_ENV=${APP.ENV.DEVELOPMENT}\n\n`;
+
+      // Add database section
+      envContent += FILE_MARKERS.ENV.DATABASE + "\n";
 
       // Add each env var
       Object.entries(envVars).forEach(([key, value]) => {
@@ -393,7 +381,12 @@ async function setupSequelize(context: DatabaseSetupContext): Promise<void> {
   DatabaseSetupHelper.createDatabaseDirectories(context, ["migrations"]);
 
   // Create config file
-  const configPath = path.join(destination, "src", "config", "database.ts");
+  const configPath = path.join(
+    destination,
+    "src",
+    FILE_PATHS.DATABASE.DIRECTORY,
+    FILE_PATHS.DATABASE.FILES.CONNECTION
+  );
   DatabaseSetupHelper.writeConfigFile(
     context,
     TEMPLATES.DATABASE.SEQUELIZE.CONFIG,
@@ -413,7 +406,6 @@ async function setupSequelize(context: DatabaseSetupContext): Promise<void> {
   DatabaseSetupHelper.createModels(
     context,
     {
-      user: TEMPLATES.DATABASE.SEQUELIZE.USER_MODEL,
       example: TEMPLATES.DATABASE.SEQUELIZE.EXAMPLE_MODEL,
     },
     "models"
@@ -447,7 +439,12 @@ async function setupTypeORM(context: DatabaseSetupContext): Promise<void> {
   ]);
 
   // Create config file
-  const configPath = path.join(destination, "src", "config", "database.ts");
+  const configPath = path.join(
+    destination,
+    "src",
+    FILE_PATHS.DATABASE.DIRECTORY,
+    FILE_PATHS.DATABASE.FILES.CONNECTION
+  );
   DatabaseSetupHelper.writeConfigFile(
     context,
     TEMPLATES.DATABASE.TYPEORM.CONFIG,
@@ -459,8 +456,7 @@ async function setupTypeORM(context: DatabaseSetupContext): Promise<void> {
   DatabaseSetupHelper.createModels(
     context,
     {
-      user: TEMPLATES.DATABASE.TYPEORM.USER_ENTITY,
-      example: TEMPLATES.DATABASE.TYPEORM.EXAMPLE_ENTITY,
+      example: TEMPLATES.DATABASE.TYPEORM.EXAMPLE_MODEL,
     },
     "entity"
   );
@@ -489,17 +485,19 @@ async function setupPrisma(context: DatabaseSetupContext): Promise<void> {
   const { destination, databaseName } = context;
 
   // Create directories
-  DatabaseSetupHelper.createDatabaseDirectories(context, ["prisma"]);
+  DatabaseSetupHelper.createDatabaseDirectories(context);
 
-  // Create prisma directory
-  const prismaDir = path.join(destination, "prisma");
-  ensureDirectoryExists(prismaDir);
+  // Create schema file in src/database directory
+  const schemaPath = path.join(
+    destination,
+    "src",
+    FILE_PATHS.DATABASE.DIRECTORY,
+    FILE_PATHS.DATABASE.FILES.CONNECTION
+  );
 
-  // Create schema file
-  const schemaPath = path.join(prismaDir, "schema.prisma");
   DatabaseSetupHelper.writeConfigFile(
     context,
-    TEMPLATES.DATABASE.PRISMA.SCHEMA,
+    TEMPLATES.DATABASE.PRISMA.EXAMPLE_MODEL,
     schemaPath,
     { databaseName }
   );
@@ -510,10 +508,10 @@ async function setupPrisma(context: DatabaseSetupContext): Promise<void> {
 
   // Update package.json with scripts
   DatabaseSetupHelper.updatePackageJson(context, {
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
-    "db:generate": "prisma generate",
+    "db:push": "prisma db push --schema=./src/database/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=./src/database/schema.prisma",
+    "db:studio": "prisma studio --schema=./src/database/schema.prisma",
+    "db:generate": "prisma generate --schema=./src/database/schema.prisma",
   });
 
   // Setup environment variables
@@ -531,7 +529,12 @@ async function setupMongoose(context: DatabaseSetupContext): Promise<void> {
   DatabaseSetupHelper.createDatabaseDirectories(context);
 
   // Create config file
-  const configPath = path.join(destination, "src", "config", "database.ts");
+  const configPath = path.join(
+    destination,
+    "src",
+    FILE_PATHS.DATABASE.DIRECTORY,
+    FILE_PATHS.DATABASE.FILES.CONNECTION
+  );
   DatabaseSetupHelper.writeConfigFile(
     context,
     TEMPLATES.DATABASE.MONGOOSE.CONFIG,
@@ -543,7 +546,6 @@ async function setupMongoose(context: DatabaseSetupContext): Promise<void> {
   DatabaseSetupHelper.createModels(
     context,
     {
-      user: TEMPLATES.DATABASE.MONGOOSE.USER_MODEL,
       example: TEMPLATES.DATABASE.MONGOOSE.EXAMPLE_MODEL,
     },
     "models"
@@ -555,4 +557,25 @@ async function setupMongoose(context: DatabaseSetupContext): Promise<void> {
 
   // Setup environment variables
   DatabaseSetupHelper.setupEnvironmentVariables(context);
+}
+
+/**
+ * Helper function to find the next section marker in .env file
+ * @param content - File content
+ * @param startPosition - Position to start searching from
+ * @returns Position of the next marker or -1 if none found
+ */
+function findNextSectionMarker(content: string, startPosition: number): number {
+  const possibleMarkers = Object.values(FILE_MARKERS.ENV);
+  let nextPosition = -1;
+
+  // Find the position of each marker after the starting position
+  possibleMarkers.forEach((marker) => {
+    const position = content.indexOf(marker, startPosition + marker.length);
+    if (position !== -1 && (nextPosition === -1 || position < nextPosition)) {
+      nextPosition = position;
+    }
+  });
+
+  return nextPosition;
 }

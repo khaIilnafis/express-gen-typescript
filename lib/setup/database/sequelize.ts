@@ -37,19 +37,13 @@ async function setupSequelize(
     destination,
     DIRECTORIES.ROOT.SRC,
     FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.SEQUELIZE
+    FILE_PATHS.DATABASE.FILES.CONNECTION
   );
   const exampleModelPath = path.join(
     destination,
     DIRECTORIES.ROOT.SRC,
     DIRECTORIES.SRC.MODELS,
     FILE_PATHS.MODELS.FILES.EXAMPLE
-  );
-  const dbInitPath = path.join(
-    destination,
-    DIRECTORIES.ROOT.SRC,
-    FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.INIT
   );
 
   // Get database name from options or use default
@@ -61,7 +55,7 @@ async function setupSequelize(
 
   // Create database config file using template
   writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.DATABASE),
+    getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.CONFIG),
     dbConfigPath,
     {
       databaseName,
@@ -71,12 +65,12 @@ async function setupSequelize(
 
   // Create example model using template
   writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.EXAMPLE),
+    getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.EXAMPLE_MODEL),
     exampleModelPath
   );
 
-  // Create database init file using template
-  writeTemplate(getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT), dbInitPath);
+  //   // Create database init file using template
+  //   writeTemplate(getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT), dbInitPath);
 
   // Create models index.ts file
   createModelsIndexFile(destination, DATABASES.TYPES.SEQUELIZE, "Example");

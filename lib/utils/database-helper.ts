@@ -130,100 +130,6 @@ export function getDatabaseEnvVars(
 }
 
 /**
- * Returns the database connection code based on the database type
- * @param dbType The type of database
- * @param options Configuration options for the connection
- * @returns The database connection code as a string
- */
-export function getDatabaseConnectionCode(
-  dbType: string,
-  options: {
-    databaseName: string;
-    pgUser: string;
-    pgPassword: string;
-    pgHost: string;
-    pgPort: string;
-  }
-): string {
-  // Define a more flexible type for template variables
-  type DatabaseTemplateVars = {
-    databaseName: string;
-    pgUser: string;
-    pgPassword: string;
-    pgHost: string;
-    pgPort: string;
-    mongoUri: string;
-    errorMessage: string;
-    sequelizeDialect: string;
-    defaultDbType: string;
-    successMessage?: string;
-    modelsPath?: string;
-    entitiesPath?: string;
-  };
-
-  // Base template variables shared by all database types
-  const templateVars: DatabaseTemplateVars = {
-    databaseName: options.databaseName,
-    pgUser: options.pgUser,
-    pgPassword: options.pgPassword,
-    pgHost: options.pgHost,
-    pgPort: options.pgPort,
-    mongoUri: `mongodb://localhost:27017/${options.databaseName}`,
-    errorMessage: ERRORS.MESSAGES.DATABASE.CONNECTION_FAILED,
-    sequelizeDialect: "postgres",
-    defaultDbType: DATABASE_CONFIG.DEFAULT_TYPE,
-  };
-
-  // Add database-specific variables
-  switch (dbType) {
-    case DATABASES.TYPES.MONGOOSE:
-      templateVars.successMessage =
-        DATABASE_MESSAGES.CONNECTION_SUCCESS.MONGOOSE;
-      break;
-    case DATABASES.TYPES.PRISMA:
-      templateVars.successMessage = DATABASE_MESSAGES.CONNECTION_SUCCESS.PRISMA;
-      break;
-    case DATABASES.TYPES.TYPEORM:
-      templateVars.successMessage =
-        DATABASE_MESSAGES.CONNECTION_SUCCESS.TYPEORM;
-      templateVars.entitiesPath = DATABASE_PATHS.MODELS.TYPEORM;
-      break;
-    case DATABASES.TYPES.SEQUELIZE:
-      templateVars.successMessage =
-        DATABASE_MESSAGES.CONNECTION_SUCCESS.SEQUELIZE;
-      templateVars.modelsPath = DATABASE_PATHS.MODELS.SEQUELIZE;
-      break;
-  }
-
-  // Get the template path based on database type
-  let templatePath: string;
-  switch (dbType) {
-    case DATABASES.TYPES.MONGOOSE:
-      templatePath = getTemplatePath(
-        TEMPLATES.DATABASE.MONGOOSE.CONNECTION_CODE
-      );
-      break;
-    case DATABASES.TYPES.PRISMA:
-      templatePath = getTemplatePath(TEMPLATES.DATABASE.PRISMA.CONNECTION_CODE);
-      break;
-    case DATABASES.TYPES.TYPEORM:
-      templatePath = getTemplatePath(
-        TEMPLATES.DATABASE.TYPEORM.CONNECTION_CODE
-      );
-      break;
-    case DATABASES.TYPES.SEQUELIZE:
-      templatePath = getTemplatePath(
-        TEMPLATES.DATABASE.SEQUELIZE.CONNECTION_CODE
-      );
-      break;
-    default:
-      throw new Error(`Unsupported database type: ${dbType}`);
-  }
-
-  return loadTemplate(templatePath, templateVars);
-}
-
-/**
  * Updates server.ts file to include database initialization
  * @param destination - Project destination directory
  * @returns true if the update was successful, false otherwise
@@ -254,23 +160,8 @@ export function updateServerWithDatabaseInit(destination: string): boolean {
       );
       serverFileContent =
         serverFileContent.substring(0, lastImportLineEnd + 1) +
-        `import { initializeDatabase } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.INIT}';\n` +
+        `import { initializeDatabase } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECTION}';\n` +
         serverFileContent.substring(lastImportLineEnd + 1);
-    }
-
-    // Add database initialization to start method if it doesn't already exist
-    if (!serverFileContent.includes("await initializeDatabase()")) {
-      const startMethodIndex = serverFileContent.indexOf(
-        "public async start()"
-      );
-      if (startMethodIndex !== -1) {
-        const startMethodBodyIndex =
-          serverFileContent.indexOf("{", startMethodIndex) + 1;
-        serverFileContent =
-          serverFileContent.substring(0, startMethodBodyIndex) +
-          `\n    // Initialize database\n    await initializeDatabase();\n` +
-          serverFileContent.substring(startMethodBodyIndex);
-      }
     }
 
     fs.writeFileSync(serverFilePath, serverFileContent);
