@@ -1,6 +1,16 @@
 import path from "path";
-import fs from "fs";
+import {
+  TEMPLATES,
+  DATABASES,
+  DIRECTORIES,
+  FILE_PATHS,
+} from "../../constants/index.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import {
+  normalizeDatabaseName,
+  updateServerWithDatabaseInit,
+  createModelsIndexFile,
+} from "../../utils/database-helper.js";
 
 /**
  * Options for Mongoose setup
@@ -23,29 +33,30 @@ async function setupMongoose(
   // Define paths for destination files
   const dbConfigPath = path.join(
     destination,
-    "src",
-    "database",
-    "connection.ts"
+    DIRECTORIES.ROOT.SRC,
+    FILE_PATHS.DATABASE.DIRECTORY,
+    FILE_PATHS.DATABASE.FILES.CONNECTION
   );
   const exampleModelPath = path.join(
     destination,
-    "src",
-    "models",
-    "Example.ts"
+    DIRECTORIES.ROOT.SRC,
+    DIRECTORIES.SRC.MODELS,
+    FILE_PATHS.MODELS.FILES.EXAMPLE
   );
-  const dbInitPath = path.join(destination, "src", "database", "init.ts");
+  const dbInitPath = path.join(
+    destination,
+    DIRECTORIES.ROOT.SRC,
+    FILE_PATHS.DATABASE.DIRECTORY,
+    FILE_PATHS.DATABASE.FILES.INIT
+  );
 
   // Get database name from options or use default
   const databaseName =
-    options.databaseName ||
-    path
-      .basename(destination)
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "_");
+    options.databaseName || normalizeDatabaseName(path.basename(destination));
 
   // Create database config file using template
   writeTemplate(
-    getTemplatePath("database/mongoose/connection.ts"),
+    getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.CONNECTION),
     dbConfigPath,
     {
       databaseName,
@@ -54,58 +65,18 @@ async function setupMongoose(
 
   // Create example model using template
   writeTemplate(
-    getTemplatePath("models/mongoose/Example.ts"),
+    getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.EXAMPLE),
     exampleModelPath
   );
+
   // Create database init file using template
-  writeTemplate(getTemplatePath("database/mongoose/init.ts"), dbInitPath);
+  writeTemplate(getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.INIT), dbInitPath);
 
   // Create models index.ts file
-  const modelsIndexPath = path.join(destination, "src", "models", "index.ts");
-  const modelsIndexContent = `export { Example } from './Example';\n`;
-  fs.writeFileSync(modelsIndexPath, modelsIndexContent);
+  createModelsIndexFile(destination, DATABASES.TYPES.MONGOOSE, "Example");
 
   // Update server.ts to initialize database on startup
-  const serverFilePath = path.join(destination, "src", "server.ts");
-
-  if (fs.existsSync(serverFilePath)) {
-    let serverFileContent = fs.readFileSync(serverFilePath, "utf8");
-
-    // Add import for database initialization if it doesn't already exist
-    if (!serverFileContent.includes("import { initializeDatabase }")) {
-      const lastImportIndex = serverFileContent.lastIndexOf("import");
-      const lastImportLineEnd = serverFileContent.indexOf(
-        "\n",
-        lastImportIndex
-      );
-      serverFileContent =
-        serverFileContent.substring(0, lastImportLineEnd + 1) +
-        "import { initializeDatabase } from './database/init';\n" +
-        serverFileContent.substring(lastImportLineEnd + 1);
-    }
-
-    // Add database initialization to start method if it doesn't already exist
-    if (!serverFileContent.includes("await initializeDatabase()")) {
-      const startMethodIndex = serverFileContent.indexOf(
-        "public async start()"
-      );
-      if (startMethodIndex !== -1) {
-        const startMethodBodyIndex =
-          serverFileContent.indexOf("{", startMethodIndex) + 1;
-        serverFileContent =
-          serverFileContent.substring(0, startMethodBodyIndex) +
-          "\n    // Initialize database\n    await initializeDatabase();\n" +
-          serverFileContent.substring(startMethodBodyIndex);
-      }
-    }
-
-    fs.writeFileSync(serverFilePath, serverFileContent);
-    // console.log("Updated server.ts to initialize database");
-  } else {
-    console.log(
-      "Warning: server.ts not found, skipping database initialization setup"
-    );
-  }
+  updateServerWithDatabaseInit(destination);
 }
 
 export default setupMongoose;

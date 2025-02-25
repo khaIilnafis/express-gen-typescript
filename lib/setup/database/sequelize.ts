@@ -1,6 +1,16 @@
 import path from "path";
-import fs from "fs";
+import {
+  TEMPLATES,
+  DATABASES,
+  DIRECTORIES,
+  FILE_PATHS,
+} from "../../constants/index.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import {
+  normalizeDatabaseName,
+  updateServerWithDatabaseInit,
+  createModelsIndexFile,
+} from "../../utils/database-helper.js";
 
 /**
  * Options for Sequelize setup
@@ -25,32 +35,33 @@ async function setupSequelize(
   // Define paths for destination files
   const dbConfigPath = path.join(
     destination,
-    "src",
-    "database",
-    "sequelize.ts"
+    DIRECTORIES.ROOT.SRC,
+    FILE_PATHS.DATABASE.DIRECTORY,
+    FILE_PATHS.DATABASE.FILES.SEQUELIZE
   );
   const exampleModelPath = path.join(
     destination,
-    "src",
-    "models",
-    "Example.ts"
+    DIRECTORIES.ROOT.SRC,
+    DIRECTORIES.SRC.MODELS,
+    FILE_PATHS.MODELS.FILES.EXAMPLE
   );
-  const dbInitPath = path.join(destination, "src", "database", "init.ts");
+  const dbInitPath = path.join(
+    destination,
+    DIRECTORIES.ROOT.SRC,
+    FILE_PATHS.DATABASE.DIRECTORY,
+    FILE_PATHS.DATABASE.FILES.INIT
+  );
 
   // Get database name from options or use default
   const databaseName =
-    options.databaseName ||
-    path
-      .basename(destination)
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "_");
+    options.databaseName || normalizeDatabaseName(path.basename(destination));
 
   // Get dialect from options or use default
   const dialect = options.dialect || "postgres";
 
   // Create database config file using template
   writeTemplate(
-    getTemplatePath("database/sequelize/database.ts"),
+    getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.DATABASE),
     dbConfigPath,
     {
       databaseName,
@@ -60,77 +71,18 @@ async function setupSequelize(
 
   // Create example model using template
   writeTemplate(
-    getTemplatePath("models/sequelize/Example.ts"),
+    getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.EXAMPLE),
     exampleModelPath
   );
 
   // Create database init file using template
-  writeTemplate(getTemplatePath("database/sequelize/init.ts"), dbInitPath);
+  writeTemplate(getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT), dbInitPath);
 
   // Create models index.ts file
-  const modelsIndexPath = path.join(destination, "src", "models", "index.ts");
-  const modelsIndexContent = `// Export Example models and types
-import Example from './Example';
-
-export { Example };
-`;
-  fs.writeFileSync(modelsIndexPath, modelsIndexContent);
-  // Update init.ts to import Example model
-  if (fs.existsSync(dbInitPath)) {
-    let initContent = fs.readFileSync(dbInitPath, "utf8");
-
-    // Add import for Example model if it doesn't exist
-    if (!initContent.includes('import "../models/Example"')) {
-      initContent = initContent.replace(
-        'import "../models/Example";',
-        'import "../models/Example";// import all models here\n'
-      );
-      fs.writeFileSync(dbInitPath, initContent);
-      console.log("Updated database init file to import Example model");
-    }
-  }
+  createModelsIndexFile(destination, DATABASES.TYPES.SEQUELIZE, "Example");
 
   // Update server.ts to initialize database on startup
-  const serverFilePath = path.join(destination, "src", "server.ts");
-
-  if (fs.existsSync(serverFilePath)) {
-    let serverFileContent = fs.readFileSync(serverFilePath, "utf8");
-
-    // Add import for database initialization if it doesn't already exist
-    if (!serverFileContent.includes("import { initializeDatabase }")) {
-      const lastImportIndex = serverFileContent.lastIndexOf("import");
-      const lastImportLineEnd = serverFileContent.indexOf(
-        "\n",
-        lastImportIndex
-      );
-      serverFileContent =
-        serverFileContent.substring(0, lastImportLineEnd + 1) +
-        "import { initializeDatabase } from './database/init';\n" +
-        serverFileContent.substring(lastImportLineEnd + 1);
-    }
-
-    // Add database initialization to start method if it doesn't already exist
-    if (!serverFileContent.includes("await initializeDatabase()")) {
-      const startMethodIndex = serverFileContent.indexOf(
-        "public async start()"
-      );
-      if (startMethodIndex !== -1) {
-        const startMethodBodyIndex =
-          serverFileContent.indexOf("{", startMethodIndex) + 1;
-        serverFileContent =
-          serverFileContent.substring(0, startMethodBodyIndex) +
-          "\n    // Initialize database\n    await initializeDatabase();\n" +
-          serverFileContent.substring(startMethodBodyIndex);
-      }
-    }
-
-    fs.writeFileSync(serverFilePath, serverFileContent);
-    // console.log("Updated server.ts to initialize database");
-  } else {
-    console.log(
-      "Warning: server.ts not found, skipping database initialization setup"
-    );
-  }
+  updateServerWithDatabaseInit(destination);
 }
 
 export default setupSequelize;

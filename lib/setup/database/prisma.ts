@@ -1,6 +1,17 @@
 import path from "path";
 import fs from "fs";
+import {
+  TEMPLATES,
+  DATABASES,
+  DIRECTORIES,
+  FILE_PATHS,
+} from "../../constants/index.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import {
+  normalizeDatabaseName,
+  updateServerWithDatabaseInit,
+  createModelsIndexFile,
+} from "../../utils/database-helper.js";
 
 /**
  * Options for Prisma setup
@@ -22,10 +33,17 @@ async function setupPrisma(
   console.log("Setting up Prisma ORM...");
 
   // Define paths for destination files
-  const prismaDir = path.join(destination, "src", "database");
-  const prismaSchemaPath = path.join(prismaDir, "schema.prisma");
-  const dbClientPath = path.join(prismaDir, "client.ts");
-  const dbInitPath = path.join(prismaDir, "init.ts");
+  const prismaDir = path.join(
+    destination,
+    DIRECTORIES.ROOT.SRC,
+    FILE_PATHS.DATABASE.DIRECTORY
+  );
+  const prismaSchemaPath = path.join(
+    prismaDir,
+    FILE_PATHS.DATABASE.FILES.SCHEMA
+  );
+  const dbClientPath = path.join(prismaDir, FILE_PATHS.DATABASE.FILES.CLIENT);
+  const dbInitPath = path.join(prismaDir, FILE_PATHS.DATABASE.FILES.INIT);
 
   // Create prisma directory if it doesn't exist
   if (!fs.existsSync(prismaDir)) {
@@ -34,15 +52,11 @@ async function setupPrisma(
 
   // Get database name from options or use default
   const databaseName =
-    options.databaseName ||
-    path
-      .basename(destination)
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "_");
+    options.databaseName || normalizeDatabaseName(path.basename(destination));
 
   // Create Prisma schema file using template with Example model
   writeTemplate(
-    getTemplatePath("database/prisma/schema.prisma"),
+    getTemplatePath(TEMPLATES.DATABASE.PRISMA.SCHEMA),
     prismaSchemaPath,
     {
       databaseName,
@@ -50,67 +64,29 @@ async function setupPrisma(
   );
 
   // Create database client file using template
-  writeTemplate(getTemplatePath("database/prisma/client.ts"), dbClientPath);
+  writeTemplate(
+    getTemplatePath(TEMPLATES.DATABASE.PRISMA.CLIENT),
+    dbClientPath
+  );
 
   // Create database init file using template
-  writeTemplate(getTemplatePath("database/prisma/init.ts"), dbInitPath);
+  writeTemplate(getTemplatePath(TEMPLATES.DATABASE.PRISMA.INIT), dbInitPath);
 
   // Add example model type definitions
-  const modelsDir = path.join(destination, "src", "models");
+  const modelsDir = path.join(
+    destination,
+    DIRECTORIES.ROOT.SRC,
+    DIRECTORIES.SRC.MODELS
+  );
   if (!fs.existsSync(modelsDir)) {
     fs.mkdirSync(modelsDir, { recursive: true });
   }
 
   // Create models index.ts file
-  const modelsIndexPath = path.join(modelsDir, "index.ts");
-  const modelsIndexContent = `// Export Prisma models and types
-import prisma from '@prisma/client';
-
-export { prisma };
-`;
-  fs.writeFileSync(modelsIndexPath, modelsIndexContent);
+  createModelsIndexFile(destination, DATABASES.TYPES.PRISMA);
 
   // Update server.ts to initialize database on startup
-  const serverFilePath = path.join(destination, "src", "server.ts");
-
-  if (fs.existsSync(serverFilePath)) {
-    let serverFileContent = fs.readFileSync(serverFilePath, "utf8");
-
-    // Add import for database initialization if it doesn't already exist
-    if (!serverFileContent.includes("import { initializeDatabase }")) {
-      const lastImportIndex = serverFileContent.lastIndexOf("import");
-      const lastImportLineEnd = serverFileContent.indexOf(
-        "\n",
-        lastImportIndex
-      );
-      serverFileContent =
-        serverFileContent.substring(0, lastImportLineEnd + 1) +
-        "import { initializeDatabase } from './database/init';\n" +
-        serverFileContent.substring(lastImportLineEnd + 1);
-    }
-
-    // Add database initialization to start method if it doesn't already exist
-    if (!serverFileContent.includes("await initializeDatabase()")) {
-      const startMethodIndex = serverFileContent.indexOf(
-        "public async start()"
-      );
-      if (startMethodIndex !== -1) {
-        const startMethodBodyIndex =
-          serverFileContent.indexOf("{", startMethodIndex) + 1;
-        serverFileContent =
-          serverFileContent.substring(0, startMethodBodyIndex) +
-          "\n    // Initialize database\n    await initializeDatabase();\n" +
-          serverFileContent.substring(startMethodBodyIndex);
-      }
-    }
-
-    fs.writeFileSync(serverFilePath, serverFileContent);
-    // console.log("Updated server.ts to initialize database");
-  } else {
-    console.log(
-      "Warning: server.ts not found, skipping database initialization setup"
-    );
-  }
+  updateServerWithDatabaseInit(destination);
 
   // Add Prisma commands to package.json scripts
   const packageJsonPath = path.join(destination, "package.json");
