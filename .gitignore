@@ -7,3 +7,7 @@ lib/project-files/config.js
 
 test/
 **/**/.DS_Store
+.pnp.cjs
+.pnp.loader.mjs
+.vscode
+.yarn

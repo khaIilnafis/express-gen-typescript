@@ -1,20 +1,18 @@
-<img alt='overnightjs' src='https://github.com/seanpmaxwell/express-generator-typescript/raw/master/express-typescript.png' border='0'>
+<img alt='overnightjs' src='https://github.com/khalilnafis/express-gen-typescript/raw/master/express-typescript.png' border='0'>
 
 [Express](https://www.npmjs.com/package/express) with [TypeScript's](https://www.npmjs.com/package/typescript) application generator.
 
-<a href="https://www.npmjs.com/package/express-generator-typescript" target="_blank"><img src="https://img.shields.io/npm/v/express-generator-typescript.svg" alt="NPM Version" /></a>
+<!-- <a href="https://www.npmjs.com/package/express-generator-typescript" target="_blank"><img src="https://img.shields.io/npm/v/express-generator-typescript.svg" alt="NPM Version" /></a>
 <a href="https://www.npmjs.com/package/express-generator-typescript" target="_blank"><img src="https://img.shields.io/npm/l/express-generator-typescript.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/package/express-generator-typescript" target="_blank"><img src="https://img.shields.io/npm/dm/express-generator-typescript.svg" alt="NPM Downloads" /></a>
+<a href="https://www.npmjs.com/package/express-generator-typescript" target="_blank"><img src="https://img.shields.io/npm/dm/express-generator-typescript.svg" alt="NPM Downloads" /></a> -->
 
 
 ## What is it?
 
 Creates a new express application similar to the _express-generator_ module. Except this new application is configured to use TypeScript instead of plain JavaScript. 
 
-This project complies with Typescript best practices listed <a href="https://github.com/seanpmaxwell/Typescript-Best-Practices/blob/main/README.md">here</a>.
 
-
-## Why express-generator-typescript?
+<!-- ## Why express-generator-typescript?
 
 NodeJS is great for the rapid development of web-projects, but is often neglected because of the lack of type safety. TypeScript solves this issue and (along with its linter file) can even make your code more robust than some other static languages like Java.
 
@@ -25,21 +23,12 @@ Due to the heavy use of single-page-applications, no view-engine is configured b
 In addition, relative paths are also setup, so you don't have to go through the trouble of installing and configuring _tsconfig-paths_ and _module-alias_. Just make sure to update `paths` in _tsconfig.json_ and `_moduleAliases` in _preload.js_ if you want to add/edit the relative paths.
 
 
-## Sample-project
-
-When you run _express-generator-typescript_, it sets up a simple application with routes for adding, updating, deleting, and fetching user objects. This is just to demonstrate how routing is done with express. 
-
-### `--with-auth` option no longer available for version 2.5+
-
-For the command-line, you used to be able to pass the `--with-auth` option to generate an app which required a login before using the routes; however, maintaining two separate projects became quite cumbersome. If you want an example of how to do authentication in expressjs with json-web-tokens you can refer to this sample project <a href="https://github.com/seanpmaxwell/express-jsonwebtoken-demo">here</a>.
-
-
 ## Installation
 
 ```sh
 $ Just use 'npx'
   Or
-$ npm install -g express-generator-typescript
+$ npm install -g express-gen-typescript
 ```
 
 
@@ -72,7 +61,7 @@ $ cd "project name" && npm run dev
 
 ## Debugging
 
-During development, _express-generator-typescript_ uses `nodemon` to restart the server when changes are detected. If you want to enable debugging for node, you'll need to modify the nodemon configurations. This is located under `nodemonConfig:` in `package.json` for the server and `./spec/nodemon.json` for unit-testing. For the `exec` property, replace `ts-node` with `node --inspect -r ts-node/register`.
+During development, _express-generator-typescript_ uses `nodemon` to restart the server when changes are detected. If you want to enable debugging for node, you'll need to modify the nodemon configurations. This is located under `nodemonConfig:` in `package.json` for the server and `./spec/nodemon.json` for unit-testing. For the `exec` property, replace `ts-node` with `node --inspect -r ts-node/register`. -->
 
 
 ## Note for VSCode users

@@ -1,19 +1,28 @@
 {
   "name": "express-generator-typescript",
-  "version": "2.5.16",
-  "description": "Generate new Express applications similar to express-generate which but sets it up to use TypeScript instead",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Express Generator for TypeScript",
   "scripts": {
-    "express-generator-typescript": "node bin/cli.js",
-    "start": "node bin/cli.js",
+    "build": "tsc && cp -r lib/templates dist/lib/",
+    "start": "node dist/bin/cli.js",
+    "dev": "ts-node bin/cli.ts",
+    "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "main": "lib/cli.js",
+  "main": "dist/lib/express-generator-typescript.js",
+  "types": "dist/lib/express-generator-typescript.d.ts",
   "bin": {
-    "express-generator-typescript": "bin/cli.js"
+    "express-gen-ts": "dist/bin/cli.js",
+    "express-generator-typescript": "dist/bin/cli.js"
   },
+  "files": [
+    "dist",
+    "lib/templates"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/seanpmaxwell/express-generator-typescript.git"
+    "url": "git+https://github.com/khaIilnafis/express-gen-typescript.git"
   },
   "keywords": [
     "express",
@@ -39,14 +48,24 @@
     "router",
     "routing"
   ],
-  "author": "sean maxwell",
+  "author": "khalilnafis",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/seanpmaxwell/express-generator-typescript/issues"
+    "url": "https://github.com/khaIilnafis/express-gen-typescript/issues"
   },
-  "homepage": "https://github.com/seanpmaxwell/express-generator-typescript#readme",
+  "homepage": "https://github.com/khaIilnafis/express-gen-typescript#readme",
   "dependencies": {
     "edit-json-file": "^1.7.0",
-    "ncp": "^2.0.0"
-  }
+    "inquirer": "^12.4.2"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.11.30",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "packageManager": "yarn@4.6.0+sha512.5383cc12567a95f1d668fbe762dfe0075c595b4bfff433be478dbbe24e05251a8e8c3eb992a986667c1d53b6c3a9c85b8398c35a960587fbd9fa3a0915406728"
 }
