@@ -1,84 +1,242 @@
-<!-- <img alt='overnightjs' src='https://github.com/khalilnafis/express-gen-typescript/raw/master/express-typescript.png' border='0'> -->
+# Express Generator TypeScript
 
-[Express](https://www.npmjs.com/package/express) with [TypeScript's](https://www.npmjs.com/package/typescript) application generator.
+<img alt='Express TypeScript Generator' src='express-typescript.png' width='500'>
 
-<!-- <a href="https://www.npmjs.com/package/express-generator-typescript" target="_blank"><img src="https://img.shields.io/npm/v/express-generator-typescript.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/package/express-generator-typescript" target="_blank"><img src="https://img.shields.io/npm/l/express-generator-typescript.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/package/express-generator-typescript" target="_blank"><img src="https://img.shields.io/npm/dm/express-generator-typescript.svg" alt="NPM Downloads" /></a> -->
+A powerful and customizable Express application generator with full TypeScript support.
 
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Node.js >=14.0.0](https://img.shields.io/badge/Node.js->%3D14.0.0-brightgreen.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-%5E5.4.3-blue.svg)](https://www.typescriptlang.org/)
 
-## What is it?
+## Table of Contents
 
-Creates a new express application similar to the _express-generator_ module. Except this new application is configured to use TypeScript instead of plain JavaScript. 
+- [Express Generator TypeScript](#express-generator-typescript)
+	- [Table of Contents](#table-of-contents)
+	- [Overview](#overview)
+	- [Key Features](#key-features)
+	- [Installation](#installation)
+		- [Using npx (recommended)](#using-npx-recommended)
+		- [Global Installation](#global-installation)
+	- [Quick Start](#quick-start)
+		- [Generate a New Project](#generate-a-new-project)
+		- [Interactive Configuration](#interactive-configuration)
+		- [Start Development](#start-development)
+	- [Project Structure](#project-structure)
+	- [Customization Options](#customization-options)
+		- [Database Integration](#database-integration)
+		- [Authentication](#authentication)
+		- [WebSockets](#websockets)
+		- [View Engines](#view-engines)
+	- [Available Commands](#available-commands)
+	- [Development](#development)
+	- [IDE Setup](#ide-setup)
+		- [VSCode Configuration](#vscode-configuration)
+	- [Contributing](#contributing)
+	- [License](#license)
 
+## Overview
 
-<!-- ## Why express-generator-typescript?
+Express Generator TypeScript creates new Express applications configured with TypeScript, similar to the official express-generator but with modern best practices, TypeScript integration, and additional features.
 
-NodeJS is great for the rapid development of web-projects, but is often neglected because of the lack of type safety. TypeScript solves this issue and (along with its linter file) can even make your code more robust than some other static languages like Java.
+The generated application includes:
+- Complete TypeScript configuration
+- Modern project structure with proper separation of concerns
+- ESLint with TypeScript support
+- Built-in development tools (hot reloading, testing)
+- Optional database integration
+- Optional authentication support
+- Optional websocket support
+- Optional view engine integration
 
-There are some other tools out there to generate express apps with TypeScript such as _express-generator-ts_, but these either haven't been updated in a while or install a lot of junk in your project (such as an ORM). 
+## Key Features
 
-Due to the heavy use of single-page-applications, no view-engine is configured by default. Express is only setup with the minimal settings for calling APIs and serving an index.html file. All the tools you need to run for development (while restarting on changes), building, testing, and running for production are packaged with this library. 
-
-In addition, relative paths are also setup, so you don't have to go through the trouble of installing and configuring _tsconfig-paths_ and _module-alias_. Just make sure to update `paths` in _tsconfig.json_ and `_moduleAliases` in _preload.js_ if you want to add/edit the relative paths.
-
+- **Type Safety**: Full TypeScript integration for robust application development
+- **Modular Architecture**: Clean separation of routes, controllers, services, and models
+- **Developer Experience**: Hot reloading for rapid development cycles
+- **Flexibility**: Customizable configurations to match project requirements
+- **Production Ready**: Optimized build configurations for deployment
+- **Testing Setup**: Pre-configured testing environment
 
 ## Installation
 
-```sh
-$ Just use 'npx'
-  Or
-$ npm install -g express-gen-typescript
+### Using npx (recommended)
+
+```bash
+# No installation needed, run directly with npx
+npx express-generator-typescript
 ```
 
+### Global Installation
+
+```bash
+# Install globally using yarn (recommended)
+yarn global add express-generator-typescript
+
+# Or using npm
+npm install -g express-generator-typescript
+```
 
 ## Quick Start
 
-The quickest way to get started is use npx and pass in the name of the project you want to create. If you don't specify a project name, the default _express-gen-ts_ will be used instead. If you want to use `yarn` instead of `npm`, pass the option `--use-yarn`.
+### Generate a New Project
 
-Create the app:<br/>
-With no options: `$ npx express-generator-typescript`<br/>
-With all options (order doesn't matter): `$ npx express-generator-typescript --use-yarn "project name"`
-
-
-Start your express-generator-typescript app in development mode at `http://localhost:3000/`:
-
+With default options:
 ```bash
-$ cd "project name" && npm run dev
+npx express-generator-typescript
 ```
 
+With a custom project name:
+```bash
+npx express-generator-typescript "my-express-app"
+```
 
-## Available commands for the server.
+### Interactive Configuration
 
-- Run the server in development mode: `npm run dev` or `npm run dev:hot`.
-- Run all unit-tests: `npm run test` or `npm run test:hot`.
-- Run a single unit-test: `npm test -- --testFile="name of test file" (i.e. --testFile=Users)`.
-- Check for linting errors: `npm run lint`.
-- Build the project for production: `npm run build`.
-- Run the production build: `npm start`.
-- Check for typescript errors: `npm run type-check"`.
+The generator will prompt you for various options to customize your project:
 
+- Project name
+- Database support (Sequelize, TypeORM, Prisma, Mongoose)
+- Authentication (Passport, JWT, Express-session)
+- WebSockets (Socket.io, WS)
+- View engines (EJS, Pug, Handlebars)
 
-## Debugging
+### Start Development
 
-During development, _express-generator-typescript_ uses `nodemon` to restart the server when changes are detected. If you want to enable debugging for node, you'll need to modify the nodemon configurations. This is located under `nodemonConfig:` in `package.json` for the server and `./spec/nodemon.json` for unit-testing. For the `exec` property, replace `ts-node` with `node --inspect -r ts-node/register`. -->
+```bash
+# Navigate to your project
+cd my-express-app
 
+# Install dependencies
+yarn
 
-## Note for VSCode users
+# Start development server with hot reloading
+yarn dev
+```
 
-In order to use eslint as a typescript file with VSCode, you need to add a setting to your eslint options. At the root of your project, add a `.vscode/settings.json` file (if you don't have one already) and add the option `unstable_ts_config`:
+Your application will be available at `http://localhost:3000/`.
 
-```typescript
+## Project Structure
+
+```
+my-express-app/
+├── src/
+│   ├── controllers/    # Request handlers
+│   ├── models/         # Data models
+│   ├── routes/         # Express routes
+│   ├── services/       # Business logic
+│   ├── middlewares/    # Express middlewares
+│   ├── utils/          # Utility functions
+│   ├── types/          # TypeScript type definitions
+│   ├── config/         # Configuration files
+│   └── app.ts          # Express application setup
+├── tests/              # Test files
+├── dist/               # Compiled JavaScript files
+├── .eslintrc.js        # ESLint configuration
+├── .gitignore          # Git ignore file
+├── tsconfig.json       # TypeScript configuration
+├── package.json        # Project dependencies and scripts
+└── README.md           # Project documentation
+```
+
+## Customization Options
+
+### Database Integration
+
+Choose from:
+- **Sequelize**: SQL ORM with support for PostgreSQL, MySQL, SQLite, and more
+- **TypeORM**: TypeScript-first ORM for SQL databases
+- **Prisma**: Next-generation ORM with type-safety and auto-generated queries
+- **Mongoose**: MongoDB ODM for Node.js
+
+### Authentication
+
+Choose from:
+- **Passport.js**: Comprehensive authentication middleware
+- **JWT**: JSON Web Token authentication
+- **Express-session**: Session-based authentication
+
+### WebSockets
+
+Choose from:
+- **Socket.io**: Feature-rich real-time communication
+- **WS**: Lightweight WebSocket implementation
+
+### View Engines
+
+Choose from:
+- **EJS**: Embedded JavaScript templates
+- **Pug**: High-performance template engine (formerly Jade)
+- **Handlebars**: Minimal templating on steroids
+
+## Available Commands
+
+In your generated project, you can use these scripts:
+
+```bash
+# Start development server with hot reloading
+yarn dev
+
+# Build for production
+yarn build
+
+# Start production server
+yarn start
+
+# Run tests
+yarn test
+
+# Lint code
+yarn lint
+
+# Check TypeScript errors
+yarn type-check
+```
+
+## Development
+
+To contribute to the express-generator-typescript itself:
+
+```bash
+# Clone the repository
+git clone https://github.com/khalilnafis/express-gen-typescript.git
+
+# Install dependencies
+cd express-gen-typescript
+yarn
+
+# Build the generator
+yarn build
+
+# Run the development version
+yarn dev
+```
+
+## IDE Setup
+
+### VSCode Configuration
+
+For the best development experience with VSCode, add these settings:
+
+```json
+{
   "eslint.options": {
     "flags": ["unstable_ts_config"]
   }
+}
 ```
-<br/>
 
+This enables proper ESLint integration with TypeScript files.
 
-Happy web deving :)
+## Contributing
 
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-[MIT](LICENSE)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
