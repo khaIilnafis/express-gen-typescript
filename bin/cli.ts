@@ -2,7 +2,7 @@
 
 import path from "path";
 import { promptForOptions } from "../lib/prompt.js";
-import { generateExpressTypeScriptApp } from "../lib/express-generator-typescript.js";
+import { generateExpressTypeScriptApp } from "../lib/index.js";
 
 /**
  * Main CLI entry point for express-generator-typescript
