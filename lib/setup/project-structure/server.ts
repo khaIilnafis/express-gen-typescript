@@ -22,7 +22,7 @@ import {
   SERVER_TYPE_DECLARATIONS,
   VIEW_ENGINES,
   SERVER_AUTH_MIDDLEWARE,
-  SERVER_DATABASE_PLACEHOLDER,
+  //   SERVER_DATABASE_PLACEHOLDER,
 } from "../../constants/index.js";
 
 // Import interface from index.ts
@@ -76,7 +76,7 @@ function generateServerFile(
 
   // Add database imports if selected
   if (database && database !== DATABASES.TYPES.NONE) {
-    templateVars.databaseMethod = SERVER_DATABASE_PLACEHOLDER;
+    // templateVars.databaseMethod = SERVER_DATABASE_PLACEHOLDER;
     templateVars.hasDatabaseMethod = true;
     templateVars.constructorCalls += SERVER_CONSTRUCTOR_CALLS.DATABASE;
   }

@@ -32,16 +32,16 @@ export const SERVER_IMPORTS = Object.freeze({
   // WebSocket imports (fallbacks when templates don't exist)
   WEBSOCKET: {
     SOCKETIO:
-      "// WebSocket imports\nimport { Server as SocketIOServer } from 'socket.io';\nimport setupSocketIO from './sockets';\n",
+      "// WebSocket imports\nimport { Server as SocketIOServer } from 'socket.io';\nimport {setupSocketHandlers} from './sockets';\n",
     WS: "// WebSocket imports\nimport WebSocket from 'ws';\nimport setupWebSocketServer from './sockets';\n",
   },
 
   // View engine imports
   VIEW_ENGINE: {
-    EJS: "// View engine imports\nimport path from 'path';\nimport expressLayouts from 'express-ejs-layouts';\n",
-    PUG: "// View engine imports\nimport path from 'path';\n",
+    EJS: "// View engine imports\nimport expressLayouts from 'express-ejs-layouts';\n",
+    PUG: "// View engine imports\n",
     HANDLEBARS:
-      "// View engine imports\nimport path from 'path';\nimport exphbs from 'express-handlebars';\n",
+      "// View engine import\nimport exphbs from 'express-handlebars';\n",
   },
 });
 
@@ -58,7 +58,7 @@ export const SERVER_CLASS_PROPERTIES = Object.freeze({
  * Server constructor calls for different features
  */
 export const SERVER_CONSTRUCTOR_CALLS = Object.freeze({
-  DATABASE: " this.connectToDatabase();\n",
+  DATABASE: "this.connectToDatabase();\n",
   WEBSOCKET: "    this.initializeWebSockets();\n",
 });
 
@@ -73,8 +73,8 @@ export const SERVER_AUTH_MIDDLEWARE = Object.freeze({
 /**
  * Database method placeholder
  */
-export const SERVER_DATABASE_PLACEHOLDER =
-  "// This will be replaced by actual database connection method";
+// export const SERVER_DATABASE_PLACEHOLDER =
+//   "// This will be replaced by actual database connection method";
 
 /**
  * WebSocket method implementations (fallbacks when templates don't exist)
@@ -90,7 +90,7 @@ export const SERVER_WEBSOCKET_METHODS = Object.freeze({
     });
     
     // Setup Socket.io event handlers
-    setupSocketIO(this.io);
+    setupSocketHandlers(this.io);
   }`,
   WS: `
   private initializeWebSockets(): void {

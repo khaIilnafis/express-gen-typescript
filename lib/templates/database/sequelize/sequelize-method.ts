@@ -1,6 +1,6 @@
 private async connectToDatabase(): Promise<void> {
   try {
-    await sequelize.authenticate();
+    await initializeDatabase();
     console.log('Database connection established successfully.');
   } catch (error) {
     console.error('Database connection error:', error);

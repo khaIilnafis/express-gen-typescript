@@ -24,6 +24,8 @@ export const BASE_DEV_DEPENDENCIES: Record<string, string> = Object.freeze({
   "@types/cors": "^2.8.14",
   "@types/morgan": "^1.9.5",
   "@types/compression": "^1.7.3",
+  "@types/dotenv": "^16.3.1",
+  "@types/helmet": "^7.0.0",
   rimraf: "^5.0.1",
   debug: "~2.6.9",
   nodemon: "^3.0.1",
@@ -169,6 +171,7 @@ export const FEATURE_DEPENDENCIES = Object.freeze({
       }),
       devDeps: Object.freeze({
         "@types/ejs": "^3.1.2",
+        "@types/express-ejs-layouts": "^2.5.1",
       }),
     }),
     handlebars: Object.freeze({

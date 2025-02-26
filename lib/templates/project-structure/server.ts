@@ -77,7 +77,7 @@ export class Server {
     {{socketRouterInit}}
     
     this.app.use('/api', router);
-    this.app.use("/api/*", (req, res) => {
+    this.app.use("/api/*", (req: Request, res: Response) => {
 		res.status(404).json({ error: "Not Found" });
 	  });
   }

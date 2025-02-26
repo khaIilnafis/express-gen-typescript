@@ -11,7 +11,8 @@ export const FILE_PATHS = Object.freeze({
 
     // Files in database directory
     FILES: {
-      CONNECTION: "database.ts",
+      CONNECTION: "index.ts",
+      CONNECT: "index",
       //   SEQUELIZE: "sequelize.ts",
       //   DATA_SOURCE: "data-source.ts",
       //   CLIENT: "client.ts",
@@ -21,6 +22,8 @@ export const FILE_PATHS = Object.freeze({
 
   // Model related paths
   MODELS: {
+    // Main models directory (src/models)
+    DIRECTORY: "models",
     // Default model filenames
     FILES: {
       EXAMPLE: "Example.ts",

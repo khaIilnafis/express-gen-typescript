@@ -179,7 +179,8 @@ export class DatabaseSetupHelper {
   ): void {
     const { options, databaseName } = context;
     const databaseType = options?.database || "";
-
+    console.log(`Firing with: `);
+    console.log(options);
     if (!fs.existsSync(serverFilePath)) {
       console.error(`File not found: server.ts`);
       return;
@@ -190,26 +191,34 @@ export class DatabaseSetupHelper {
       case DATABASES.TYPES.SEQUELIZE:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeSequelize } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECTION}';`
+          `import { initializeDatabase } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECT}';`
         );
+        // insertContentAtMarker(
+        //   serverFilePath,
+        //   FILE_MARKERS.SERVER.DATABASE_CONNECTION,
+        //   loadTemplate(getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT))
+        // );
         break;
       case DATABASES.TYPES.TYPEORM:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeTypeORM } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECTION}';`
+          `import { initializeDatabase } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECT}';`
         );
+        // loadTemplate(getTemplatePath(TEMPLATES.DATABASE.TYPEORM.INIT));
         break;
       case DATABASES.TYPES.PRISMA:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializePrisma } from './${FILE_PATHS.DATABASE.DIRECTORY}/prisma-client';`
+          `import { initializeDatabase } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECT}';`
         );
+        // loadTemplate(getTemplatePath(TEMPLATES.DATABASE.PRISMA.INIT));
         break;
       case DATABASES.TYPES.MONGOOSE:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeMongoose } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECTION}';`
+          `import { initializeDatabase } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECT}';`
         );
+        // loadTemplate(getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.INIT));
         break;
     }
     console.log("Updated server.ts with database connection");
@@ -375,7 +384,7 @@ export async function setupDatabaseWithHelper(
  * @param context - Database setup context
  */
 async function setupSequelize(context: DatabaseSetupContext): Promise<void> {
-  const { destination, databaseName } = context;
+  const { destination, databaseName, dialect } = context;
 
   // Create directories
   DatabaseSetupHelper.createDatabaseDirectories(context, ["migrations"]);
@@ -391,11 +400,16 @@ async function setupSequelize(context: DatabaseSetupContext): Promise<void> {
     context,
     TEMPLATES.DATABASE.SEQUELIZE.CONFIG,
     configPath,
-    { dialect: "mysql" }
+    { dialect: dialect ? dialect : "postgres" }
   );
 
   // Create models index
-  const modelsIndexPath = path.join(destination, "src", "models", "index.ts");
+  const modelsIndexPath = path.join(
+    destination,
+    "src",
+    FILE_PATHS.MODELS.DIRECTORY,
+    FILE_PATHS.MODELS.FILES.INDEX
+  );
   DatabaseSetupHelper.createDatabaseIndexFile(
     context,
     TEMPLATES.DATABASE.SEQUELIZE.MODEL_INDEX,
@@ -430,7 +444,7 @@ async function setupSequelize(context: DatabaseSetupContext): Promise<void> {
  * @param context - Database setup context
  */
 async function setupTypeORM(context: DatabaseSetupContext): Promise<void> {
-  const { destination, databaseName } = context;
+  const { destination, databaseName, dialect } = context;
 
   // Create directories
   DatabaseSetupHelper.createDatabaseDirectories(context, [
@@ -449,7 +463,7 @@ async function setupTypeORM(context: DatabaseSetupContext): Promise<void> {
     context,
     TEMPLATES.DATABASE.TYPEORM.CONFIG,
     configPath,
-    { dialect: "mysql" }
+    { dialect: dialect ? dialect : "postgres" }
   );
 
   // Create entity files

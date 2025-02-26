@@ -41,21 +41,25 @@ export const TEMPLATES = Object.freeze({
   // Database templates
   DATABASE: {
     SEQUELIZE: {
-      CONFIG: "database/sequelize/database.ts",
+      CONFIG: "database/sequelize/index.ts",
       MODEL_INDEX: "models/sequelize/index.ts",
       EXAMPLE_MODEL: "models/sequelize/Example.ts",
+      INIT: "database/sequelize/sequelize-method.ts",
     },
     TYPEORM: {
-      CONFIG: "database/typeorm/database.ts",
+      CONFIG: "database/typeorm/index.ts",
       EXAMPLE_MODEL: "models/typeorm/Example.entity.ts",
+      INIT: "database/typeorm/typeorm-method.ts",
     },
     PRISMA: {
       EXAMPLE_MODEL: "models/prisma/schema.prisma",
-      CONFIG: "database/prisma/database.ts",
+      CONFIG: "database/prisma/index.ts",
+      INIT: "database/prisma/prisma-method.ts",
     },
     MONGOOSE: {
-      CONFIG: "database/mongoose/database.ts",
+      CONFIG: "database/mongoose/index.ts",
       EXAMPLE_MODEL: "models/mongoose/Example.ts",
+      INIT: "database/mongoose/mongoose-method.ts",
     },
   },
 
