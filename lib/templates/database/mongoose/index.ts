@@ -18,7 +18,7 @@ process.on("SIGINT", async () => {
     process.exit(0);
   } catch (err) {
     console.error("Error closing Mongoose connection:", err);
-    process.exit(1);
+    // process.exit(1);
   }
 });
 

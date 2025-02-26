@@ -8,7 +8,6 @@ import morgan from 'morgan';
 import path from 'path';
 import http from 'http';
 
-{{databaseImports}}
 {{authImports}}
 {{websocketImports}}
 {{viewImports}}

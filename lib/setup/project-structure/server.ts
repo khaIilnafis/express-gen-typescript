@@ -17,6 +17,7 @@ import {
 
 // Import interface from index.ts
 import { ServerGeneratorOptions } from "./index.js";
+import { IMPORTS } from "../../constants/server/imports.js";
 
 /**
  * Generate server files (server.ts and server.d.ts)
@@ -48,6 +49,7 @@ export function generateServerFiles(
       classProperties: "",
       constructorCalls: "",
       middlewareSetup: "",
+	  databaseImports: "",
       databaseMethod: "",
       websocketMethod: "",
 	  viewPlaceholder: "",
@@ -59,6 +61,13 @@ export function generateServerFiles(
     // Add database imports if selected
     if (database && database !== DATABASE.TYPES.NONE) {
       templateVars.hasDatabaseMethod = true;
+	//   templateVars.databaseImports = ((dbType: string) => {
+    //     // Type guard to check if key exists in IMPORTS.DATABASE
+    //     if (dbType.toUpperCase() in IMPORTS.DATABASE) {
+    //       return IMPORTS.DATABASE[dbType.toUpperCase() as keyof typeof IMPORTS.DATABASE];
+    //     }
+    //     return "";
+    //   })(database);
       // Use the new SERVER constant for constructor calls
       templateVars.constructorCalls += SERVER.CONSTRUCTOR_CALLS.DATABASE;
     }

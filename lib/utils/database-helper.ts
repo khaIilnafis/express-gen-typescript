@@ -8,7 +8,6 @@ import {
   PROJECT,
   DATABASE,
 } from "../constants/index.js";
-import { getTemplatePath, loadTemplate } from "./template-loader.js";
 
 /**
  * Normalize a project name to a valid database name
@@ -125,11 +124,8 @@ export function getDatabaseEnvVars(
 
 /**
  * Update server.ts file to include database initialization
- * Uses the new PROJECT constant structure for path resolution
  */
 export function updateServerWithDatabaseInit(destination: string): boolean {
-  // Use both old and new constant structures during migration
-  // This allows gradual migration without breaking existing code
   const serverFilePath = path.join(
     destination,
     PROJECT.DIRECTORIES.ROOT.SRC,

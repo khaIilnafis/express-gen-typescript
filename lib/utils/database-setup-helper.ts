@@ -8,7 +8,6 @@ import {
   DATABASE,
   TEMPLATES,
   COMMON,
-  APP,
   PROJECT,
 } from "../constants/index.js";
 import {
@@ -190,7 +189,7 @@ export class DatabaseSetupHelper {
       case DATABASE.TYPES.SEQUELIZE:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECTION}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECT}';`
         );
         insertContentAtMarker(
           serverFilePath,
@@ -201,20 +200,35 @@ export class DatabaseSetupHelper {
       case DATABASE.TYPES.TYPEORM:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECTION}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECT}';`
         );
+		insertContentAtMarker(
+			serverFilePath,
+			FILE_MARKERS.SERVER.DATABASE_CONNECTION,
+			loadTemplate(getTemplatePath(TEMPLATES.DATABASE.TYPEORM.INIT))
+		  );
         break;
       case DATABASE.TYPES.PRISMA:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECTION}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECT}';`
         );
+		insertContentAtMarker(
+			serverFilePath,
+			FILE_MARKERS.SERVER.DATABASE_CONNECTION,
+			loadTemplate(getTemplatePath(TEMPLATES.DATABASE.PRISMA.INIT))
+		  );
         break;
       case DATABASE.TYPES.MONGOOSE:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECTION}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECT}';`
         );
+		insertContentAtMarker(
+			serverFilePath,
+			FILE_MARKERS.SERVER.DATABASE_CONNECTION,
+			loadTemplate(getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.INIT))
+		  );
         break;
     }
     console.log(`Updated ${PROJECT.FILES.SERVER.FILE} with database connection`);
