@@ -8,6 +8,9 @@ import { DIRECTORIES } from "./directories.js";
  * Type definitions for file paths
  */
 export interface ProjectFiles {
+	BIN: {
+		SERVER: string;
+	};
   DATABASE: {
     DIRECTORY: string;
     FILES: {
@@ -52,6 +55,9 @@ export interface ProjectFiles {
  * Defines all file paths and file markers used in the project structure
  */
 export const FILES = Object.freeze({
+	BIN: {
+		SERVER: 'www.ts'
+	},
   // Database related paths
   DATABASE: {
     // Main database directory (src/database)

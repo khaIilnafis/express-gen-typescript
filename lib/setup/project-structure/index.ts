@@ -126,7 +126,7 @@ function createBinFiles(destination: string): void {
   }
 
   // Create www.ts file
-  const wwwPath = path.join(binDir, "www.ts");
+  const wwwPath = path.join(binDir, PROJECT.FILES.BIN.SERVER);
   writeTemplate(getTemplatePath(TEMPLATES.PROJECT_STRUCTURE.BIN.WWW), wwwPath);
 }
 
@@ -264,7 +264,7 @@ function setupRoutesStructure(destination: string, viewEngine?: string): void {
   }
 
   // Create index router if it doesn't exist
-  const indexRouterPath = path.join(routesDir, "index.ts");
+  const indexRouterPath = path.join(routesDir, PROJECT.FILES.ROUTES.INDEX);
   if (!fs.existsSync(indexRouterPath)) {
     // Determine which root route handler to use based on view engine
     const templateVars = {
