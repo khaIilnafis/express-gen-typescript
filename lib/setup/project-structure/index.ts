@@ -176,6 +176,16 @@ async function setupDatabaseConfig(
     return;
   }
 
+  console.log("Starting database setup from project structure setup...");
+
+  // Check if database setup is already in progress (flag set by database-setup-helper.ts)
+  if ((global as any).databaseSetupInProgress) {
+    console.log(
+      "Database setup already in progress, skipping from project structure setup"
+    );
+    return;
+  }
+
   // Use the database setup module with all necessary options
   await setupDatabase({
     destination,
@@ -184,6 +194,8 @@ async function setupDatabaseConfig(
       options.databaseName || normalizeDatabaseName(path.basename(destination)),
     ...options,
   });
+
+  console.log("Completed database setup from project structure setup");
 }
 
 /**

@@ -9,27 +9,26 @@
 
 // Base dependencies for all Express TypeScript projects
 export const BASE_DEPENDENCIES: Record<string, string> = Object.freeze({
-  express: "^4.18.2",
-  helmet: "^7.0.0",
-  cors: "^2.8.5",
+  express: "^4.21.2",
+  helmet: "^8.0.0",
   morgan: "^1.10.0",
-  compression: "^1.7.4",
-  dotenv: "^16.3.1",
+  cors: "^2.8.5",
+  compression: "^1.8.0",
+  dotenv: "^16.4.7",
 });
 
 // Base dev dependencies for all Express TypeScript projects
 export const BASE_DEV_DEPENDENCIES: Record<string, string> = Object.freeze({
-  "@types/express": "^4.17.17",
-  "@types/node": "^20.6.0",
-  "@types/cors": "^2.8.14",
-  "@types/morgan": "^1.9.5",
-  "@types/compression": "^1.7.3",
-  "@types/dotenv": "^16.3.1",
-  "@types/helmet": "^7.0.0",
-  rimraf: "^5.0.1",
-  debug: "~2.6.9",
-  nodemon: "^3.0.1",
-  "tsc-watch": "^6.2.0",
+  "@types/express": "^5.0.0",
+  "@types/cors": "^2.8.17",
+  "@types/morgan": "^1.9.9",
+  "@types/compression": "^1.7.5",
+  "@types/helmet": "^4.0.0",
+  "@types/node": "^22.13.5",
+  rimraf: "^6.0.1",
+  debug: "^4.4.0",
+  nodemon: "^3.1.9",
+  "tsc-watch": "6.2.1",
 });
 
 // Type definitions for feature dependencies

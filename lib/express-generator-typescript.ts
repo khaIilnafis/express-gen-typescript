@@ -18,6 +18,9 @@ import {
 } from "./constants/index.js";
 import { normalizeDatabaseName } from "./utils/database-helper.js";
 
+// Track if database setup has been performed
+let databaseSetupCompleted = false;
+
 // Import setup modules
 import setup from "./setup/index.js";
 import setupProjectStructure from "./setup/project-structure/index.js";
@@ -46,6 +49,9 @@ export async function generateExpressTypeScriptApp(
   options: GeneratorOptions
 ): Promise<void> {
   try {
+    // Reset the database setup flag at the start of generation
+    databaseSetupCompleted = false;
+
     console.log("Starting express-generator-typescript...");
 
     // Check if destination exists, if not create it
@@ -102,15 +108,10 @@ export async function generateExpressTypeScriptApp(
     // Initialize git repository
     await initializeGitRepository(destination);
 
+    // Database setup is now handled within setup.projectStructure
+    // Keeping the comment for clarity
     // Step 3: Setup database (if selected)
-    if (options.database && options.database !== DATABASES.TYPES.NONE) {
-      await setupDatabase({
-        destination,
-        database: options.database,
-        databaseName: options.databaseName,
-        dialect: options.dialect,
-      });
-    }
+    // Database setup is now done in setupProjectStructure
 
     // Print next steps
     printNextSteps(destination);
@@ -465,9 +466,9 @@ async function copyYarnFiles(destination: string): Promise<void> {
       __dirname,
       "templates",
       "project-structure",
-      ".yarnrc.yaml"
+      ".yarnrc.yml"
     );
-    const yarnrcDestPath = path.join(destination, ".yarnrc.yaml");
+    const yarnrcDestPath = path.join(destination, ".yarnrc.yml");
 
     if (fs.existsSync(yarnrcTemplatePath)) {
       await copyFile(yarnrcTemplatePath, yarnrcDestPath);

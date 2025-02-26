@@ -179,6 +179,10 @@ export class DatabaseSetupHelper {
   ): void {
     const { options, databaseName } = context;
     const databaseType = options?.database || "";
+    console.log(
+      `Updating server file for database connection (${databaseType})`
+    );
+    console.log(`Call stack: ${new Error().stack}`);
     console.log(`Firing with: `);
     console.log(options);
     if (!fs.existsSync(serverFilePath)) {
@@ -193,11 +197,11 @@ export class DatabaseSetupHelper {
           serverFilePath,
           `import { initializeDatabase } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECT}';`
         );
-        // insertContentAtMarker(
-        //   serverFilePath,
-        //   FILE_MARKERS.SERVER.DATABASE_CONNECTION,
-        //   loadTemplate(getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT))
-        // );
+        insertContentAtMarker(
+          serverFilePath,
+          FILE_MARKERS.SERVER.DATABASE_CONNECTION,
+          loadTemplate(getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT))
+        );
         break;
       case DATABASES.TYPES.TYPEORM:
         addImportIfNotExists(
@@ -347,35 +351,49 @@ export async function setupDatabaseWithHelper(
   database: string,
   options: Record<string, any> = {}
 ): Promise<void> {
-  console.log(MESSAGES.SETUP.DATABASE(database));
+  // Check if we've already accessed this module from another import path
+  if ((global as any).databaseSetupInProgress) {
+    console.log("Database setup already in progress, skipping duplicate setup");
+    return;
+  }
 
-  // Prepare database name
-  const databaseName =
-    options.databaseName || normalizeDatabaseName(path.basename(destination));
+  // Set flag to prevent duplicate setup
+  (global as any).databaseSetupInProgress = true;
 
-  // Setup context
-  const context: DatabaseSetupContext = {
-    destination,
-    databaseName,
-    dialect: options.dialect,
-    options: { ...options, database },
-  };
+  try {
+    console.log(MESSAGES.SETUP.DATABASE(database));
 
-  switch (database) {
-    case DATABASES.TYPES.SEQUELIZE:
-      await setupSequelize(context);
-      break;
-    case DATABASES.TYPES.TYPEORM:
-      await setupTypeORM(context);
-      break;
-    case DATABASES.TYPES.PRISMA:
-      await setupPrisma(context);
-      break;
-    case DATABASES.TYPES.MONGOOSE:
-      await setupMongoose(context);
-      break;
-    default:
-      console.log(`Skipping database setup for database type: ${database}`);
+    // Prepare database name
+    const databaseName =
+      options.databaseName || normalizeDatabaseName(path.basename(destination));
+
+    // Setup context
+    const context: DatabaseSetupContext = {
+      destination,
+      databaseName,
+      dialect: options.dialect,
+      options: { ...options, database },
+    };
+
+    switch (database) {
+      case DATABASES.TYPES.SEQUELIZE:
+        await setupSequelize(context);
+        break;
+      case DATABASES.TYPES.TYPEORM:
+        await setupTypeORM(context);
+        break;
+      case DATABASES.TYPES.PRISMA:
+        await setupPrisma(context);
+        break;
+      case DATABASES.TYPES.MONGOOSE:
+        await setupMongoose(context);
+        break;
+      default:
+        console.log(`Skipping database setup for database type: ${database}`);
+    }
+  } finally {
+    // Reset the flag when done
+    (global as any).databaseSetupInProgress = false;
   }
 }
 
