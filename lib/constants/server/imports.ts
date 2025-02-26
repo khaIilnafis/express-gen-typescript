@@ -54,7 +54,7 @@ export const IMPORTS = Object.freeze({
   // Authentication imports
   AUTH: {
     PASSPORT:
-      "// Authentication imports\nimport passport from './auth/passport.js';\n",
+      "// Authentication imports\nimport passport from './auth/passport';\n",
   },
 
   // WebSocket imports (fallbacks when templates don't exist)
