@@ -70,7 +70,7 @@ export const generateToken = (user: any): string => {
   };
 
   return jwt.sign(payload, process.env.JWT_SECRET || "your-secret-key", {
-    expiresIn: "24h",
+    expiresIn: process.env.JWT_EXPIRES_IN || "24h",
   });
 };
 export default passport;
