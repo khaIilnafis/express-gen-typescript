@@ -237,7 +237,6 @@ async function setupViewsConfig(
   if (!viewEngine || viewEngine === VIEW_ENGINES.TYPES.NONE) {
     return;
   }
-  console.log(`engine`);
   console.log(COMMON.MESSAGES.SETUP.VIEW_ENGINE(viewEngine));
   
   // Use the dedicated view engine setup
@@ -256,7 +255,7 @@ function setupRoutesStructure(destination: string, viewEngine?: string): void {
 
   const routesDir = path.join(destination, ROOT.SRC, SRC.ROUTES);
   const controllersDir = path.join(destination, ROOT.SRC, SRC.CONTROLLERS);
-  const exampleControllerDir = path.join(controllersDir, "example");
+  const exampleControllerDir = path.join(controllersDir, TEMPLATES.STRINGS.EXAMPLE_FILE.FILENAME);
 
   // Create example controller directory if it doesn't exist
   if (!fs.existsSync(exampleControllerDir)) {
@@ -306,95 +305,72 @@ function setupRoutesStructure(destination: string, viewEngine?: string): void {
 function createReadme(destination: string, options: ProjectSetupOptions): void {
   const readmePath = path.join(destination, PROJECT.FILES.COMMON.README);
 
-  let databaseName: string = DATABASE.TYPES.NONE;
+  // Default values
+  const templateVars: Record<string, string> = {
+    databaseName: DATABASE.TYPES.NONE,
+    authEnabled: options.authentication ? "enabled" : "disabled",
+    websocketLib: WEBSOCKETS.LIBRARIES.NONE,
+    viewEngine: VIEW_ENGINES.TYPES.NONE,
+    websocketDirs: "",
+    databasePrereqs: "",
+    databaseEnvVars: "",
+    authEnvVars: ""
+  };
+
+  // Set database name if available
   if (options.database && options.database !== DATABASE.TYPES.NONE) {
-    databaseName = options.database;
+    templateVars.databaseName = options.database;
   }
 
-  let authEnabled = options.authentication ? "enabled" : "disabled";
-
-  let websocketLib: typeof WEBSOCKETS.LIBRARIES.NONE | typeof WEBSOCKETS.LIBRARIES.SOCKETIO | typeof WEBSOCKETS.LIBRARIES.WS = WEBSOCKETS.LIBRARIES.NONE;
-  if (
-    options.websocketLib &&
-    options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
-  ) {
-    websocketLib = options.websocketLib as typeof WEBSOCKETS.LIBRARIES.SOCKETIO | typeof WEBSOCKETS.LIBRARIES.WS;
+  // Set websocket library if available
+  if (options.websocketLib && options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE) {
+    templateVars.websocketLib = options.websocketLib;
   }
 
-  let viewEngine: typeof VIEW_ENGINES.TYPES.NONE | typeof VIEW_ENGINES.TYPES.PUG | typeof VIEW_ENGINES.TYPES.EJS | typeof VIEW_ENGINES.TYPES.HANDLEBARS = VIEW_ENGINES.TYPES.NONE;
+  // Set view engine if available
   if (options.viewEngine && options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
-    viewEngine = options.viewEngine as typeof VIEW_ENGINES.TYPES.PUG | typeof VIEW_ENGINES.TYPES.EJS | typeof VIEW_ENGINES.TYPES.HANDLEBARS;
+    templateVars.viewEngine = options.viewEngine;
   }
 
-  // Prepare template variables
-  const websocketDirs =
-    options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
-      ? `${PROJECT.DIRECTORIES.SRC.SOCKETS}/          # WebSocket handlers\n`
-      : "";
+  // Add websocket and view directories to structure section if needed
+  if (options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE) {
+    templateVars.websocketDirs += `${PROJECT.DIRECTORIES.SRC.SOCKETS}/          ${TEMPLATES.STRINGS.DIRECTORY_DESCRIPTIONS.WEBSOCKETS}\n`;
+  }
+  
+  if (options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
+    templateVars.websocketDirs += `${PROJECT.DIRECTORIES.SRC.VIEWS}/            ${TEMPLATES.STRINGS.DIRECTORY_DESCRIPTIONS.VIEWS}\n`;
+  }
 
-  const viewDirs =
-    options.viewEngine !== VIEW_ENGINES.TYPES.NONE
-      ? `${PROJECT.DIRECTORIES.SRC.VIEWS}/            # View templates\n`
-      : "";
-
-  // Prepare database prerequisites
-  let databasePrereqs = "";
+  // Add database prerequisites based on selected database
   if (options.database === DATABASE.TYPES.MONGOOSE) {
-    databasePrereqs += "- MongoDB\n";
-  }
-  if (
-    options.database === DATABASE.TYPES.TYPEORM ||
-    options.database === DATABASE.TYPES.PRISMA
-  ) {
-    databasePrereqs += "- PostgreSQL\n";
-  }
-  if (options.database === DATABASE.TYPES.SEQUELIZE) {
-    databasePrereqs += "- MySQL/MariaDB\n";
+    templateVars.databasePrereqs += `${TEMPLATES.STRINGS.DATABASE_PREREQUISITES.MONGODB}\n`;
+  } else if (options.database === DATABASE.TYPES.TYPEORM || options.database === DATABASE.TYPES.PRISMA) {
+    templateVars.databasePrereqs += `${TEMPLATES.STRINGS.DATABASE_PREREQUISITES.POSTGRES}\n`;
+  } else if (options.database === DATABASE.TYPES.SEQUELIZE) {
+    templateVars.databasePrereqs += `${TEMPLATES.STRINGS.DATABASE_PREREQUISITES.MYSQL}\n`;
   }
 
-  // Prepare database environment variables
-  let databaseEnvVars = "";
-  if (options.database === DATABASE.TYPES.SEQUELIZE) {
-    const { HOST, PORT, DEFAULT_DB_NAME, USER, PASSWORD } =
-      DATABASE.DEFAULTS.MYSQL;
-    databaseEnvVars += `DB_HOST=${HOST}\nDB_PORT=${PORT}\nDB_NAME=${DEFAULT_DB_NAME}\nDB_USER=${USER}\nDB_PASSWORD=${PASSWORD}\n`;
-  } else if (options.database === DATABASE.TYPES.MONGOOSE) {
-    const dbName =
-      options.databaseName || DATABASE.DEFAULTS.MONGODB.DEFAULT_DB_NAME;
-    databaseEnvVars += `MONGODB_URI=${DATABASE.DEFAULTS.MONGODB.URI(
-      dbName
-    )}\n`;
-  } else if (options.database === DATABASE.TYPES.PRISMA) {
-    const dbName =
-      options.databaseName || DATABASE.DEFAULTS.POSTGRES.DEFAULT_DB_NAME;
-    databaseEnvVars += `DATABASE_URL=${DATABASE.DEFAULTS.POSTGRES.URI(
-      dbName
-    )}\n`;
-  } else if (options.database === DATABASE.TYPES.TYPEORM) {
-    const { HOST, PORT, DEFAULT_DB_NAME, USER, PASSWORD } =
-      DATABASE.DEFAULTS.POSTGRES;
-    databaseEnvVars += `DB_HOST=${HOST}\nDB_PORT=${PORT}\nDB_NAME=${DEFAULT_DB_NAME}\nDB_USER=${USER}\nDB_PASSWORD=${PASSWORD}\n`;
+  // Add database environment variables section
+  const dbName = options.databaseName || 
+    getDefaultDatabaseName(path.basename(destination), options.database || DATABASE.TYPES.NONE);
+  
+  if (options.database && options.database !== DATABASE.TYPES.NONE) {
+    const dbEnvVars = getDatabaseEnvVars(options.database, dbName);
+    templateVars.databaseEnvVars = Object.entries(dbEnvVars)
+      .map(([key, value]) => `${key}=${value}`)
+      .join("\n") + "\n";
   }
 
-  // Prepare authentication environment variables
-  const authEnvVars = options.authentication
-    ? `JWT_SECRET=your-secret-key\nJWT_EXPIRES_IN=${AUTH.CONFIG.JWT.EXPIRATION.ACCESS}\n`
-    : "";
+  // Add authentication environment variables if needed
+  if (options.authentication) {
+    templateVars.authEnvVars = `${TEMPLATES.STRINGS.ENV_FILE.JWT_ENV_TEMPLATE}\n${TEMPLATES.STRINGS.ENV_FILE.JWT_EXPIRES_IN}\n`;
+  }
 
   // Create README using template
   writeTemplate(
     getTemplatePath(TEMPLATES.PROJECT_STRUCTURE.README),
     readmePath,
-    {
-      databaseName,
-      authEnabled,
-      websocketLib,
-      viewEngine,
-      websocketDirs: websocketDirs + viewDirs,
-      databasePrereqs,
-      databaseEnvVars,
-      authEnvVars,
-    }
+    templateVars
   );
   console.log(COMMON.MESSAGES.SUCCESS.README);
 }
@@ -418,29 +394,30 @@ function createEnvironmentFile(
 
   // Add database-specific environment variables
   if (options.database && options.database !== DATABASE.TYPES.NONE) {
-    const dbName =
-      options.databaseName ||
+    const dbName = options.databaseName ||
       getDefaultDatabaseName(path.basename(destination), options.database);
+    
+    // Use the utility function to get standardized database env vars
     const dbEnvVars = getDatabaseEnvVars(options.database, dbName);
     Object.assign(envVars, dbEnvVars);
   }
 
   // Add authentication environment variables if needed
   if (options.authentication) {
-    envVars.JWT_SECRET = "your-jwt-secret-key-change-in-production";
+    envVars.JWT_SECRET = TEMPLATES.STRINGS.ENV_FILE.JWT_SECRET_KEY;
     envVars.JWT_EXPIRES_IN = AUTH.CONFIG.JWT.EXPIRATION.ACCESS;
   }
 
-  // Create the .env file
+  // Create the .env file using the utility function
   createEnvFile(destination, envVars);
 
-  // Also create a .env.example file as a template
-  const envExamplePath = path.join(destination, ".env.example");
+  // Create a .env.example file with placeholders for secrets
+  const envExamplePath = path.join(destination, TEMPLATES.STRINGS.ENV_FILE.EXAMPLE_FILENAME);
   const envExampleContent = Object.entries(envVars)
     .map(([key, value]) => {
       // Replace actual secrets with placeholders in the example
       if (key === "JWT_SECRET") {
-        return `${key}=your-secret-key-here`;
+        return `${key}=${TEMPLATES.STRINGS.ENV_FILE.JWT_PLACEHOLDER}`;
       }
       return `${key}=${value}`;
     })
