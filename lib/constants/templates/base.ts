@@ -7,6 +7,7 @@
  * Type definition for template base paths
  */
 export interface TemplateBase {
+	AUTH: string;
   ROUTES: string;
   CONTROLLERS: string;
   VIEWS: string;
@@ -20,6 +21,7 @@ export interface TemplateBase {
  * Defines base paths for template directories
  */
 export const BASE = Object.freeze({
+	AUTH: "auth",
   ROUTES: "routes",
   CONTROLLERS: "controllers",
   VIEWS: "views",

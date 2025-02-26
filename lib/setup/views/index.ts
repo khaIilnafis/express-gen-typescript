@@ -8,9 +8,7 @@ import {
   SERVER
 } from "../../constants/index.js";
 import { insertContentAtMarker, addImportIfNotExists } from "../../utils/file-manipulation.js";
-
-// Define view engine configuration markers
-const VIEW_ENGINE_CONFIG_MARKER = "// VIEW_ENGINE_CONFIG";
+import { IMPORTS } from "../../constants/server/imports.js";
 
 /**
  * Setup view engine based on user selection
@@ -74,7 +72,7 @@ async function setupViewEngine(
         configContent = SERVER.VIEW_ENGINE_SETUP.PUG;
         break;
       case VIEW_ENGINES.TYPES.HANDLEBARS:
-        importStatement = "import exphbs from 'express-handlebars';";
+        importStatement = IMPORTS.VIEW_ENGINE.HANDLEBARS;
         configContent = SERVER.VIEW_ENGINE_SETUP.HANDLEBARS;
         break;
     }
@@ -86,7 +84,7 @@ async function setupViewEngine(
 
     // Add configuration to server
     if (configContent) {
-      insertContentAtMarker(serverFilePath, VIEW_ENGINE_CONFIG_MARKER, configContent);
+      insertContentAtMarker(serverFilePath, PROJECT.FILES.COMMON.MARKERS.VIEW_ENGINE_CONFIG_MARKER, configContent);
     }
   }
 
@@ -188,7 +186,7 @@ function createViewRoutes(destination: string): void {
     PROJECT.DIRECTORIES.SRC.ROUTES
   );
   
-  const indexRoutePath = path.join(routesDir, "index.ts");
+  const indexRoutePath = path.join(routesDir, PROJECT.FILES.ROUTES.INDEX);
     // Create a new index route file with proper view rendering
     const templateVars = {
       rootRouteHandler: SERVER.ROOT_ROUTE_HANDLER.DEFAULT

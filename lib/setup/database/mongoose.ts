@@ -63,7 +63,7 @@ async function setupMongoose(
   );
 
   // Create models index.ts file
-  createModelsIndexFile(destination, DATABASE.TYPES.MONGOOSE, "Example");
+  createModelsIndexFile(destination, DATABASE.TYPES.MONGOOSE, PROJECT.FILES.COMMON.NAMES.EXAMPLE);
 
   // Update server.ts to initialize database on startup
   updateServerWithDatabaseInit(destination);

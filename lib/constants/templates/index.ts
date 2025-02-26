@@ -2,7 +2,7 @@
  * Templates domain constants
  * Organizes and exports template-related constants
  */
-
+import {AUTH} from "./auth.js";
 import { BASE } from './base.js';
 import { ROUTES } from './routes.js';
 import { CONTROLLERS } from './controllers.js';
@@ -15,6 +15,7 @@ import { WEBSOCKETS } from './websockets.js';
  * Type definition for template structure
  */
 export interface TemplateStructure {
+	AUTH: typeof AUTH;
   BASE: typeof BASE;
   ROUTES: typeof ROUTES;
   CONTROLLERS: typeof CONTROLLERS;
@@ -31,6 +32,7 @@ export { BASE, ROUTES, CONTROLLERS, PROJECT_STRUCTURE, DATABASE, VIEWS, WEBSOCKE
  * Combined template constants
  */
 export const TEMPLATES = Object.freeze({
+	AUTH,
   BASE,
   ROUTES,
   CONTROLLERS,

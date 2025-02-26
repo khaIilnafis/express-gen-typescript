@@ -304,7 +304,7 @@ function setupRoutesStructure(destination: string, viewEngine?: string): void {
  * @param options - User selected options
  */
 function createReadme(destination: string, options: ProjectSetupOptions): void {
-  const readmePath = path.join(destination, "README.md");
+  const readmePath = path.join(destination, PROJECT.FILES.COMMON.README);
 
   let databaseName: string = DATABASE.TYPES.NONE;
   if (options.database && options.database !== DATABASE.TYPES.NONE) {

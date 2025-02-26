@@ -58,7 +58,7 @@ async function setupSocketIO(destination: string): Promise<void> {
   );
   
   // Create index.ts file for Socket.io
-  const socketIndexPath = path.join(socketsDir, "index.ts");
+  const socketIndexPath = path.join(socketsDir, PROJECT.FILES.SOCKETS.INDEX);
   writeTemplate(
     getTemplatePath(TEMPLATES.WEBSOCKETS.SOCKETIO.INDEX),
     socketIndexPath
@@ -79,7 +79,7 @@ async function setupWS(destination: string): Promise<void> {
   );
   
   // Create index.ts file for WS
-  const wsIndexPath = path.join(socketsDir, "index.ts");
+  const wsIndexPath = path.join(socketsDir, PROJECT.FILES.SOCKETS.INDEX);
   writeTemplate(
     getTemplatePath(TEMPLATES.WEBSOCKETS.WS.INDEX), 
     wsIndexPath

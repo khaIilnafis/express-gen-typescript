@@ -69,7 +69,7 @@ async function setupSequelize(
   );
 
   // Create models index.ts file
-  createModelsIndexFile(destination, DATABASE.TYPES.SEQUELIZE, "Example");
+  createModelsIndexFile(destination, DATABASE.TYPES.SEQUELIZE, PROJECT.FILES.COMMON.NAMES.EXAMPLE);
 
   // Update server.ts to initialize database on startup
   updateServerWithDatabaseInit(destination);

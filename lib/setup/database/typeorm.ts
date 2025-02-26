@@ -73,7 +73,7 @@ async function setupTypeORM(
   );
 
   // Create entities index file
-  createModelsIndexFile(destination, DATABASE.TYPES.TYPEORM, "Example");
+  createModelsIndexFile(destination, DATABASE.TYPES.TYPEORM, PROJECT.FILES.COMMON.NAMES.EXAMPLE);
 
   // Update server.ts to initialize database on startup
   updateServerWithDatabaseInit(destination);

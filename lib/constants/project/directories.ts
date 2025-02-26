@@ -50,6 +50,7 @@ export const DIRECTORIES = Object.freeze({
 
   // Source subdirectories
   SRC: {
+	AUTH: "auth",
     CONTROLLERS: "controllers",
     MODELS: "models",
     ROUTES: "routes",

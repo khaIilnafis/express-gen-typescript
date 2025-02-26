@@ -144,7 +144,7 @@ export class DatabaseSetupHelper {
     scripts: Record<string, string> = {}
   ): void {
     const { destination } = context;
-    const packageJsonPath = path.join(destination, "package.json");
+    const packageJsonPath = path.join(destination, PROJECT.FILES.COMMON.PCKGMGR);
 
     if (!fs.existsSync(packageJsonPath)) {
       console.log(
@@ -189,7 +189,7 @@ export class DatabaseSetupHelper {
       case DATABASE.TYPES.SEQUELIZE:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECT}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.COMMON.NAMES.CONNECTION}';`
         );
         insertContentAtMarker(
           serverFilePath,
@@ -200,7 +200,7 @@ export class DatabaseSetupHelper {
       case DATABASE.TYPES.TYPEORM:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECT}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.COMMON.NAMES.CONNECTION}';`
         );
 		insertContentAtMarker(
 			serverFilePath,
@@ -211,7 +211,7 @@ export class DatabaseSetupHelper {
       case DATABASE.TYPES.PRISMA:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECT}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.COMMON.NAMES.CONNECTION}';`
         );
 		insertContentAtMarker(
 			serverFilePath,
@@ -222,7 +222,7 @@ export class DatabaseSetupHelper {
       case DATABASE.TYPES.MONGOOSE:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECT}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.COMMON.NAMES.CONNECTION}';`
         );
 		insertContentAtMarker(
 			serverFilePath,
