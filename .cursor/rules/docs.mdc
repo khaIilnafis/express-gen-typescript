@@ -1,6 +1,6 @@
 ---
-description: 
-globs: .md
+description: Rules for writing docs
+globs: *.md
 ---
 - When writing documentation, README's, technical writing, technical documentation, JSDocs or comments, always follow Google's Technical Writing Style Guide.
 - Define terminology when needed

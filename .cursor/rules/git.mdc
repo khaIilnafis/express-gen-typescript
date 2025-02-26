@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description: Git rules
+globs: ./**/**/*
 ---
 ## Git Commit Rules
 - Make the head / title of the commit message brief
