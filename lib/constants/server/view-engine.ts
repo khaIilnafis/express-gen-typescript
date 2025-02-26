@@ -24,8 +24,7 @@ export const VIEW_ENGINE_SETUP = Object.freeze({
   EJS: `
     // Set up view engine
     this.app.set('views', path.join(__dirname, 'views'));
-    this.app.set('view engine', 'ejs');
-    this.app.use(expressLayouts);`,
+    this.app.set('view engine', 'ejs');`,
   HANDLEBARS: `
     // Set up view engine
     this.app.engine('handlebars', exphbs({

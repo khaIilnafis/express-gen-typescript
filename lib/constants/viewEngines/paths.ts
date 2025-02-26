@@ -56,17 +56,17 @@ export const PATHS = Object.freeze({
   FILES: {
     PUG: {
       LAYOUT: "views/layouts/layout.pug",
-      INDEX: "views/index.pug",
+      INDEX: "views/pages/index.pug",
       ERROR: "views/error.pug",
     },
     EJS: {
       LAYOUT: "views/layouts/layout.ejs",
-      INDEX: "views/index.ejs",
+      INDEX: "views/pages/index.ejs",
       ERROR: "views/error.ejs",
     },
     HANDLEBARS: {
       LAYOUT: "views/layouts/main.handlebars",
-      INDEX: "views/index.handlebars",
+      INDEX: "views/pages/index.handlebars",
       ERROR: "views/error.handlebars",
     },
   },

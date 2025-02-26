@@ -80,6 +80,8 @@ export class Server {
     this.app.use("/api/*", (req: Request, res: Response) => {
 		res.status(404).json({ error: "Not Found" });
 	  });
+    
+    {{viewRouteHandler}}
   }
 
 //   private initializeErrorHandling(): void {

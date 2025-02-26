@@ -1,7 +1,7 @@
 // @ts-nocheck - Template file, not meant to be validated directly
 import { Router } from "express";
 import { Server as SocketServer } from "socket.io";
-import { ExampleRoutes } from "./example.routes";
+import { ExampleRoutes } from "./example";
 
 /**
  * Initialize all routes
@@ -12,7 +12,7 @@ export function initializeRoutes(io?: SocketServer): Router {
 
   // Base route
   router.get("/", (req, res) => {
-    res.json({ message: "Welcome to the API" });
+    {{rootRouteHandler}}
   });
 
   // Register routes and pass socket server if available

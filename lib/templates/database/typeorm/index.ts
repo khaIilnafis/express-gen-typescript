@@ -28,7 +28,6 @@ export async function initializeDatabase(): Promise<DataSource> {
     }
     return AppDataSource;
   } catch (error) {
-    console.error("Error initializing TypeORM connection", error);
     throw error;
   }
 }

@@ -17,5 +17,5 @@ export interface TemplateRoutes {
  */
 export const ROUTES = Object.freeze({
   INDEX: "routes/index.ts",
-  EXAMPLE: "routes/example.routes.ts",
+  EXAMPLE: "routes/example.ts",
 } as const) satisfies TemplateRoutes; 

@@ -70,7 +70,7 @@ export const VIEWS = Object.freeze({
     //   ABOUT: "views/pug/pages/about.pug",
     //   ERROR: "views/pug/pages/error.pug",
     // },
-    INDEX: "views/pug/index.pug",
+    INDEX: "views/pug/pages/index.pug",
   },
   EJS: {
     LAYOUTS: {
@@ -88,7 +88,7 @@ export const VIEWS = Object.freeze({
     //   ABOUT: "views/ejs/pages/about.ejs",
     //   ERROR: "views/ejs/pages/error.ejs",
     // },
-    INDEX: "views/ejs/index.ejs",
+    INDEX: "views/ejs/pages/index.ejs",
   },
   HANDLEBARS: {
     LAYOUTS: {
@@ -106,6 +106,6 @@ export const VIEWS = Object.freeze({
     //   ABOUT: "views/handlebars/pages/about.handlebars",
     //   ERROR: "views/handlebars/pages/error.handlebars",
     // },
-    INDEX: "views/handlebars/index.handlebars",
+    INDEX: "views/handlebars/pages/index.handlebars",
   },
 } as const) satisfies TemplateViews; 

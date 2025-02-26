@@ -66,7 +66,7 @@ export const IMPORTS = Object.freeze({
 
   // View engine imports
   VIEW_ENGINE: {
-    EJS: "// View engine imports\nimport expressLayouts from 'express-ejs-layouts';\n",
+    EJS: "// View engine imports\n",
     PUG: "// View engine imports\n",
     HANDLEBARS:
       "// View engine import\nimport exphbs from 'express-handlebars';\n",

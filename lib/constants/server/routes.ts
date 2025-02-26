@@ -8,7 +8,6 @@
  */
 export interface ServerRootRouteHandler {
   DEFAULT: string;
-  VIEW_ENGINE: string;
 }
 
 /**
@@ -16,5 +15,25 @@ export interface ServerRootRouteHandler {
  */
 export const ROOT_ROUTE_HANDLER = Object.freeze({
   DEFAULT: "res.json({ message: 'Welcome to the API' });",
-  VIEW_ENGINE: "res.render('index', { title: 'Express TypeScript' });",
 } as const) satisfies ServerRootRouteHandler; 
+
+/**
+ * Type definition for server view route handler
+ */
+export interface ServerViewRouteHandler {
+  NONE: string;
+  WITH_VIEW_ENGINE: string;
+}
+
+/**
+ * View route handler for server
+ */
+export const VIEW_ROUTE_HANDLER = Object.freeze({
+  NONE: "",
+  WITH_VIEW_ENGINE: `
+    // Handle root route for view engine
+    this.app.get('/', (req: Request, res: Response) => {
+      res.render('index', { title: 'Express TypeScript' });
+    });
+  `,
+} as const) satisfies ServerViewRouteHandler; 

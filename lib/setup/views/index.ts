@@ -68,7 +68,6 @@ async function setupViewEngine(
 
     switch (viewEngine) {
       case VIEW_ENGINES.TYPES.EJS:
-        importStatement = "import expressLayouts from 'express-ejs-layouts';";
         configContent = SERVER.VIEW_ENGINE_SETUP.EJS;
         break;
       case VIEW_ENGINES.TYPES.PUG:
@@ -101,6 +100,8 @@ async function setupViewEngine(
   const viewExtension = getViewExtension(viewEngine);
   const layoutFileName = `main${viewExtension}`;
   const indexFileName = `index${viewExtension}`;
+  const headerFileName = `header${viewExtension}`;
+  const footerFileName = `footer${viewExtension}`;
 
   switch (viewEngine) {
     case VIEW_ENGINES.TYPES.EJS:
@@ -119,10 +120,10 @@ async function setupViewEngine(
       );
 
 	// Create Header partial
-		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.EJS.PARTIALS.HEADER), path.join(partialsDir, TEMPLATES.VIEWS.EJS.PARTIALS.HEADER), templateVars);
+		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.EJS.PARTIALS.HEADER), path.join(partialsDir, headerFileName), templateVars);
 
 	// Create Footer partial
-		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.EJS.PARTIALS.FOOTER), path.join(partialsDir, TEMPLATES.VIEWS.EJS.PARTIALS.FOOTER), templateVars);
+		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.EJS.PARTIALS.FOOTER), path.join(partialsDir, footerFileName), templateVars);
       break;
 
     case VIEW_ENGINES.TYPES.PUG:
@@ -141,10 +142,10 @@ async function setupViewEngine(
       );
 
 	  // Create Header partial
-		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.HEADER), path.join(partialsDir, TEMPLATES.VIEWS.PUG.PARTIALS.HEADER), templateVars);
+		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.HEADER), path.join(partialsDir, headerFileName), templateVars);
 
 		// Create Footer partial
-			writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.FOOTER), path.join(partialsDir, TEMPLATES.VIEWS.PUG.PARTIALS.FOOTER), templateVars);
+			writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.FOOTER), path.join(partialsDir, footerFileName), templateVars);
       break;
 
     case VIEW_ENGINES.TYPES.HANDLEBARS:
@@ -163,10 +164,10 @@ async function setupViewEngine(
       );
 
 	  // Create Header partial
-		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.HEADER), path.join(partialsDir, TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.HEADER), templateVars);
+		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.HEADER), path.join(partialsDir, headerFileName), templateVars);
 
 		// Create Footer partial
-			writeTemplate(getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.FOOTER), path.join(partialsDir, TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.FOOTER), templateVars);
+			writeTemplate(getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.FOOTER), path.join(partialsDir, footerFileName), templateVars);
       break;
   }
 
@@ -176,10 +177,10 @@ async function setupViewEngine(
   console.log(`${viewEngine} view engine setup complete.`);
 }
 
-/**
- * Create default view routes
- * @param destination - Project destination directory
- */
+// /**
+//  * Create default view routes
+//  * @param destination - Project destination directory
+//  */
 function createViewRoutes(destination: string): void {
   const routesDir = path.join(
     destination, 
@@ -188,13 +189,16 @@ function createViewRoutes(destination: string): void {
   );
   
   const indexRoutePath = path.join(routesDir, "index.ts");
-
-  if (!fs.existsSync(indexRoutePath)) {
+    // Create a new index route file with proper view rendering
+    const templateVars = {
+      rootRouteHandler: SERVER.ROOT_ROUTE_HANDLER.DEFAULT
+    };
+    
     writeTemplate(
       getTemplatePath(TEMPLATES.ROUTES.INDEX),
-      indexRoutePath
+      indexRoutePath,
+      templateVars
     );
-  }
 }
 
 /**

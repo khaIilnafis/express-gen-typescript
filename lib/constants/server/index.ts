@@ -10,7 +10,7 @@ import { MIDDLEWARE, ServerMiddleware } from "./middleware.js";
 import { WEBSOCKET_METHODS, ServerWebsocketMethods } from "./websocket.js";
 import { ROUTER_INIT, ServerRouterInit } from "./router.js";
 import { VIEW_ENGINE_SETUP, ServerViewEngineSetup } from "./view-engine.js";
-import { ROOT_ROUTE_HANDLER, ServerRootRouteHandler } from "./routes.js";
+import { ROOT_ROUTE_HANDLER, ServerRootRouteHandler, VIEW_ROUTE_HANDLER, ServerViewRouteHandler } from "./routes.js";
 import { TYPE_DECLARATIONS, ServerTypeDeclarations } from "./types.js";
 
 /**
@@ -25,6 +25,7 @@ export interface ServerStructure {
   ROUTER_INIT: ServerRouterInit;
   VIEW_ENGINE_SETUP: ServerViewEngineSetup;
   ROOT_ROUTE_HANDLER: ServerRootRouteHandler;
+  VIEW_ROUTE_HANDLER: ServerViewRouteHandler;
   TYPE_DECLARATIONS: ServerTypeDeclarations;
 }
 
@@ -40,6 +41,7 @@ export {
   ROUTER_INIT,
   VIEW_ENGINE_SETUP,
   ROOT_ROUTE_HANDLER,
+  VIEW_ROUTE_HANDLER,
   TYPE_DECLARATIONS,
 };
 
@@ -52,6 +54,7 @@ export type {
   ServerRouterInit,
   ServerViewEngineSetup,
   ServerRootRouteHandler,
+  ServerViewRouteHandler,
   ServerTypeDeclarations,
 };
 
@@ -68,5 +71,6 @@ export const SERVER = Object.freeze({
   ROUTER_INIT,
   VIEW_ENGINE_SETUP,
   ROOT_ROUTE_HANDLER,
+  VIEW_ROUTE_HANDLER,
   TYPE_DECLARATIONS,
 } as const) satisfies ServerStructure; 

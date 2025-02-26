@@ -30,7 +30,6 @@ export async function initializeDatabase(): Promise<typeof mongoose> {
   try {
     await mongoose.connect(mongoUri, options);
   } catch (error) {
-    console.error("Error connecting to MongoDB:", error);
     throw error;
   }
 }

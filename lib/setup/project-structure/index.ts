@@ -19,6 +19,7 @@ import {
   VIEW_ENGINES,
   APP,
   AUTH,
+  SERVER,
 } from "../../constants/index.js";
 import setupViewEngine from "../views/index.js";
 import setupWebsockets from "../websockets/index.js";
@@ -106,7 +107,7 @@ async function setupProjectStructure(
   }
 
   // Create basic routes structure
-  setupRoutesStructure(destination);
+  setupRoutesStructure(destination, options.viewEngine);
 
   // Create README.md file
   createReadme(destination, options);
@@ -248,8 +249,9 @@ async function setupViewsConfig(
 /**
  * Setup basic routes structure
  * @param destination - Project destination directory
+ * @param viewEngine - Selected view engine (optional)
  */
-function setupRoutesStructure(destination: string): void {
+function setupRoutesStructure(destination: string, viewEngine?: string): void {
   const { ROOT, SRC } = PROJECT.DIRECTORIES;
 
   const routesDir = path.join(destination, ROOT.SRC, SRC.ROUTES);
@@ -264,17 +266,22 @@ function setupRoutesStructure(destination: string): void {
   // Create index router if it doesn't exist
   const indexRouterPath = path.join(routesDir, "index.ts");
   if (!fs.existsSync(indexRouterPath)) {
-    writeTemplate(getTemplatePath(TEMPLATES.ROUTES.INDEX), indexRouterPath);
+    // Determine which root route handler to use based on view engine
+    const templateVars = {
+      rootRouteHandler: SERVER.ROOT_ROUTE_HANDLER.DEFAULT
+    };
+    
+    writeTemplate(getTemplatePath(TEMPLATES.ROUTES.INDEX), indexRouterPath, templateVars);
   }
 
   // Create example routes
-  const exampleRoutesPath = path.join(routesDir, "example.routes.ts");
+  const exampleRoutesPath = path.join(routesDir, PROJECT.FILES.ROUTES.EXAMPLE);
   writeTemplate(getTemplatePath(TEMPLATES.ROUTES.EXAMPLE), exampleRoutesPath);
 
   // Create example controller files
   const exampleControllerIndexPath = path.join(
     exampleControllerDir,
-    "index.ts"
+    PROJECT.FILES.CONTROLLERS.INDEX
   );
   writeTemplate(
     getTemplatePath(TEMPLATES.CONTROLLERS.EXAMPLE.INDEX),
@@ -283,7 +290,7 @@ function setupRoutesStructure(destination: string): void {
 
   const exampleControllerLogicPath = path.join(
     exampleControllerDir,
-    "exampleController.ts"
+    PROJECT.FILES.CONTROLLERS.EXAMPLE
   );
   writeTemplate(
     getTemplatePath(TEMPLATES.CONTROLLERS.EXAMPLE.CONTROLLER),

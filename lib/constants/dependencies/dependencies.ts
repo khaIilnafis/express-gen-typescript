@@ -29,6 +29,7 @@ export const BASE_DEV_DEPENDENCIES: Record<string, string> = Object.freeze({
   debug: "^4.4.0",
   nodemon: "^3.1.9",
   "tsc-watch": "6.2.1",
+  "copyfiles": "^2.4.1",
 });
 
 // Type definitions for feature dependencies
@@ -166,11 +167,9 @@ export const FEATURE_DEPENDENCIES = Object.freeze({
     ejs: Object.freeze({
       deps: Object.freeze({
         ejs: "^3.1.9",
-        "express-ejs-layouts": "^2.5.1",
       }),
       devDeps: Object.freeze({
         "@types/ejs": "^3.1.2",
-        "@types/express-ejs-layouts": "^2.5.1",
       }),
     }),
     handlebars: Object.freeze({

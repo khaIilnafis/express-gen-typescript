@@ -32,7 +32,6 @@ export async function initializeDatabase(): Promise<Sequelize> {
       console.log("Database models synchronized successfully.");
     }
   } catch (error) {
-    console.error("Unable to connect to the database:", error);
     throw error;
   }
 }

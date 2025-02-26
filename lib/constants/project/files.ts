@@ -62,7 +62,16 @@ export const FILES = Object.freeze({
       INDEX: "index.ts",
     },
   },
-
+  // Route related paths
+  ROUTES: {
+	EXAMPLE: "example.ts",
+	INDEX: "index.ts",
+  },
+  // Controller related paths
+  CONTROLLERS: {
+	EXAMPLE: "exampleController.ts",
+	INDEX: "index.ts",
+  },
   // Server related paths
   SERVER: {
     FILE: "server.ts",

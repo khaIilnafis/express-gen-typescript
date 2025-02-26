@@ -53,6 +53,7 @@ export function generateServerFiles(
       databaseMethod: "",
       websocketMethod: "",
 	  viewPlaceholder: "",
+      viewRouteHandler: "",
       // Use the new SERVER constant for router initialization
       socketRouterInit: SERVER.ROUTER_INIT.DEFAULT,
       hasDatabaseMethod: false,
@@ -99,23 +100,26 @@ export function generateServerFiles(
     }
 
     // Add view engine imports and setup if selected
-    if (viewEngine) {
+    if (viewEngine && viewEngine !== VIEW_ENGINES.TYPES.NONE) {
       // Add the appropriate view engine setup
-	  templateVars.viewPlaceholder += SERVER.VIEW_ENGINE_SETUP.PLACEHOLDER
+	  templateVars.viewPlaceholder += SERVER.VIEW_ENGINE_SETUP.PLACEHOLDER;
+      // Add the view route handler
+      templateVars.viewRouteHandler = SERVER.VIEW_ROUTE_HANDLER.WITH_VIEW_ENGINE;
+      
       switch (viewEngine) {
         case VIEW_ENGINES.TYPES.EJS:
           templateVars.viewImports = SERVER.IMPORTS.VIEW_ENGINE.EJS;
-        //   templateVars.middlewareSetup += SERVER.VIEW_ENGINE_SETUP.EJS;
           break;
         case VIEW_ENGINES.TYPES.PUG:
           templateVars.viewImports = SERVER.IMPORTS.VIEW_ENGINE.PUG;
-        //   templateVars.middlewareSetup += SERVER.VIEW_ENGINE_SETUP.PUG;
           break;
         case VIEW_ENGINES.TYPES.HANDLEBARS:
           templateVars.viewImports = SERVER.IMPORTS.VIEW_ENGINE.HANDLEBARS;
-        //   templateVars.middlewareSetup += SERVER.VIEW_ENGINE_SETUP.HANDLEBARS;
           break;
       }
+    } else {
+      // If no view engine, set an empty view route handler
+      templateVars.viewRouteHandler = SERVER.VIEW_ROUTE_HANDLER.NONE;
     }
 
     // Load and write the server template
