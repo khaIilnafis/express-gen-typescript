@@ -1,4 +1,4 @@
-import { DATABASES, MESSAGES } from "../../constants/index.js";
+import { DATABASE, COMMON } from "../../constants/index.js";
 import { setupDatabaseWithHelper } from "../../utils/database-setup-helper.js";
 import path from "path";
 
@@ -36,10 +36,10 @@ export async function setupDatabase(
   const { destination, database } = options;
 
   // Log setup message
-  console.log(MESSAGES.SETUP.DATABASE(database));
+  console.log(COMMON.MESSAGES.SETUP.DATABASE(database));
 
   // Skip if no database or none was selected
-  if (!database || database === DATABASES.TYPES.NONE) {
+  if (!database || database === DATABASE.TYPES.NONE) {
     return;
   }
 

@@ -65,6 +65,7 @@ export class Server {
     this.app.use(express.static(path.join(__dirname, 'public')));
     
     {{middlewareSetup}}
+	{{viewPlaceholder}}
   }
 
   // Database connection methods

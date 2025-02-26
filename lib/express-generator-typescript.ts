@@ -9,17 +9,16 @@ import {
   BASE_DEPENDENCIES,
   BASE_DEV_DEPENDENCIES,
   FEATURE_DEPENDENCIES,
-} from "./constants/dependencies.js";
-import {
-  MESSAGES,
-  DATABASES,
+  COMMON,
+  DATABASE,
   WEBSOCKETS,
   VIEW_ENGINES,
+  AUTH,
 } from "./constants/index.js";
 import { normalizeDatabaseName } from "./utils/database-helper.js";
 
 // Track if database setup has been performed
-let databaseSetupCompleted = false;
+let DATABASEetupCompleted = false;
 
 // Import setup modules
 import setup from "./setup/index.js";
@@ -50,7 +49,7 @@ export async function generateExpressTypeScriptApp(
 ): Promise<void> {
   try {
     // Reset the database setup flag at the start of generation
-    databaseSetupCompleted = false;
+    DATABASEetupCompleted = false;
 
     console.log("Starting express-generator-typescript...");
 
@@ -62,7 +61,7 @@ export async function generateExpressTypeScriptApp(
     // Get database name from options or use default based on project name
     if (
       options.database &&
-      options.database !== DATABASES.TYPES.NONE &&
+      options.database !== DATABASE.TYPES.NONE &&
       !options.databaseName
     ) {
       options.databaseName = normalizeDatabaseName(path.basename(destination));
@@ -85,7 +84,7 @@ export async function generateExpressTypeScriptApp(
     }
 
     const setupOptions: SetupOptions = {
-      database: (options.database as string) || DATABASES.TYPES.NONE,
+      database: (options.database as string) || DATABASE.TYPES.NONE,
       authentication: Boolean(options.authentication),
       websocketLib:
         (options.websocketLib as string) || WEBSOCKETS.LIBRARIES.NONE,
@@ -116,7 +115,7 @@ export async function generateExpressTypeScriptApp(
     // Print next steps
     printNextSteps(destination);
   } catch (error) {
-    console.error(MESSAGES.ERROR.GENERAL, error);
+    console.error(COMMON.MESSAGES.ERROR.GENERAL, error);
     process.exit(1);
   }
 }
@@ -289,7 +288,7 @@ function addFeatureDependencies(
   options: GeneratorOptions
 ): void {
   // Add database dependencies
-  if (options.database && options.database !== DATABASES.TYPES.NONE) {
+  if (options.database && options.database !== DATABASE.TYPES.NONE) {
     const dbDeps =
       FEATURE_DEPENDENCIES.database[
         options.database as keyof typeof FEATURE_DEPENDENCIES.database
@@ -305,7 +304,7 @@ function addFeatureDependencies(
     let authType = options.authentication;
     // Handle boolean case for backward compatibility
     if (typeof authType === "boolean" && authType === true) {
-      authType = "passport"; // Default to passport if only boolean true is provided
+      authType = AUTH.TYPES.PASSPORT; // Default to passport if only boolean true is provided
     }
 
     const authDeps =

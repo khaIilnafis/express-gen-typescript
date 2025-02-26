@@ -31,4 +31,4 @@ export const APP = Object.freeze({
     JSON: ".json",
     ENV: ".env",
   },
-});
+}); 

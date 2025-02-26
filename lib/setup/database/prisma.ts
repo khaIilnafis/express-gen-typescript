@@ -2,9 +2,8 @@ import path from "path";
 import fs from "fs";
 import {
   TEMPLATES,
-  DATABASES,
-  DIRECTORIES,
-  FILE_PATHS,
+	PROJECT,
+	DATABASE
 } from "../../constants/index.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
 import {
@@ -35,16 +34,16 @@ async function setupPrisma(
   // Define paths for destination files
   const prismaDir = path.join(
     destination,
-    DIRECTORIES.ROOT.SRC,
-    FILE_PATHS.DATABASE.DIRECTORY
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.DATABASE
   );
   const prismaSchemaPath = path.join(
     prismaDir,
-    FILE_PATHS.DATABASE.FILES.CONNECTION
+    PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
   const dbClientPath = path.join(
     prismaDir,
-    FILE_PATHS.DATABASE.FILES.CONNECTION
+    PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
 
   // Create prisma directory if it doesn't exist
@@ -71,21 +70,18 @@ async function setupPrisma(
     dbClientPath
   );
 
-  //   // Create database init file using template
-  //   writeTemplate(getTemplatePath(TEMPLATES.DATABASE.PRISMA.INIT), dbInitPath);
-
   // Add example model type definitions
   const modelsDir = path.join(
     destination,
-    DIRECTORIES.ROOT.SRC,
-    DIRECTORIES.SRC.MODELS
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.MODELS
   );
   if (!fs.existsSync(modelsDir)) {
     fs.mkdirSync(modelsDir, { recursive: true });
   }
 
   // Create models index.ts file
-  createModelsIndexFile(destination, DATABASES.TYPES.PRISMA);
+  createModelsIndexFile(destination, DATABASE.TYPES.PRISMA);
 
   // Update server.ts to initialize database on startup
   updateServerWithDatabaseInit(destination);

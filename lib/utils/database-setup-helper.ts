@@ -5,13 +5,11 @@
 import path from "path";
 import fs from "fs";
 import {
-  DATABASES,
+  DATABASE,
   TEMPLATES,
-  ERRORS,
-  MESSAGES,
-  DIRECTORIES,
-  FILE_PATHS,
+  COMMON,
   APP,
+  PROJECT,
 } from "../constants/index.js";
 import {
   getTemplatePath,
@@ -21,7 +19,6 @@ import {
 } from "../utils/template-loader.js";
 import {
   insertContentAtMarker,
-  replaceContentBetweenMarkers,
   ensureDirectoryExists,
   FILE_MARKERS,
   addImportIfNotExists,
@@ -58,11 +55,11 @@ export class DatabaseSetupHelper {
     const { destination } = context;
 
     // Create main database directories
-    const modelsDir = path.join(destination, "src", DIRECTORIES.SRC.MODELS);
+    const modelsDir = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.DIRECTORIES.SRC.MODELS);
     const databaseDir = path.join(
       destination,
-      "src",
-      FILE_PATHS.DATABASE.DIRECTORY
+      PROJECT.DIRECTORIES.ROOT.SRC,
+      PROJECT.DIRECTORIES.SRC.DATABASE
     );
 
     ensureDirectoryExists(modelsDir);
@@ -70,7 +67,7 @@ export class DatabaseSetupHelper {
 
     // Create additional subdirectories if specified
     for (const subdir of subdirectories) {
-      const fullPath = path.join(destination, "src", subdir);
+      const fullPath = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, subdir);
       ensureDirectoryExists(fullPath);
     }
   }
@@ -116,7 +113,7 @@ export class DatabaseSetupHelper {
     outputDirectory: string
   ): void {
     const { destination, databaseName } = context;
-    const modelsDir = path.join(destination, "src", outputDirectory);
+    const modelsDir = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, outputDirectory);
 
     // Ensure models directory exists
     ensureDirectoryExists(modelsDir);
@@ -182,20 +179,18 @@ export class DatabaseSetupHelper {
     console.log(
       `Updating server file for database connection (${databaseType})`
     );
-    console.log(`Call stack: ${new Error().stack}`);
-    console.log(`Firing with: `);
-    console.log(options);
+    
     if (!fs.existsSync(serverFilePath)) {
-      console.error(`File not found: server.ts`);
+      console.error(`File not found: ${PROJECT.FILES.SERVER.FILE}`);
       return;
     }
 
     // Add database imports
     switch (databaseType) {
-      case DATABASES.TYPES.SEQUELIZE:
+      case DATABASE.TYPES.SEQUELIZE:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECT}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECTION}';`
         );
         insertContentAtMarker(
           serverFilePath,
@@ -203,29 +198,26 @@ export class DatabaseSetupHelper {
           loadTemplate(getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT))
         );
         break;
-      case DATABASES.TYPES.TYPEORM:
+      case DATABASE.TYPES.TYPEORM:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECT}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECTION}';`
         );
-        // loadTemplate(getTemplatePath(TEMPLATES.DATABASE.TYPEORM.INIT));
         break;
-      case DATABASES.TYPES.PRISMA:
+      case DATABASE.TYPES.PRISMA:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECT}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECTION}';`
         );
-        // loadTemplate(getTemplatePath(TEMPLATES.DATABASE.PRISMA.INIT));
         break;
-      case DATABASES.TYPES.MONGOOSE:
+      case DATABASE.TYPES.MONGOOSE:
         addImportIfNotExists(
           serverFilePath,
-          `import { initializeDatabase } from './${FILE_PATHS.DATABASE.DIRECTORY}/${FILE_PATHS.DATABASE.FILES.CONNECT}';`
+          `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.DATABASE.FILES.CONNECTION}';`
         );
-        // loadTemplate(getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.INIT));
         break;
     }
-    console.log("Updated server.ts with database connection");
+    console.log(`Updated ${PROJECT.FILES.SERVER.FILE} with database connection`);
   }
 
   /**
@@ -278,42 +270,18 @@ export class DatabaseSetupHelper {
         // Write back to the file
         fs.writeFileSync(envFilePath, updatedContent);
       } else {
-        // If the section doesn't exist, append it
-        let updatedContent = envContent;
-        // Ensure there's a newline at the end if not already present
-        if (!updatedContent.endsWith("\n")) {
-          updatedContent += "\n";
-        }
-
-        // Add a blank line for separation
-        updatedContent += "\n" + dbSectionMarker + "\n";
-
-        // Add the environment variables
-        Object.entries(envVars).forEach(([key, value]) => {
-          updatedContent += `${key}=${value}\n`;
-        });
-
-        // Write updated content
-        fs.writeFileSync(envFilePath, updatedContent);
+        // Append section to the end of the file
+        const newSection = `\n${FILE_MARKERS.ENV.DATABASE}\n${Object.entries(envVars)
+          .map(([key, value]) => `${key}=${value}`)
+          .join("\n")}\n`;
+        fs.appendFileSync(envFilePath, newSection);
       }
     } else {
-      console.log("Creating .env file with database environment variables");
-
-      // Create new .env file with proper sections
-      let envContent = `${FILE_MARKERS.ENV.APP}\n`;
-      envContent += `PORT=${APP.DEFAULTS.PORT}\n`;
-      envContent += `NODE_ENV=${APP.ENV.DEVELOPMENT}\n\n`;
-
-      // Add database section
-      envContent += FILE_MARKERS.ENV.DATABASE + "\n";
-
-      // Add each env var
-      Object.entries(envVars).forEach(([key, value]) => {
-        envContent += `${key}=${value}\n`;
-      });
-
-      // Write content
-      fs.writeFileSync(envFilePath, envContent);
+      // Create a new .env file
+      const content = `${FILE_MARKERS.ENV.DATABASE}\n${Object.entries(envVars)
+        .map(([key, value]) => `${key}=${value}`)
+        .join("\n")}\n`;
+      fs.writeFileSync(envFilePath, content);
     }
 
     return envVars;
@@ -361,7 +329,7 @@ export async function setupDatabaseWithHelper(
   (global as any).databaseSetupInProgress = true;
 
   try {
-    console.log(MESSAGES.SETUP.DATABASE(database));
+    console.log(COMMON.MESSAGES.SETUP.DATABASE(database));
 
     // Prepare database name
     const databaseName =
@@ -376,16 +344,16 @@ export async function setupDatabaseWithHelper(
     };
 
     switch (database) {
-      case DATABASES.TYPES.SEQUELIZE:
+      case DATABASE.TYPES.SEQUELIZE:
         await setupSequelize(context);
         break;
-      case DATABASES.TYPES.TYPEORM:
+      case DATABASE.TYPES.TYPEORM:
         await setupTypeORM(context);
         break;
-      case DATABASES.TYPES.PRISMA:
+      case DATABASE.TYPES.PRISMA:
         await setupPrisma(context);
         break;
-      case DATABASES.TYPES.MONGOOSE:
+      case DATABASE.TYPES.MONGOOSE:
         await setupMongoose(context);
         break;
       default:
@@ -410,23 +378,23 @@ async function setupSequelize(context: DatabaseSetupContext): Promise<void> {
   // Create config file
   const configPath = path.join(
     destination,
-    "src",
-    FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.CONNECTION
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.DATABASE,
+    PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
   DatabaseSetupHelper.writeConfigFile(
     context,
     TEMPLATES.DATABASE.SEQUELIZE.CONFIG,
     configPath,
-    { dialect: dialect ? dialect : "postgres" }
+    { dialect: dialect || "mysql" }
   );
 
   // Create models index
   const modelsIndexPath = path.join(
     destination,
-    "src",
-    FILE_PATHS.MODELS.DIRECTORY,
-    FILE_PATHS.MODELS.FILES.INDEX
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.MODELS,
+    PROJECT.FILES.MODELS.FILES.INDEX
   );
   DatabaseSetupHelper.createDatabaseIndexFile(
     context,
@@ -440,11 +408,11 @@ async function setupSequelize(context: DatabaseSetupContext): Promise<void> {
     {
       example: TEMPLATES.DATABASE.SEQUELIZE.EXAMPLE_MODEL,
     },
-    "models"
+    PROJECT.DIRECTORIES.SRC.MODELS
   );
 
   // Update server file
-  const serverFilePath = path.join(destination, "src", "server.ts");
+  const serverFilePath = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.FILES.SERVER.FILE);
   DatabaseSetupHelper.updateServerFile(context, serverFilePath);
 
   // Update package.json with scripts
@@ -473,15 +441,15 @@ async function setupTypeORM(context: DatabaseSetupContext): Promise<void> {
   // Create config file
   const configPath = path.join(
     destination,
-    "src",
-    FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.CONNECTION
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.DATABASE,
+    PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
   DatabaseSetupHelper.writeConfigFile(
     context,
     TEMPLATES.DATABASE.TYPEORM.CONFIG,
     configPath,
-    { dialect: dialect ? dialect : "postgres" }
+    { dialect: dialect || "postgres" }
   );
 
   // Create entity files
@@ -494,7 +462,7 @@ async function setupTypeORM(context: DatabaseSetupContext): Promise<void> {
   );
 
   // Update server file
-  const serverFilePath = path.join(destination, "src", "server.ts");
+  const serverFilePath = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.FILES.SERVER.FILE);
   DatabaseSetupHelper.updateServerFile(context, serverFilePath);
 
   // Update package.json with scripts
@@ -522,9 +490,9 @@ async function setupPrisma(context: DatabaseSetupContext): Promise<void> {
   // Create schema file in src/database directory
   const schemaPath = path.join(
     destination,
-    "src",
-    FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.CONNECTION
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.DATABASE,
+    PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
 
   DatabaseSetupHelper.writeConfigFile(
@@ -535,7 +503,7 @@ async function setupPrisma(context: DatabaseSetupContext): Promise<void> {
   );
 
   // Update server file
-  const serverFilePath = path.join(destination, "src", "server.ts");
+  const serverFilePath = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.FILES.SERVER.FILE);
   DatabaseSetupHelper.updateServerFile(context, serverFilePath);
 
   // Update package.json with scripts
@@ -563,9 +531,9 @@ async function setupMongoose(context: DatabaseSetupContext): Promise<void> {
   // Create config file
   const configPath = path.join(
     destination,
-    "src",
-    FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.CONNECTION
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.DATABASE,
+    PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
   DatabaseSetupHelper.writeConfigFile(
     context,
@@ -580,11 +548,11 @@ async function setupMongoose(context: DatabaseSetupContext): Promise<void> {
     {
       example: TEMPLATES.DATABASE.MONGOOSE.EXAMPLE_MODEL,
     },
-    "models"
+    PROJECT.DIRECTORIES.SRC.MODELS
   );
 
   // Update server file
-  const serverFilePath = path.join(destination, "src", "server.ts");
+  const serverFilePath = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.FILES.SERVER.FILE);
   DatabaseSetupHelper.updateServerFile(context, serverFilePath);
 
   // Setup environment variables

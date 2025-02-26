@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import passportSetup from "./passport.js";
+import { AUTH } from "../../constants/index.js";
 
 /**
  * Setup authentication based on user selection
@@ -23,13 +24,13 @@ async function setupAuth(destination: string, authLib: string): Promise<void> {
 
   // Setup based on selected auth lib
   switch (authLib) {
-    case "Passport":
+    case AUTH.TYPES.PASSPORT:
       await setupPassport(destination);
       break;
-    case "JWT":
+    case AUTH.TYPES.JWT:
       await setupJWT(destination);
       break;
-    case "Express-session":
+    case AUTH.TYPES.EXPRESS_SESSION:
       await setupExpressSession(destination);
       break;
   }

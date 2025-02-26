@@ -1,17 +1,33 @@
 /**
- * Export all constants
+ * Main constants export file
  */
-export * from "./directories.js";
-export * from "./databases.js";
-export * from "./templates.js";
-export * from "./auth.js";
-export * from "./websockets.js";
-export * from "./viewEngines.js";
-export * from "./messages.js";
-export * from "./dependencies.js";
-export * from "./app.js";
-export * from "./errors.js";
-export * from "./headers.js";
-export * from "./file-paths.js";
-export * from "./database-constants.js";
-export * from "./server-constants.js";
+
+// Domain-based exports
+import { PROJECT } from "./project/index.js";
+import { SERVER } from "./server/index.js";
+import { DATABASE } from "./database/index.js";
+import { AUTH } from "./auth/index.js";
+import { WEBSOCKETS } from "./websockets/index.js";
+import { VIEW_ENGINES } from "./viewEngines/index.js";
+import { TEMPLATES } from "./templates/index.js";
+import { COMMON } from "./common/index.js";
+import { BASE_DEPENDENCIES, BASE_DEV_DEPENDENCIES, FEATURE_DEPENDENCIES } from "./dependencies/index.js";
+import { APP } from "./app/index.js";
+import { ERRORS } from "./errors/index.js";
+
+// Export all domain constants
+export { 
+  PROJECT, 
+  SERVER, 
+  DATABASE, 
+  AUTH, 
+  WEBSOCKETS, 
+  VIEW_ENGINES, 
+  TEMPLATES, 
+  COMMON,
+  BASE_DEPENDENCIES,
+  BASE_DEV_DEPENDENCIES,
+  FEATURE_DEPENDENCIES,
+  APP,
+  ERRORS,
+};

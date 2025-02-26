@@ -6,20 +6,22 @@ import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
 import setupDatabase from "../database/index.js";
 import {
   getDefaultDatabaseName,
-  getDatabaseDialect,
   getDatabaseEnvVars,
   normalizeDatabaseName,
 } from "../../utils/database-helper.js";
 import { createEnvFile } from "../../utils/config-helper.js";
 import {
-  DIRECTORIES,
+	PROJECT,
   TEMPLATES,
-  MESSAGES,
-  DATABASES,
+  COMMON,
+  DATABASE,
   WEBSOCKETS,
   VIEW_ENGINES,
   APP,
+  AUTH,
 } from "../../constants/index.js";
+import setupViewEngine from "../views/index.js";
+import setupWebsockets from "../websockets/index.js";
 /**
  * Options for project structure setup
  */
@@ -53,7 +55,7 @@ async function setupProjectStructure(
   destination: string,
   options: ProjectSetupOptions
 ): Promise<void> {
-  console.log(MESSAGES.SETUP.PROJECT_STRUCTURE);
+  console.log(COMMON.MESSAGES.SETUP.PROJECT_STRUCTURE);
 
   // Create core directories
   createCoreDirectories(destination);
@@ -64,7 +66,7 @@ async function setupProjectStructure(
   // Create server.ts and type files
   // Prepare options for server generator with required properties
   const serverOptions: ServerGeneratorOptions = {
-    database: options.database || DATABASES.TYPES.NONE,
+    database: options.database || DATABASE.TYPES.NONE,
     authentication: Boolean(options.authentication),
     websocketLib: options.websocketLib || WEBSOCKETS.LIBRARIES.NONE,
     viewEngine: options.viewEngine || VIEW_ENGINES.TYPES.NONE,
@@ -73,7 +75,8 @@ async function setupProjectStructure(
     ...options,
   };
 
-  serverGenerator.generateServerFile(destination, serverOptions);
+  // Generate server files
+  serverGenerator.generateServerFiles(destination, serverOptions);
   serverGenerator.generateGlobalTypesFile(destination, serverOptions);
 
   // Create bin directory with startup files
@@ -85,7 +88,7 @@ async function setupProjectStructure(
   }
 
   // Setup database config and models
-  if (options.database && options.database !== DATABASES.TYPES.NONE) {
+  if (options.database && options.database !== DATABASE.TYPES.NONE) {
     await setupDatabaseConfig(destination, options.database, options);
   }
 
@@ -114,7 +117,7 @@ async function setupProjectStructure(
  * @param destination - Project destination directory
  */
 function createBinFiles(destination: string): void {
-  const binDir = path.join(destination, DIRECTORIES.ROOT.BIN);
+  const binDir = path.join(destination, PROJECT.DIRECTORIES.ROOT.BIN);
 
   // Create bin directory if it doesn't exist
   if (!fs.existsSync(binDir)) {
@@ -131,7 +134,7 @@ function createBinFiles(destination: string): void {
  * @param destination - Project destination directory
  */
 function createCoreDirectories(destination: string): void {
-  const { ROOT, SRC, PUBLIC } = DIRECTORIES;
+  const { ROOT, SRC, PUBLIC } = PROJECT.DIRECTORIES;
 
   // Define all directories to create
   const directories = [
@@ -149,6 +152,8 @@ function createCoreDirectories(destination: string): void {
     SRC.CONFIG,
     SRC.MIDDLEWARE,
     SRC.MIGRATIONS,
+    SRC.DATABASE,
+    SRC.VIEWS,
   ];
 
   // Create directories
@@ -172,11 +177,11 @@ async function setupDatabaseConfig(
   options: ProjectSetupOptions = {}
 ): Promise<void> {
   // Skip if no database or none was selected
-  if (!database || database === DATABASES.TYPES.NONE) {
+  if (!database || database === DATABASE.TYPES.NONE) {
     return;
   }
 
-  console.log("Starting database setup from project structure setup...");
+  console.log(`${COMMON.MESSAGES.SETUP.DATABASE(database)}`);
 
   // Check if database setup is already in progress (flag set by database-setup-helper.ts)
   if ((global as any).databaseSetupInProgress) {
@@ -207,30 +212,15 @@ async function setupWebsocketsConfig(
   destination: string,
   websocketLib: string
 ): Promise<void> {
-  console.log(MESSAGES.SETUP.WEBSOCKETS(websocketLib));
-
-  // Create sockets directory if it doesn't exist
-  const socketsDir = path.join(
-    destination,
-    DIRECTORIES.ROOT.SRC,
-    DIRECTORIES.SRC.SOCKETS
-  );
-  if (!fs.existsSync(socketsDir)) {
-    fs.mkdirSync(socketsDir, { recursive: true });
+  // Skip if no websocket library or none was selected
+  if (!websocketLib || websocketLib === WEBSOCKETS.LIBRARIES.NONE) {
+    return;
   }
-
-  if (websocketLib === WEBSOCKETS.LIBRARIES.SOCKETIO) {
-    // Create main socket.io handlers file
-    const handlersPath = path.join(socketsDir, "index.ts");
-    writeTemplate(
-      getTemplatePath(TEMPLATES.WEBSOCKETS.SOCKETIO.INDEX),
-      handlersPath
-    );
-  } else if (websocketLib === WEBSOCKETS.LIBRARIES.WS) {
-    // Create main websocket handlers file
-    const handlersPath = path.join(socketsDir, "index.ts");
-    writeTemplate(getTemplatePath(TEMPLATES.WEBSOCKETS.WS.INDEX), handlersPath);
-  }
+  
+  console.log(COMMON.MESSAGES.SETUP.WEBSOCKETS(websocketLib));
+  
+  // Use the dedicated websockets setup
+  await setupWebsockets(destination, websocketLib);
 }
 
 /**
@@ -242,107 +232,17 @@ async function setupViewsConfig(
   destination: string,
   viewEngine: string
 ): Promise<void> {
-  console.log(MESSAGES.SETUP.VIEW_ENGINE(viewEngine));
-
-  // Create views directory if it doesn't exist
-  const viewsDir = path.join(
-    destination,
-    DIRECTORIES.ROOT.SRC,
-    DIRECTORIES.SRC.VIEWS
-  );
-  if (!fs.existsSync(viewsDir)) {
-    fs.mkdirSync(viewsDir, { recursive: true });
+  // Skip if no view engine or none was selected
+  if (!viewEngine || viewEngine === VIEW_ENGINES.TYPES.NONE) {
+    return;
   }
-
-  // Create layout directory
-  const layoutsDir = path.join(viewsDir, DIRECTORIES.VIEWS.LAYOUTS);
-  if (!fs.existsSync(layoutsDir)) {
-    fs.mkdirSync(layoutsDir, { recursive: true });
-  }
-
-  // Create partials directory
-  const partialsDir = path.join(viewsDir, DIRECTORIES.VIEWS.PARTIALS);
-  if (!fs.existsSync(partialsDir)) {
-    fs.mkdirSync(partialsDir, { recursive: true });
-  }
-
-  // Create views based on selected engine
-  if (viewEngine === VIEW_ENGINES.TYPES.PUG) {
-    // Create layout file
-    const layoutPath = path.join(layoutsDir, "main.pug");
-    writeTemplate(
-      getTemplatePath(TEMPLATES.VIEWS.PUG.LAYOUTS.MAIN),
-      layoutPath
-    );
-
-    // Create header partial
-    const headerPath = path.join(partialsDir, "header.pug");
-    writeTemplate(
-      getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.HEADER),
-      headerPath
-    );
-
-    // Create footer partial
-    const footerPath = path.join(partialsDir, "footer.pug");
-    writeTemplate(
-      getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.FOOTER),
-      footerPath
-    );
-
-    // Create index view
-    const indexPath = path.join(viewsDir, "index.pug");
-    writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.INDEX), indexPath);
-  } else if (viewEngine === VIEW_ENGINES.TYPES.EJS) {
-    // Create layout file
-    const layoutPath = path.join(layoutsDir, "main.ejs");
-    writeTemplate(
-      getTemplatePath(TEMPLATES.VIEWS.EJS.LAYOUTS.MAIN),
-      layoutPath
-    );
-
-    // Create header partial
-    const headerPath = path.join(partialsDir, "header.ejs");
-    writeTemplate(
-      getTemplatePath(TEMPLATES.VIEWS.EJS.PARTIALS.HEADER),
-      headerPath
-    );
-
-    // Create footer partial
-    const footerPath = path.join(partialsDir, "footer.ejs");
-    writeTemplate(
-      getTemplatePath(TEMPLATES.VIEWS.EJS.PARTIALS.FOOTER),
-      footerPath
-    );
-
-    // Create index view
-    const indexPath = path.join(viewsDir, "index.ejs");
-    writeTemplate(getTemplatePath(TEMPLATES.VIEWS.EJS.INDEX), indexPath);
-  } else if (viewEngine === VIEW_ENGINES.TYPES.HANDLEBARS) {
-    // Create layout file
-    const layoutPath = path.join(layoutsDir, "main.handlebars");
-    writeTemplate(
-      getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.LAYOUTS.MAIN),
-      layoutPath
-    );
-
-    // Create header partial
-    const headerPath = path.join(partialsDir, "header.handlebars");
-    writeTemplate(
-      getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.HEADER),
-      headerPath
-    );
-
-    // Create footer partial
-    const footerPath = path.join(partialsDir, "footer.handlebars");
-    writeTemplate(
-      getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.FOOTER),
-      footerPath
-    );
-
-    // Create index view
-    const indexPath = path.join(viewsDir, "index.handlebars");
-    writeTemplate(getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.INDEX), indexPath);
-  }
+  console.log(`engine`);
+  console.log(COMMON.MESSAGES.SETUP.VIEW_ENGINE(viewEngine));
+  
+  // Use the dedicated view engine setup
+  await setupViewEngine(destination, viewEngine, {
+    appName: path.basename(destination)
+  });
 }
 
 /**
@@ -350,7 +250,7 @@ async function setupViewsConfig(
  * @param destination - Project destination directory
  */
 function setupRoutesStructure(destination: string): void {
-  const { ROOT, SRC } = DIRECTORIES;
+  const { ROOT, SRC } = PROJECT.DIRECTORIES;
 
   const routesDir = path.join(destination, ROOT.SRC, SRC.ROUTES);
   const controllersDir = path.join(destination, ROOT.SRC, SRC.CONTROLLERS);
@@ -399,79 +299,79 @@ function setupRoutesStructure(destination: string): void {
 function createReadme(destination: string, options: ProjectSetupOptions): void {
   const readmePath = path.join(destination, "README.md");
 
-  let databaseName = DATABASES.TYPES.NONE;
-  if (options.database && options.database !== DATABASES.TYPES.NONE) {
+  let databaseName: string = DATABASE.TYPES.NONE;
+  if (options.database && options.database !== DATABASE.TYPES.NONE) {
     databaseName = options.database;
   }
 
   let authEnabled = options.authentication ? "enabled" : "disabled";
 
-  let websocketLib = WEBSOCKETS.LIBRARIES.NONE;
+  let websocketLib: typeof WEBSOCKETS.LIBRARIES.NONE | typeof WEBSOCKETS.LIBRARIES.SOCKETIO | typeof WEBSOCKETS.LIBRARIES.WS = WEBSOCKETS.LIBRARIES.NONE;
   if (
     options.websocketLib &&
     options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
   ) {
-    websocketLib = options.websocketLib;
+    websocketLib = options.websocketLib as typeof WEBSOCKETS.LIBRARIES.SOCKETIO | typeof WEBSOCKETS.LIBRARIES.WS;
   }
 
-  let viewEngine = VIEW_ENGINES.TYPES.NONE;
+  let viewEngine: typeof VIEW_ENGINES.TYPES.NONE | typeof VIEW_ENGINES.TYPES.PUG | typeof VIEW_ENGINES.TYPES.EJS | typeof VIEW_ENGINES.TYPES.HANDLEBARS = VIEW_ENGINES.TYPES.NONE;
   if (options.viewEngine && options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
-    viewEngine = options.viewEngine;
+    viewEngine = options.viewEngine as typeof VIEW_ENGINES.TYPES.PUG | typeof VIEW_ENGINES.TYPES.EJS | typeof VIEW_ENGINES.TYPES.HANDLEBARS;
   }
 
   // Prepare template variables
   const websocketDirs =
     options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
-      ? "sockets/          # WebSocket handlers\n"
+      ? `${PROJECT.DIRECTORIES.SRC.SOCKETS}/          # WebSocket handlers\n`
       : "";
 
   const viewDirs =
     options.viewEngine !== VIEW_ENGINES.TYPES.NONE
-      ? "views/            # View templates\n"
+      ? `${PROJECT.DIRECTORIES.SRC.VIEWS}/            # View templates\n`
       : "";
 
   // Prepare database prerequisites
   let databasePrereqs = "";
-  if (options.database === DATABASES.TYPES.MONGOOSE) {
+  if (options.database === DATABASE.TYPES.MONGOOSE) {
     databasePrereqs += "- MongoDB\n";
   }
   if (
-    options.database === DATABASES.TYPES.TYPEORM ||
-    options.database === DATABASES.TYPES.PRISMA
+    options.database === DATABASE.TYPES.TYPEORM ||
+    options.database === DATABASE.TYPES.PRISMA
   ) {
     databasePrereqs += "- PostgreSQL\n";
   }
-  if (options.database === DATABASES.TYPES.SEQUELIZE) {
+  if (options.database === DATABASE.TYPES.SEQUELIZE) {
     databasePrereqs += "- MySQL/MariaDB\n";
   }
 
   // Prepare database environment variables
   let databaseEnvVars = "";
-  if (options.database === DATABASES.TYPES.SEQUELIZE) {
+  if (options.database === DATABASE.TYPES.SEQUELIZE) {
     const { HOST, PORT, DEFAULT_DB_NAME, USER, PASSWORD } =
-      DATABASES.DEFAULTS.MYSQL;
+      DATABASE.DEFAULTS.MYSQL;
     databaseEnvVars += `DB_HOST=${HOST}\nDB_PORT=${PORT}\nDB_NAME=${DEFAULT_DB_NAME}\nDB_USER=${USER}\nDB_PASSWORD=${PASSWORD}\n`;
-  } else if (options.database === DATABASES.TYPES.MONGOOSE) {
+  } else if (options.database === DATABASE.TYPES.MONGOOSE) {
     const dbName =
-      options.databaseName || DATABASES.DEFAULTS.MONGODB.DEFAULT_DB_NAME;
-    databaseEnvVars += `MONGODB_URI=${DATABASES.DEFAULTS.MONGODB.URI(
+      options.databaseName || DATABASE.DEFAULTS.MONGODB.DEFAULT_DB_NAME;
+    databaseEnvVars += `MONGODB_URI=${DATABASE.DEFAULTS.MONGODB.URI(
       dbName
     )}\n`;
-  } else if (options.database === DATABASES.TYPES.PRISMA) {
+  } else if (options.database === DATABASE.TYPES.PRISMA) {
     const dbName =
-      options.databaseName || DATABASES.DEFAULTS.POSTGRES.DEFAULT_DB_NAME;
-    databaseEnvVars += `DATABASE_URL=${DATABASES.DEFAULTS.POSTGRES.URI(
+      options.databaseName || DATABASE.DEFAULTS.POSTGRES.DEFAULT_DB_NAME;
+    databaseEnvVars += `DATABASE_URL=${DATABASE.DEFAULTS.POSTGRES.URI(
       dbName
     )}\n`;
-  } else if (options.database === DATABASES.TYPES.TYPEORM) {
+  } else if (options.database === DATABASE.TYPES.TYPEORM) {
     const { HOST, PORT, DEFAULT_DB_NAME, USER, PASSWORD } =
-      DATABASES.DEFAULTS.POSTGRES;
+      DATABASE.DEFAULTS.POSTGRES;
     databaseEnvVars += `DB_HOST=${HOST}\nDB_PORT=${PORT}\nDB_NAME=${DEFAULT_DB_NAME}\nDB_USER=${USER}\nDB_PASSWORD=${PASSWORD}\n`;
   }
 
   // Prepare authentication environment variables
   const authEnvVars = options.authentication
-    ? "JWT_SECRET=your-secret-key\nJWT_EXPIRES_IN=24h\n"
+    ? `JWT_SECRET=your-secret-key\nJWT_EXPIRES_IN=${AUTH.CONFIG.JWT.EXPIRATION.ACCESS}\n`
     : "";
 
   // Create README using template
@@ -489,7 +389,7 @@ function createReadme(destination: string, options: ProjectSetupOptions): void {
       authEnvVars,
     }
   );
-  console.log(MESSAGES.SUCCESS.README);
+  console.log(COMMON.MESSAGES.SUCCESS.README);
 }
 
 /**
@@ -501,7 +401,7 @@ function createEnvironmentFile(
   destination: string,
   options: ProjectSetupOptions
 ): void {
-  console.log(MESSAGES.SETUP.ENV_FILE);
+  console.log(COMMON.MESSAGES.SETUP.ENV_FILE);
 
   // Start with default environment variables
   const envVars: Record<string, string> = {
@@ -510,7 +410,7 @@ function createEnvironmentFile(
   };
 
   // Add database-specific environment variables
-  if (options.database && options.database !== DATABASES.TYPES.NONE) {
+  if (options.database && options.database !== DATABASE.TYPES.NONE) {
     const dbName =
       options.databaseName ||
       getDefaultDatabaseName(path.basename(destination), options.database);
@@ -521,7 +421,7 @@ function createEnvironmentFile(
   // Add authentication environment variables if needed
   if (options.authentication) {
     envVars.JWT_SECRET = "your-jwt-secret-key-change-in-production";
-    envVars.JWT_EXPIRES_IN = "24h";
+    envVars.JWT_EXPIRES_IN = AUTH.CONFIG.JWT.EXPIRATION.ACCESS;
   }
 
   // Create the .env file

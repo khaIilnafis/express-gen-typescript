@@ -47,4 +47,4 @@ export const ERRORS = Object.freeze({
         `${field} cannot exceed ${length} characters`,
     }),
   }),
-});
+}); 

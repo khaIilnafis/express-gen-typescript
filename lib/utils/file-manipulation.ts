@@ -43,7 +43,8 @@ export function insertContentAtMarker(
       console.error(`File not found: ${filePath}`);
       return false;
     }
-
+	console.log(filePath);
+	console.log(marker);
     let fileContent = fs.readFileSync(filePath, "utf8");
     const markerPosition = fileContent.indexOf(marker);
 

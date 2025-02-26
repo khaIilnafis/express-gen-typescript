@@ -1,9 +1,8 @@
 import path from "path";
 import {
   TEMPLATES,
-  DATABASES,
-  DIRECTORIES,
-  FILE_PATHS,
+  PROJECT,
+  DATABASE
 } from "../../constants/index.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
 import {
@@ -35,15 +34,15 @@ async function setupSequelize(
   // Define paths for destination files
   const dbConfigPath = path.join(
     destination,
-    DIRECTORIES.ROOT.SRC,
-    FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.CONNECTION
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.DATABASE,
+    PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
   const exampleModelPath = path.join(
     destination,
-    DIRECTORIES.ROOT.SRC,
-    DIRECTORIES.SRC.MODELS,
-    FILE_PATHS.MODELS.FILES.EXAMPLE
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.MODELS,
+    PROJECT.FILES.MODELS.FILES.EXAMPLE
   );
 
   // Get database name from options or use default
@@ -69,11 +68,8 @@ async function setupSequelize(
     exampleModelPath
   );
 
-  //   // Create database init file using template
-  //   writeTemplate(getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT), dbInitPath);
-
   // Create models index.ts file
-  createModelsIndexFile(destination, DATABASES.TYPES.SEQUELIZE, "Example");
+  createModelsIndexFile(destination, DATABASE.TYPES.SEQUELIZE, "Example");
 
   // Update server.ts to initialize database on startup
   updateServerWithDatabaseInit(destination);

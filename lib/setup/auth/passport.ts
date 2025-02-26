@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { AUTH, PROJECT } from "../../constants/index.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
 
 /**
@@ -10,12 +11,16 @@ async function setupPassport(destination: string): Promise<void> {
   console.log("Setting up Passport.js authentication...");
 
   // Define paths for destination files
-  const passportPath = path.join(destination, "src", "auth", "passport.ts");
+  const passportPath = path.join(
+    destination, 
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    AUTH.PATHS.FILES.PASSPORT.CONFIG
+  );
+  
   const authMiddlewarePath = path.join(
     destination,
-    "src",
-    "middleware",
-    "auth.ts"
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    AUTH.PATHS.FILES.MIDDLEWARE.AUTH
   );
 
   // Create auth directory if it doesn't exist

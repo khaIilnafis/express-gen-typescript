@@ -2,9 +2,8 @@ import path from "path";
 import fs from "fs";
 import {
   TEMPLATES,
-  DATABASES,
-  DIRECTORIES,
-  FILE_PATHS,
+  PROJECT,
+  DATABASE
 } from "../../constants/index.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
 import {
@@ -35,21 +34,21 @@ async function setupTypeORM(
   // Define paths for destination files
   const dbConfigPath = path.join(
     destination,
-    DIRECTORIES.ROOT.SRC,
-    FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.CONNECTION
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.DATABASE,
+    PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
   const exampleEntityPath = path.join(
     destination,
-    DIRECTORIES.ROOT.SRC,
-    DIRECTORIES.SRC.MODELS,
-    FILE_PATHS.MODELS.FILES.EXAMPLE
+   PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.MODELS,
+    PROJECT.FILES.MODELS.FILES.EXAMPLE
   );
   // Create entities directory if it doesn't exist
   const entitiesDir = path.join(
     destination,
-    DIRECTORIES.ROOT.SRC,
-    DIRECTORIES.SRC.MODELS
+   PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.MODELS
   );
   if (!fs.existsSync(entitiesDir)) {
     fs.mkdirSync(entitiesDir, { recursive: true });
@@ -73,11 +72,8 @@ async function setupTypeORM(
     exampleEntityPath
   );
 
-  //   // Create database init file using template
-  //   writeTemplate(getTemplatePath(TEMPLATES.DATABASE.TYPEORM.INIT), dbInitPath);
-
   // Create entities index file
-  createModelsIndexFile(destination, DATABASES.TYPES.TYPEORM, "Example");
+  createModelsIndexFile(destination, DATABASE.TYPES.TYPEORM, "Example");
 
   // Update server.ts to initialize database on startup
   updateServerWithDatabaseInit(destination);

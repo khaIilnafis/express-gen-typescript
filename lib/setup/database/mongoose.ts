@@ -1,9 +1,8 @@
 import path from "path";
 import {
   TEMPLATES,
-  DATABASES,
-  DIRECTORIES,
-  FILE_PATHS,
+  DATABASE,
+  PROJECT,
 } from "../../constants/index.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
 import {
@@ -33,15 +32,15 @@ async function setupMongoose(
   // Define paths for destination files
   const dbConfigPath = path.join(
     destination,
-    DIRECTORIES.ROOT.SRC,
-    FILE_PATHS.DATABASE.DIRECTORY,
-    FILE_PATHS.DATABASE.FILES.CONNECTION
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.FILES.DATABASE.DIRECTORY,
+    PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
   const exampleModelPath = path.join(
     destination,
-    DIRECTORIES.ROOT.SRC,
-    DIRECTORIES.SRC.MODELS,
-    FILE_PATHS.MODELS.FILES.EXAMPLE
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.MODELS,
+    PROJECT.FILES.MODELS.FILES.EXAMPLE
   );
 
   // Get database name from options or use default
@@ -63,11 +62,8 @@ async function setupMongoose(
     exampleModelPath
   );
 
-  //   // Create database init file using template
-  //   writeTemplate(getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.INIT), dbInitPath);
-
   // Create models index.ts file
-  createModelsIndexFile(destination, DATABASES.TYPES.MONGOOSE, "Example");
+  createModelsIndexFile(destination, DATABASE.TYPES.MONGOOSE, "Example");
 
   // Update server.ts to initialize database on startup
   updateServerWithDatabaseInit(destination);
