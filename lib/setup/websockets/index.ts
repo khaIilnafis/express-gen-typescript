@@ -1,5 +1,12 @@
 import * as fs from "fs";
 import * as path from "path";
+import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import {
+  PROJECT,
+  TEMPLATES,
+  WEBSOCKETS,
+  COMMON
+} from "../../constants/index.js";
 
 /**
  * Setup websockets based on user selection
@@ -10,20 +17,30 @@ async function setupWebsockets(
   destination: string,
   websocketLib: string
 ): Promise<void> {
-  console.log(`Setting up ${websocketLib} websockets...`);
+  // Skip if no websocket library or none was selected
+  if (!websocketLib || websocketLib === WEBSOCKETS.LIBRARIES.NONE) {
+    return;
+  }
+
+  console.log(COMMON.MESSAGES.SETUP.WEBSOCKETS(websocketLib));
 
   // Create necessary directories
-  const websocketDir = path.join(destination, "sockets");
-  if (!fs.existsSync(websocketDir)) {
-    fs.mkdirSync(websocketDir, { recursive: true });
+  const socketsDir = path.join(
+    destination, 
+    PROJECT.DIRECTORIES.ROOT.SRC, 
+    PROJECT.DIRECTORIES.SRC.SOCKETS
+  );
+  
+  if (!fs.existsSync(socketsDir)) {
+    fs.mkdirSync(socketsDir, { recursive: true });
   }
 
   // Setup based on selected websocket lib
   switch (websocketLib) {
-    case "Socket.io":
+    case WEBSOCKETS.LIBRARIES.SOCKETIO:
       await setupSocketIO(destination);
       break;
-    case "WS":
+    case WEBSOCKETS.LIBRARIES.WS:
       await setupWS(destination);
       break;
   }
@@ -34,8 +51,20 @@ async function setupWebsockets(
  * @param {string} destination - Project destination directory
  */
 async function setupSocketIO(destination: string): Promise<void> {
-  // Implementation will be moved to a separate file
-  console.log("Socket.io setup not yet implemented");
+  const socketsDir = path.join(
+    destination, 
+    PROJECT.DIRECTORIES.ROOT.SRC, 
+    PROJECT.DIRECTORIES.SRC.SOCKETS
+  );
+  
+  // Create index.ts file for Socket.io
+  const socketIndexPath = path.join(socketsDir, PROJECT.FILES.SOCKETS.INDEX);
+  writeTemplate(
+    getTemplatePath(TEMPLATES.WEBSOCKETS.SOCKETIO.INDEX),
+    socketIndexPath
+  );
+  
+  console.log("Socket.io setup completed");
 }
 
 /**
@@ -43,8 +72,20 @@ async function setupSocketIO(destination: string): Promise<void> {
  * @param {string} destination - Project destination directory
  */
 async function setupWS(destination: string): Promise<void> {
-  // Implementation will be moved to a separate file
-  console.log("WS setup not yet implemented");
+  const socketsDir = path.join(
+    destination, 
+    PROJECT.DIRECTORIES.ROOT.SRC, 
+    PROJECT.DIRECTORIES.SRC.SOCKETS
+  );
+  
+  // Create index.ts file for WS
+  const wsIndexPath = path.join(socketsDir, PROJECT.FILES.SOCKETS.INDEX);
+  writeTemplate(
+    getTemplatePath(TEMPLATES.WEBSOCKETS.WS.INDEX), 
+    wsIndexPath
+  );
+  
+  console.log("WS setup completed");
 }
 
 export default setupWebsockets;

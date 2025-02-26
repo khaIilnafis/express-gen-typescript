@@ -4,6 +4,25 @@ import serverGenerator from "./server.js";
 import setupPassport from "../auth/passport.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
 import setupDatabase from "../database/index.js";
+import {
+  getDefaultDatabaseName,
+  getDatabaseEnvVars,
+  normalizeDatabaseName,
+} from "../../utils/database-helper.js";
+import { createEnvFile } from "../../utils/config-helper.js";
+import {
+	PROJECT,
+  TEMPLATES,
+  COMMON,
+  DATABASE,
+  WEBSOCKETS,
+  VIEW_ENGINES,
+  APP,
+  AUTH,
+  SERVER,
+} from "../../constants/index.js";
+import setupViewEngine from "../views/index.js";
+import setupWebsockets from "../websockets/index.js";
 /**
  * Options for project structure setup
  */
@@ -37,24 +56,28 @@ async function setupProjectStructure(
   destination: string,
   options: ProjectSetupOptions
 ): Promise<void> {
-  console.log("Setting up project structure...");
+  console.log(COMMON.MESSAGES.SETUP.PROJECT_STRUCTURE);
 
   // Create core directories
   createCoreDirectories(destination);
 
+  // Create .env file with appropriate environment variables
+  createEnvironmentFile(destination, options);
+
   // Create server.ts and type files
   // Prepare options for server generator with required properties
   const serverOptions: ServerGeneratorOptions = {
-    database: options.database || "none",
+    database: options.database || DATABASE.TYPES.NONE,
     authentication: Boolean(options.authentication),
-    websocketLib: options.websocketLib || "none",
-    viewEngine: options.viewEngine || "none",
+    websocketLib: options.websocketLib || WEBSOCKETS.LIBRARIES.NONE,
+    viewEngine: options.viewEngine || VIEW_ENGINES.TYPES.NONE,
     databaseName: options.databaseName,
     dialect: options.dialect,
     ...options,
   };
 
-  serverGenerator.generateServerFile(destination, serverOptions);
+  // Generate server files
+  serverGenerator.generateServerFiles(destination, serverOptions);
   serverGenerator.generateGlobalTypesFile(destination, serverOptions);
 
   // Create bin directory with startup files
@@ -66,22 +89,25 @@ async function setupProjectStructure(
   }
 
   // Setup database config and models
-  if (options.database && options.database !== "none") {
+  if (options.database && options.database !== DATABASE.TYPES.NONE) {
     await setupDatabaseConfig(destination, options.database, options);
   }
 
   // Setup websockets if enabled
-  if (options.websocketLib && options.websocketLib !== "none") {
+  if (
+    options.websocketLib &&
+    options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
+  ) {
     await setupWebsocketsConfig(destination, options.websocketLib);
   }
 
   // Setup views if enabled
-  if (options.viewEngine && options.viewEngine !== "none") {
+  if (options.viewEngine && options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
     await setupViewsConfig(destination, options.viewEngine);
   }
 
   // Create basic routes structure
-  setupRoutesStructure(destination);
+  setupRoutesStructure(destination, options.viewEngine);
 
   // Create README.md file
   createReadme(destination, options);
@@ -92,7 +118,7 @@ async function setupProjectStructure(
  * @param destination - Project destination directory
  */
 function createBinFiles(destination: string): void {
-  const binDir = path.join(destination, "bin");
+  const binDir = path.join(destination, PROJECT.DIRECTORIES.ROOT.BIN);
 
   // Create bin directory if it doesn't exist
   if (!fs.existsSync(binDir)) {
@@ -100,15 +126,8 @@ function createBinFiles(destination: string): void {
   }
 
   // Create www.ts file
-  const wwwPath = path.join(binDir, "www.ts");
-  writeTemplate(getTemplatePath("project-structure/bin/www.ts"), wwwPath);
-
-  // Create start.js file
-  const startPath = path.join(binDir, "start.js");
-  writeTemplate(getTemplatePath("project-structure/bin/start.js"), startPath);
-
-  // Make start.js file executable
-  fs.chmodSync(startPath, "755");
+  const wwwPath = path.join(binDir, PROJECT.FILES.BIN.SERVER);
+  writeTemplate(getTemplatePath(TEMPLATES.PROJECT_STRUCTURE.BIN.WWW), wwwPath);
 }
 
 /**
@@ -116,26 +135,31 @@ function createBinFiles(destination: string): void {
  * @param destination - Project destination directory
  */
 function createCoreDirectories(destination: string): void {
+  const { ROOT, SRC, PUBLIC } = PROJECT.DIRECTORIES;
+
+  // Define all directories to create
   const directories = [
-    "bin",
-    "controllers",
-    "models",
-    "public",
-    "public/css",
-    "public/js",
-    "public/images",
-    "routes",
-    "services",
-    "sockets",
-    "utils",
-    "config",
-    "middleware",
-    "migrations",
+    SRC.CONTROLLERS,
+    SRC.MODELS,
+    SRC.PUBLIC,
+    `${SRC.PUBLIC}/${PUBLIC.CSS}`,
+    `${SRC.PUBLIC}/${PUBLIC.JS}`,
+    `${SRC.PUBLIC}/${PUBLIC.IMAGES}`,
+    SRC.ROUTES,
+    SRC.SERVICES,
+    SRC.SOCKETS,
+    SRC.UTILS,
+    SRC.TYPES,
+    SRC.CONFIG,
+    SRC.MIDDLEWARE,
+    SRC.MIGRATIONS,
+    SRC.DATABASE,
+    SRC.VIEWS,
   ];
 
   // Create directories
   directories.forEach((dir) => {
-    const dirPath = path.join(destination, "src", dir);
+    const dirPath = path.join(destination, ROOT.SRC, dir);
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
     }
@@ -153,21 +177,31 @@ async function setupDatabaseConfig(
   database: string,
   options: ProjectSetupOptions = {}
 ): Promise<void> {
-  //   console.log(`Setting up ${database} database configuration...`);
+  // Skip if no database or none was selected
+  if (!database || database === DATABASE.TYPES.NONE) {
+    return;
+  }
 
-  // Get database name from options or use default
-  const databaseName =
-    options.databaseName ||
-    path
-      .basename(destination)
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "_");
+  console.log(`${COMMON.MESSAGES.SETUP.DATABASE(database)}`);
 
-  // Use the database setup modules
-  await setupDatabase(destination, database, {
-    databaseName,
-    dialect: options.dialect || "postgres",
+  // Check if database setup is already in progress (flag set by database-setup-helper.ts)
+  if ((global as any).databaseSetupInProgress) {
+    console.log(
+      "Database setup already in progress, skipping from project structure setup"
+    );
+    return;
+  }
+
+  // Use the database setup module with all necessary options
+  await setupDatabase({
+    destination,
+    database,
+    databaseName:
+      options.databaseName || normalizeDatabaseName(path.basename(destination)),
+    ...options,
   });
+
+  console.log("Completed database setup from project structure setup");
 }
 
 /**
@@ -179,26 +213,15 @@ async function setupWebsocketsConfig(
   destination: string,
   websocketLib: string
 ): Promise<void> {
-  console.log(`Setting up ${websocketLib} websocket configuration...`);
-
-  // Create sockets directory if it doesn't exist
-  const socketsDir = path.join(destination, "src", "sockets");
-  if (!fs.existsSync(socketsDir)) {
-    fs.mkdirSync(socketsDir, { recursive: true });
+  // Skip if no websocket library or none was selected
+  if (!websocketLib || websocketLib === WEBSOCKETS.LIBRARIES.NONE) {
+    return;
   }
-
-  if (websocketLib === "socketio" || websocketLib === "Socket.io") {
-    // Create main socket.io handlers file
-    const handlersPath = path.join(socketsDir, "index.ts");
-    writeTemplate(
-      getTemplatePath("websockets/socketio/index.ts"),
-      handlersPath
-    );
-  } else if (websocketLib === "ws" || websocketLib === "WS") {
-    // Create main websocket handlers file
-    const handlersPath = path.join(socketsDir, "index.ts");
-    writeTemplate(getTemplatePath("websockets/ws/index.ts"), handlersPath);
-  }
+  
+  console.log(COMMON.MESSAGES.SETUP.WEBSOCKETS(websocketLib));
+  
+  // Use the dedicated websockets setup
+  await setupWebsockets(destination, websocketLib);
 }
 
 /**
@@ -210,98 +233,29 @@ async function setupViewsConfig(
   destination: string,
   viewEngine: string
 ): Promise<void> {
-  console.log(`Setting up ${viewEngine} view engine...`);
-
-  // Create views directory if it doesn't exist
-  const viewsDir = path.join(destination, "src", "views");
-  if (!fs.existsSync(viewsDir)) {
-    fs.mkdirSync(viewsDir, { recursive: true });
+  // Skip if no view engine or none was selected
+  if (!viewEngine || viewEngine === VIEW_ENGINES.TYPES.NONE) {
+    return;
   }
-
-  // Create layout directory
-  const layoutsDir = path.join(viewsDir, "layouts");
-  if (!fs.existsSync(layoutsDir)) {
-    fs.mkdirSync(layoutsDir, { recursive: true });
-  }
-
-  // Create partials directory
-  const partialsDir = path.join(viewsDir, "partials");
-  if (!fs.existsSync(partialsDir)) {
-    fs.mkdirSync(partialsDir, { recursive: true });
-  }
-
-  // Create views based on selected engine
-  if (viewEngine === "pug") {
-    // Create layout file
-    const layoutPath = path.join(layoutsDir, "main.pug");
-    writeTemplate(getTemplatePath("views/pug/layouts/main.pug"), layoutPath);
-
-    // Create header partial
-    const headerPath = path.join(partialsDir, "header.pug");
-    writeTemplate(getTemplatePath("views/pug/partials/header.pug"), headerPath);
-
-    // Create footer partial
-    const footerPath = path.join(partialsDir, "footer.pug");
-    writeTemplate(getTemplatePath("views/pug/partials/footer.pug"), footerPath);
-
-    // Create index view
-    const indexPath = path.join(viewsDir, "index.pug");
-    writeTemplate(getTemplatePath("views/pug/index.pug"), indexPath);
-  } else if (viewEngine === "ejs") {
-    // Create layout file
-    const layoutPath = path.join(layoutsDir, "main.ejs");
-    writeTemplate(getTemplatePath("views/ejs/layouts/main.ejs"), layoutPath);
-
-    // Create header partial
-    const headerPath = path.join(partialsDir, "header.ejs");
-    writeTemplate(getTemplatePath("views/ejs/partials/header.ejs"), headerPath);
-
-    // Create footer partial
-    const footerPath = path.join(partialsDir, "footer.ejs");
-    writeTemplate(getTemplatePath("views/ejs/partials/footer.ejs"), footerPath);
-
-    // Create index view
-    const indexPath = path.join(viewsDir, "index.ejs");
-    writeTemplate(getTemplatePath("views/ejs/index.ejs"), indexPath);
-  } else if (viewEngine === "handlebars") {
-    // Create layout file
-    const layoutPath = path.join(layoutsDir, "main.handlebars");
-    writeTemplate(
-      getTemplatePath("views/handlebars/layouts/main.handlebars"),
-      layoutPath
-    );
-
-    // Create header partial
-    const headerPath = path.join(partialsDir, "header.handlebars");
-    writeTemplate(
-      getTemplatePath("views/handlebars/partials/header.handlebars"),
-      headerPath
-    );
-
-    // Create footer partial
-    const footerPath = path.join(partialsDir, "footer.handlebars");
-    writeTemplate(
-      getTemplatePath("views/handlebars/partials/footer.handlebars"),
-      footerPath
-    );
-
-    // Create index view
-    const indexPath = path.join(viewsDir, "index.handlebars");
-    writeTemplate(
-      getTemplatePath("views/handlebars/index.handlebars"),
-      indexPath
-    );
-  }
+  console.log(COMMON.MESSAGES.SETUP.VIEW_ENGINE(viewEngine));
+  
+  // Use the dedicated view engine setup
+  await setupViewEngine(destination, viewEngine, {
+    appName: path.basename(destination)
+  });
 }
 
 /**
  * Setup basic routes structure
  * @param destination - Project destination directory
+ * @param viewEngine - Selected view engine (optional)
  */
-function setupRoutesStructure(destination: string): void {
-  const routesDir = path.join(destination, "src", "routes");
-  const controllersDir = path.join(destination, "src", "controllers");
-  const exampleControllerDir = path.join(controllersDir, "example");
+function setupRoutesStructure(destination: string, viewEngine?: string): void {
+  const { ROOT, SRC } = PROJECT.DIRECTORIES;
+
+  const routesDir = path.join(destination, ROOT.SRC, SRC.ROUTES);
+  const controllersDir = path.join(destination, ROOT.SRC, SRC.CONTROLLERS);
+  const exampleControllerDir = path.join(controllersDir, TEMPLATES.STRINGS.EXAMPLE_FILE.FILENAME);
 
   // Create example controller directory if it doesn't exist
   if (!fs.existsSync(exampleControllerDir)) {
@@ -309,31 +263,36 @@ function setupRoutesStructure(destination: string): void {
   }
 
   // Create index router if it doesn't exist
-  const indexRouterPath = path.join(routesDir, "index.ts");
+  const indexRouterPath = path.join(routesDir, PROJECT.FILES.ROUTES.INDEX);
   if (!fs.existsSync(indexRouterPath)) {
-    writeTemplate(getTemplatePath("routes/index.ts"), indexRouterPath);
+    // Determine which root route handler to use based on view engine
+    const templateVars = {
+      rootRouteHandler: SERVER.ROOT_ROUTE_HANDLER.DEFAULT
+    };
+    
+    writeTemplate(getTemplatePath(TEMPLATES.ROUTES.INDEX), indexRouterPath, templateVars);
   }
 
   // Create example routes
-  const exampleRoutesPath = path.join(routesDir, "example.routes.ts");
-  writeTemplate(getTemplatePath("routes/example.routes.ts"), exampleRoutesPath);
+  const exampleRoutesPath = path.join(routesDir, PROJECT.FILES.ROUTES.EXAMPLE);
+  writeTemplate(getTemplatePath(TEMPLATES.ROUTES.EXAMPLE), exampleRoutesPath);
 
   // Create example controller files
   const exampleControllerIndexPath = path.join(
     exampleControllerDir,
-    "index.ts"
+    PROJECT.FILES.CONTROLLERS.INDEX
   );
   writeTemplate(
-    getTemplatePath("controllers/example/index.ts"),
+    getTemplatePath(TEMPLATES.CONTROLLERS.EXAMPLE.INDEX),
     exampleControllerIndexPath
   );
 
   const exampleControllerLogicPath = path.join(
     exampleControllerDir,
-    "exampleController.ts"
+    PROJECT.FILES.CONTROLLERS.EXAMPLE
   );
   writeTemplate(
-    getTemplatePath("controllers/example/exampleController.ts"),
+    getTemplatePath(TEMPLATES.CONTROLLERS.EXAMPLE.CONTROLLER),
     exampleControllerLogicPath
   );
 }
@@ -344,82 +303,127 @@ function setupRoutesStructure(destination: string): void {
  * @param options - User selected options
  */
 function createReadme(destination: string, options: ProjectSetupOptions): void {
-  const readmePath = path.join(destination, "README.md");
+  const readmePath = path.join(destination, PROJECT.FILES.COMMON.README);
 
-  let databaseName = "none";
-  if (options.database && options.database !== "none") {
-    databaseName = options.database;
+  // Default values
+  const templateVars: Record<string, string> = {
+    databaseName: DATABASE.TYPES.NONE,
+    authEnabled: options.authentication ? "enabled" : "disabled",
+    websocketLib: WEBSOCKETS.LIBRARIES.NONE,
+    viewEngine: VIEW_ENGINES.TYPES.NONE,
+    websocketDirs: "",
+    databasePrereqs: "",
+    databaseEnvVars: "",
+    authEnvVars: ""
+  };
+
+  // Set database name if available
+  if (options.database && options.database !== DATABASE.TYPES.NONE) {
+    templateVars.databaseName = options.database;
   }
 
-  let authEnabled = options.authentication ? "enabled" : "disabled";
-
-  let websocketLib = "none";
-  if (options.websocketLib && options.websocketLib !== "none") {
-    websocketLib = options.websocketLib;
+  // Set websocket library if available
+  if (options.websocketLib && options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE) {
+    templateVars.websocketLib = options.websocketLib;
   }
 
-  let viewEngine = "none";
-  if (options.viewEngine && options.viewEngine !== "none") {
-    viewEngine = options.viewEngine;
+  // Set view engine if available
+  if (options.viewEngine && options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
+    templateVars.viewEngine = options.viewEngine;
   }
 
-  // Prepare template variables
-  const websocketDirs =
-    options.websocketLib !== "none"
-      ? "sockets/          # WebSocket handlers\n"
-      : "";
-
-  const viewDirs =
-    options.viewEngine !== "none" ? "views/            # View templates\n" : "";
-
-  // Prepare database prerequisites
-  let databasePrereqs = "";
-  if (options.database === "mongo" || options.database === "mongoose") {
-    databasePrereqs += "- MongoDB\n";
+  // Add websocket and view directories to structure section if needed
+  if (options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE) {
+    templateVars.websocketDirs += `${PROJECT.DIRECTORIES.SRC.SOCKETS}/          ${TEMPLATES.STRINGS.DIRECTORY_DESCRIPTIONS.WEBSOCKETS}\n`;
   }
-  if (
-    options.database === "postgres" ||
-    options.database === "typeorm" ||
-    options.database === "prisma"
-  ) {
-    databasePrereqs += "- PostgreSQL\n";
-  }
-  if (options.database === "mysql" || options.database === "sequelize") {
-    databasePrereqs += "- MySQL/MariaDB\n";
+  
+  if (options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
+    templateVars.websocketDirs += `${PROJECT.DIRECTORIES.SRC.VIEWS}/            ${TEMPLATES.STRINGS.DIRECTORY_DESCRIPTIONS.VIEWS}\n`;
   }
 
-  // Prepare database environment variables
-  let databaseEnvVars = "";
-  if (options.database === "sequelize") {
-    databaseEnvVars +=
-      "DB_HOST=localhost\nDB_PORT=3306\nDB_NAME=mydb\nDB_USER=root\nDB_PASSWORD=\n";
-  } else if (options.database === "mongoose") {
-    databaseEnvVars += "MONGODB_URI=mongodb://localhost:27017/myapp\n";
-  } else if (options.database === "prisma") {
-    databaseEnvVars +=
-      "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mydb?schema=public\n";
-  } else if (options.database === "typeorm") {
-    databaseEnvVars +=
-      "DB_HOST=localhost\nDB_PORT=5432\nDB_NAME=mydb\nDB_USER=postgres\nDB_PASSWORD=postgres\n";
+  // Add database prerequisites based on selected database
+  if (options.database === DATABASE.TYPES.MONGOOSE) {
+    templateVars.databasePrereqs += `${TEMPLATES.STRINGS.DATABASE_PREREQUISITES.MONGODB}\n`;
+  } else if (options.database === DATABASE.TYPES.TYPEORM || options.database === DATABASE.TYPES.PRISMA) {
+    templateVars.databasePrereqs += `${TEMPLATES.STRINGS.DATABASE_PREREQUISITES.POSTGRES}\n`;
+  } else if (options.database === DATABASE.TYPES.SEQUELIZE) {
+    templateVars.databasePrereqs += `${TEMPLATES.STRINGS.DATABASE_PREREQUISITES.MYSQL}\n`;
   }
 
-  // Prepare authentication environment variables
-  const authEnvVars = options.authentication
-    ? "JWT_SECRET=your-secret-key\nJWT_EXPIRES_IN=24h\n"
-    : "";
+  // Add database environment variables section
+  const dbName = options.databaseName || 
+    getDefaultDatabaseName(path.basename(destination), options.database || DATABASE.TYPES.NONE);
+  
+  if (options.database && options.database !== DATABASE.TYPES.NONE) {
+    const dbEnvVars = getDatabaseEnvVars(options.database, dbName);
+    templateVars.databaseEnvVars = Object.entries(dbEnvVars)
+      .map(([key, value]) => `${key}=${value}`)
+      .join("\n") + "\n";
+  }
+
+  // Add authentication environment variables if needed
+  if (options.authentication) {
+    templateVars.authEnvVars = `${TEMPLATES.STRINGS.ENV_FILE.JWT_ENV_TEMPLATE}\n${TEMPLATES.STRINGS.ENV_FILE.JWT_EXPIRES_IN}\n`;
+  }
 
   // Create README using template
-  writeTemplate(getTemplatePath("project-structure/README.md"), readmePath, {
-    databaseName,
-    authEnabled,
-    websocketLib,
-    viewEngine,
-    websocketDirs: websocketDirs + viewDirs,
-    databasePrereqs,
-    databaseEnvVars,
-    authEnvVars,
-  });
-  console.log("Created README.md file");
+  writeTemplate(
+    getTemplatePath(TEMPLATES.PROJECT_STRUCTURE.README),
+    readmePath,
+    templateVars
+  );
+  console.log(COMMON.MESSAGES.SUCCESS.README);
+}
+
+/**
+ * Create .env file with environment variables based on project options
+ * @param destination - Project destination directory
+ * @param options - Project setup options
+ */
+function createEnvironmentFile(
+  destination: string,
+  options: ProjectSetupOptions
+): void {
+  console.log(COMMON.MESSAGES.SETUP.ENV_FILE);
+
+  // Start with default environment variables
+  const envVars: Record<string, string> = {
+    PORT: APP.DEFAULTS.PORT.toString(),
+    NODE_ENV: APP.ENV.DEVELOPMENT,
+  };
+
+  // Add database-specific environment variables
+  if (options.database && options.database !== DATABASE.TYPES.NONE) {
+    const dbName = options.databaseName ||
+      getDefaultDatabaseName(path.basename(destination), options.database);
+    
+    // Use the utility function to get standardized database env vars
+    const dbEnvVars = getDatabaseEnvVars(options.database, dbName);
+    Object.assign(envVars, dbEnvVars);
+  }
+
+  // Add authentication environment variables if needed
+  if (options.authentication) {
+    envVars.JWT_SECRET = TEMPLATES.STRINGS.ENV_FILE.JWT_SECRET_KEY;
+    envVars.JWT_EXPIRES_IN = AUTH.CONFIG.JWT.EXPIRATION.ACCESS;
+  }
+
+  // Create the .env file using the utility function
+  createEnvFile(destination, envVars);
+
+  // Create a .env.example file with placeholders for secrets
+  const envExamplePath = path.join(destination, TEMPLATES.STRINGS.ENV_FILE.EXAMPLE_FILENAME);
+  const envExampleContent = Object.entries(envVars)
+    .map(([key, value]) => {
+      // Replace actual secrets with placeholders in the example
+      if (key === "JWT_SECRET") {
+        return `${key}=${TEMPLATES.STRINGS.ENV_FILE.JWT_PLACEHOLDER}`;
+      }
+      return `${key}=${value}`;
+    })
+    .join("\n");
+
+  fs.writeFileSync(envExamplePath, envExampleContent, "utf8");
 }
 
 export default setupProjectStructure;

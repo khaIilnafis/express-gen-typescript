@@ -1,6 +1,16 @@
 import path from "path";
 import fs from "fs";
+import {
+  TEMPLATES,
+  PROJECT,
+  DATABASE
+} from "../../constants/index.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import {
+  normalizeDatabaseName,
+  updateServerWithDatabaseInit,
+  createModelsIndexFile,
+} from "../../utils/database-helper.js";
 
 /**
  * Options for TypeORM setup
@@ -24,35 +34,33 @@ async function setupTypeORM(
   // Define paths for destination files
   const dbConfigPath = path.join(
     destination,
-    "src",
-    "database",
-    "data-source.ts"
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.DATABASE,
+    PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
   const exampleEntityPath = path.join(
     destination,
-    "src",
-    "models",
-    "Example.ts"
+   PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.MODELS,
+    PROJECT.FILES.MODELS.FILES.EXAMPLE
   );
-  const dbInitPath = path.join(destination, "src", "database", "init.ts");
-
   // Create entities directory if it doesn't exist
-  const entitiesDir = path.join(destination, "src", "models");
+  const entitiesDir = path.join(
+    destination,
+   PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.MODELS
+  );
   if (!fs.existsSync(entitiesDir)) {
     fs.mkdirSync(entitiesDir, { recursive: true });
   }
 
   // Get database name from options or use default
   const databaseName =
-    options.databaseName ||
-    path
-      .basename(destination)
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "_");
+    options.databaseName || normalizeDatabaseName(path.basename(destination));
 
   // Create database config file using template
   writeTemplate(
-    getTemplatePath("database/typeorm/data-source.ts"),
+    getTemplatePath(TEMPLATES.DATABASE.TYPEORM.CONFIG),
     dbConfigPath,
     {
       databaseName,
@@ -60,59 +68,15 @@ async function setupTypeORM(
   );
   // Create Example entity file using template
   writeTemplate(
-    getTemplatePath("models/typeorm/Example.entity.ts"),
+    getTemplatePath(TEMPLATES.DATABASE.TYPEORM.EXAMPLE_MODEL),
     exampleEntityPath
   );
 
-  // Create database init file using template
-  writeTemplate(getTemplatePath("database/typeorm/init.ts"), dbInitPath);
-
   // Create entities index file
-  const entitiesIndexPath = path.join(destination, "src", "models", "index.ts");
-  const entitiesIndexContent = `export { Example } from './Example';\n`;
-  fs.writeFileSync(entitiesIndexPath, entitiesIndexContent);
+  createModelsIndexFile(destination, DATABASE.TYPES.TYPEORM, PROJECT.FILES.COMMON.NAMES.EXAMPLE);
 
   // Update server.ts to initialize database on startup
-  const serverFilePath = path.join(destination, "src", "server.ts");
-
-  if (fs.existsSync(serverFilePath)) {
-    let serverFileContent = fs.readFileSync(serverFilePath, "utf8");
-
-    // Add import for database initialization if it doesn't already exist
-    if (!serverFileContent.includes("import { initializeDatabase }")) {
-      const lastImportIndex = serverFileContent.lastIndexOf("import");
-      const lastImportLineEnd = serverFileContent.indexOf(
-        "\n",
-        lastImportIndex
-      );
-      serverFileContent =
-        serverFileContent.substring(0, lastImportLineEnd + 1) +
-        "import { initializeDatabase } from './database/init';\n" +
-        serverFileContent.substring(lastImportLineEnd + 1);
-    }
-
-    // Add database initialization to start method if it doesn't already exist
-    if (!serverFileContent.includes("await initializeDatabase()")) {
-      const startMethodIndex = serverFileContent.indexOf(
-        "public async start()"
-      );
-      if (startMethodIndex !== -1) {
-        const startMethodBodyIndex =
-          serverFileContent.indexOf("{", startMethodIndex) + 1;
-        serverFileContent =
-          serverFileContent.substring(0, startMethodBodyIndex) +
-          "\n    // Initialize database\n    await initializeDatabase();\n" +
-          serverFileContent.substring(startMethodBodyIndex);
-      }
-    }
-
-    fs.writeFileSync(serverFilePath, serverFileContent);
-    // console.log("Updated server.ts to initialize database");
-  } else {
-    console.log(
-      "Warning: server.ts not found, skipping database initialization setup"
-    );
-  }
+  updateServerWithDatabaseInit(destination);
 }
 
 export default setupTypeORM;

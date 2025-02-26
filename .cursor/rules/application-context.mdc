@@ -1,0 +1,48 @@
+---
+description: This rule provides context to the application, its structure, architecture, and purpose.
+globs: ./**/**/*
+---
+# Application Context
+
+## Overview
+This is an Express Generator for TypeScript applications. It generates a complete Express.js application with TypeScript configured from the start. The generator allows customization through an interactive CLI that helps developers scaffold a new Express.js application with various features and configurations.
+
+## Project Structure
+- `/bin`: CLI entry point for the generator
+- `/lib`: Core generator code
+  - `/constants`: Constants and configuration values
+  - `/setup`: Setup modules for different parts of the generated application
+  - `/templates`: Template files used for code generation
+  - `/utils`: Utility functions for the generator
+- `/dist`: Compiled JavaScript output (generated during build)
+
+## Key Components
+- **CLI Entry Point**: Located in `bin/cli.ts`
+- **Generator Core**: Located in `lib/index.ts`
+- **User Prompts**: Managed through `lib/prompt.ts`
+- **Templates**: Stored in `lib/templates` directory for code generation
+
+## Main Functionality
+- **Project Scaffolding**: Generates a complete Express.js application with TypeScript
+- **Interactive Configuration**: Prompts users for project options
+- **Feature Selection**: Allows choosing databases, authentication, websockets, and view engines
+- **Code Generation**: Creates properly structured TypeScript files based on templates
+
+## Generator Options
+- **Database Integration**: Supports MongoDB (Mongoose), SQL databases (Sequelize, TypeORM, Prisma)
+- **Authentication**: Integrates Passport or Express-session with different strategies
+- **WebSockets**: Adds Socket.io or WS library support
+- **View Engines**: Configures EJS, Pug, or Handlebars
+
+## Code Generation Flow
+1. User is prompted for project options via interactive CLI
+2. Project structure is created in the target directory
+3. Package.json and dependencies are configured based on selected options
+4. Template files are copied and customized according to selected features
+5. Git repository is initialized and package manager setup is completed
+
+## Common Developer Workflows
+- To add new templates: Add files to the `/lib/templates` directory
+- To modify generation logic: Edit the appropriate setup modules in `/lib/setup`
+- To add new features: Update prompts in `lib/prompt.ts` and add corresponding setup code
+

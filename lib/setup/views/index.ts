@@ -1,6 +1,14 @@
 import * as fs from "fs";
 import * as path from "path";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import {
+  PROJECT,
+  TEMPLATES,
+  VIEW_ENGINES,
+  SERVER
+} from "../../constants/index.js";
+import { insertContentAtMarker, addImportIfNotExists } from "../../utils/file-manipulation.js";
+import { IMPORTS } from "../../constants/server/imports.js";
 
 /**
  * Setup view engine based on user selection
@@ -14,8 +22,6 @@ async function setupViewEngine(
   viewEngine: string,
   options: { appName?: string } = {}
 ): Promise<void> {
-  console.log(`Setting up ${viewEngine} view engine...`);
-
   // Get app name from options or use default
   const appName =
     options.appName ||
@@ -25,86 +31,61 @@ async function setupViewEngine(
       .replace(/\b\w/g, (l) => l.toUpperCase());
 
   // Create necessary directories if they don't exist
-  const viewsDir = path.join(destination, "src", "views");
+  const viewsDir = path.join(
+    destination, 
+    PROJECT.DIRECTORIES.ROOT.SRC, 
+    PROJECT.DIRECTORIES.SRC.VIEWS
+  );
   if (!fs.existsSync(viewsDir)) {
     fs.mkdirSync(viewsDir, { recursive: true });
   }
 
+  // Create layouts directory
+  const layoutsDir = path.join(viewsDir, PROJECT.DIRECTORIES.VIEWS.LAYOUTS);
+  if (!fs.existsSync(layoutsDir)) {
+    fs.mkdirSync(layoutsDir, { recursive: true });
+  }
+
+  // Create partials directory
+  const partialsDir = path.join(viewsDir, PROJECT.DIRECTORIES.VIEWS.PARTIALS);
+  if (!fs.existsSync(partialsDir)) {
+    fs.mkdirSync(partialsDir, { recursive: true });
+  }
+
   // Update server.ts to include view engine configuration
-  const serverFilePath = path.join(destination, "src", "server.ts");
+  const serverFilePath = path.join(
+    destination, 
+    PROJECT.DIRECTORIES.ROOT.SRC, 
+    PROJECT.FILES.SERVER.FILE
+  );
 
   if (fs.existsSync(serverFilePath)) {
-    let serverFileContent = fs.readFileSync(serverFilePath, "utf8");
-
-    // Import statements based on view engine
+    // Import statements and config based on view engine
     let importStatement = "";
-    let configStatement = "";
+    let configContent = "";
 
     switch (viewEngine) {
-      case "EJS":
-        importStatement = "// View engine\nimport ejs from 'ejs';";
-        configStatement = `
-    // View engine setup
-    this.app.set('view engine', 'ejs');
-    this.app.set('views', path.join(__dirname, 'views'));`;
+      case VIEW_ENGINES.TYPES.EJS:
+        configContent = SERVER.VIEW_ENGINE_SETUP.EJS;
         break;
-      case "Pug (Jade)":
-        configStatement = `
-    // View engine setup
-    this.app.set('view engine', 'pug');
-    this.app.set('views', path.join(__dirname, 'views'));`;
+      case VIEW_ENGINES.TYPES.PUG:
+        configContent = SERVER.VIEW_ENGINE_SETUP.PUG;
         break;
-      case "Handlebars":
-        importStatement =
-          "// View engine\nimport { engine } from 'express-handlebars';";
-        configStatement = `
-    // View engine setup
-    this.app.engine('handlebars', engine());
-    this.app.set('view engine', 'handlebars');
-    this.app.set('views', path.join(__dirname, 'views'));`;
+      case VIEW_ENGINES.TYPES.HANDLEBARS:
+        importStatement = IMPORTS.VIEW_ENGINE.HANDLEBARS;
+        configContent = SERVER.VIEW_ENGINE_SETUP.HANDLEBARS;
         break;
     }
 
-    // Add import statement if needed
+    // Add imports if needed
     if (importStatement) {
-      const lastImportIndex = serverFileContent.lastIndexOf("import");
-      const lastImportLineEnd = serverFileContent.indexOf(
-        "\n",
-        lastImportIndex
-      );
-      serverFileContent =
-        serverFileContent.substring(0, lastImportLineEnd + 1) +
-        importStatement +
-        "\n" +
-        serverFileContent.substring(lastImportLineEnd + 1);
+      addImportIfNotExists(serverFilePath, importStatement);
     }
 
-    // Add configuration to constructor
-    const constructorIndex = serverFileContent.indexOf("constructor(");
-    if (constructorIndex !== -1) {
-      const constructorBodyIndex = serverFileContent.indexOf(
-        "{",
-        constructorIndex
-      );
-      const staticDirIndex = serverFileContent.indexOf(
-        "this.app.use(express.static",
-        constructorBodyIndex
-      );
-      if (staticDirIndex !== -1) {
-        const staticDirLineEnd = serverFileContent.indexOf(
-          "\n",
-          staticDirIndex
-        );
-        serverFileContent =
-          serverFileContent.substring(0, staticDirLineEnd + 1) +
-          configStatement +
-          "\n" +
-          serverFileContent.substring(staticDirLineEnd + 1);
-      }
+    // Add configuration to server
+    if (configContent) {
+      insertContentAtMarker(serverFilePath, PROJECT.FILES.COMMON.MARKERS.VIEW_ENGINE_CONFIG_MARKER, configContent);
     }
-
-    fs.writeFileSync(serverFilePath, serverFileContent);
-    // console.log("Updated server.ts with view engine configuration");
   }
 
   // Create example view files based on the selected engine
@@ -113,104 +94,127 @@ async function setupViewEngine(
     currentYear: new Date().getFullYear().toString(),
   };
 
+  // Get file extensions for the selected view engine
+  const viewExtension = getViewExtension(viewEngine);
+  const layoutFileName = `main${viewExtension}`;
+  const indexFileName = `index${viewExtension}`;
+  const headerFileName = `header${viewExtension}`;
+  const footerFileName = `footer${viewExtension}`;
+
   switch (viewEngine) {
-    case "EJS":
-      // Create index.ejs
+    case VIEW_ENGINES.TYPES.EJS:
+      // Create main layout
       writeTemplate(
-        getTemplatePath("views/ejs/index.ejs"),
-        path.join(viewsDir, "index.ejs"),
+        getTemplatePath(TEMPLATES.VIEWS.EJS.LAYOUTS.MAIN),
+        path.join(layoutsDir, layoutFileName),
         templateVars
       );
+      
+    // Create index view
+      writeTemplate(
+        getTemplatePath(TEMPLATES.VIEWS.EJS.INDEX),
+        path.join(viewsDir, indexFileName),
+        templateVars
+      );
+
+	// Create Header partial
+		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.EJS.PARTIALS.HEADER), path.join(partialsDir, headerFileName), templateVars);
+
+	// Create Footer partial
+		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.EJS.PARTIALS.FOOTER), path.join(partialsDir, footerFileName), templateVars);
       break;
 
-    case "Pug (Jade)":
-      // Create layout.pug and index.pug
+    case VIEW_ENGINES.TYPES.PUG:
+      // Create main layout
       writeTemplate(
-        getTemplatePath("views/pug/layout.pug"),
-        path.join(viewsDir, "layout.pug"),
+        getTemplatePath(TEMPLATES.VIEWS.PUG.LAYOUTS.MAIN),
+        path.join(layoutsDir, layoutFileName),
         templateVars
       );
+      
+      // Create index view
       writeTemplate(
-        getTemplatePath("views/pug/index.pug"),
-        path.join(viewsDir, "index.pug"),
+        getTemplatePath(TEMPLATES.VIEWS.PUG.INDEX),
+        path.join(viewsDir, indexFileName),
         templateVars
       );
+
+	  // Create Header partial
+		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.HEADER), path.join(partialsDir, headerFileName), templateVars);
+
+		// Create Footer partial
+			writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.FOOTER), path.join(partialsDir, footerFileName), templateVars);
       break;
 
-    case "Handlebars":
-      // Create layouts directory
-      const layoutsDir = path.join(viewsDir, "layouts");
-      if (!fs.existsSync(layoutsDir)) {
-        fs.mkdirSync(layoutsDir, { recursive: true });
-      }
+    case VIEW_ENGINES.TYPES.HANDLEBARS:
+      // Create main layout
+      writeTemplate(
+        getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.LAYOUTS.MAIN),
+        path.join(layoutsDir, layoutFileName),
+        templateVars
+      );
+      
+    //   // Create index view
+      writeTemplate(
+        getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.INDEX),
+        path.join(viewsDir, indexFileName),
+        templateVars
+      );
 
-      // Create main.handlebars and index.handlebars
-      writeTemplate(
-        getTemplatePath("views/handlebars/layouts/main.handlebars"),
-        path.join(layoutsDir, "main.handlebars"),
-        templateVars
-      );
-      writeTemplate(
-        getTemplatePath("views/handlebars/index.handlebars"),
-        path.join(viewsDir, "index.handlebars"),
-        templateVars
-      );
+	  // Create Header partial
+		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.HEADER), path.join(partialsDir, headerFileName), templateVars);
+
+		// Create Footer partial
+			writeTemplate(getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.FOOTER), path.join(partialsDir, footerFileName), templateVars);
       break;
   }
 
   // Create a simple route for the index page
-  const routesDir = path.join(destination, "src", "routes");
-  const indexRoutePath = path.join(routesDir, "index.ts");
-
-  if (!fs.existsSync(indexRoutePath)) {
-    const indexRouteContent = `import { Router, Request, Response } from 'express';
-
-const router = Router();
-
-/**
- * GET /
- * Home page
- */
-router.get('/', (req: Request, res: Response) => {
-  res.render('index');
-});
-
-export default router;
-`;
-
-    fs.writeFileSync(indexRoutePath, indexRouteContent);
-    // Update routes/index.ts to include the new route
-    const routesIndexPath = path.join(routesDir, "index.ts");
-    if (fs.existsSync(routesIndexPath)) {
-      let routesIndexContent = fs.readFileSync(routesIndexPath, "utf8");
-
-      // Check if we need to add the import
-      if (!routesIndexContent.includes("import indexRouter")) {
-        const lastImportIndex = routesIndexContent.lastIndexOf("import");
-        const lastImportLineEnd = routesIndexContent.indexOf(
-          "\n",
-          lastImportIndex
-        );
-        routesIndexContent =
-          routesIndexContent.substring(0, lastImportLineEnd + 1) +
-          "import indexRouter from './index';\n" +
-          routesIndexContent.substring(lastImportLineEnd + 1);
-      }
-
-      // Check if we need to add the route
-      if (!routesIndexContent.includes("router.use('/'")) {
-        const exportIndex = routesIndexContent.lastIndexOf("export default");
-        routesIndexContent =
-          routesIndexContent.substring(0, exportIndex) +
-          "router.use('/', indexRouter);\n\n" +
-          routesIndexContent.substring(exportIndex);
-      }
-
-      fs.writeFileSync(routesIndexPath, routesIndexContent);
-    }
-  }
+  createViewRoutes(destination);
 
   console.log(`${viewEngine} view engine setup complete.`);
+}
+
+// /**
+//  * Create default view routes
+//  * @param destination - Project destination directory
+//  */
+function createViewRoutes(destination: string): void {
+  const routesDir = path.join(
+    destination, 
+    PROJECT.DIRECTORIES.ROOT.SRC, 
+    PROJECT.DIRECTORIES.SRC.ROUTES
+  );
+  
+  const indexRoutePath = path.join(routesDir, PROJECT.FILES.ROUTES.INDEX);
+    // Create a new index route file with proper view rendering
+    const templateVars = {
+      rootRouteHandler: SERVER.ROOT_ROUTE_HANDLER.DEFAULT
+    };
+    
+    writeTemplate(
+      getTemplatePath(TEMPLATES.ROUTES.INDEX),
+      indexRoutePath,
+      templateVars
+    );
+}
+
+/**
+ * Get file extension for view engine
+ * @param viewEngine - Selected view engine
+ * @returns File extension including dot
+ */
+function getViewExtension(viewEngine: string): string {
+  switch (viewEngine) {
+    case VIEW_ENGINES.TYPES.PUG:
+      return VIEW_ENGINES.EXTENSIONS.PUG;
+    case VIEW_ENGINES.TYPES.EJS:
+      return VIEW_ENGINES.EXTENSIONS.EJS;
+    case VIEW_ENGINES.TYPES.HANDLEBARS:
+      return VIEW_ENGINES.EXTENSIONS.HANDLEBARS;
+    default:
+      return "";
+  }
 }
 
 export default setupViewEngine;

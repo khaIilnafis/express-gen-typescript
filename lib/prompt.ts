@@ -36,13 +36,6 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       default: false,
     },
     {
-      type: "list",
-      name: "databaseOrm",
-      message: "Select a database ORM:",
-      choices: ["Sequelize", "TypeORM", "Prisma", "Mongoose"],
-      when: (answers: any) => answers.useDatabase,
-    },
-    {
       type: "input",
       name: "databaseName",
       message: "Database name (leave empty for project name):",
@@ -52,10 +45,24 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
     {
       type: "list",
       name: "dialect",
-      message: "Select database dialect (for Sequelize):",
-      choices: ["postgres", "mysql", "sqlite", "mariadb", "mssql"],
+      message: "Select database dialect:",
+      choices: ["postgres", "mysql", "sqlite", "mariadb", "mssql", "mongodb"],
       default: "postgres",
-      when: (answers: any) => answers.databaseOrm === "Sequelize",
+      when: (answers: any) => answers.useDatabase,
+    },
+    {
+      type: "list",
+      name: "databaseOrm",
+      message: "Select a database ORM:",
+      choices: ["Sequelize", "TypeORM", "Prisma"],
+      when: (answers: any) => answers.dialect !== "mongodb",
+    },
+    {
+      type: "list",
+      name: "databaseOrm",
+      message: "Select a database ORM:",
+      choices: ["Mongoose", "Prisma"],
+      when: (answers: any) => answers.dialect == "mongodb",
     },
     {
       type: "confirm",
@@ -67,8 +74,15 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       type: "list",
       name: "authLib",
       message: "Select an authentication library:",
-      choices: ["Passport", "JWT", "Express-session"],
+      choices: ["Passport", "Express-session"],
       when: (answers: any) => answers.useAuth,
+    },
+    {
+      type: "list",
+      name: "authStrategy",
+      message: "Select Passport Auth Strategy",
+      choices: ["Local", "JWT"],
+      when: (answers: any) => answers.authLib == "Passport",
     },
     {
       type: "confirm",
