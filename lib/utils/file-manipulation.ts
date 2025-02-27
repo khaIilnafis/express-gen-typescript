@@ -4,26 +4,6 @@
 
 import fs from "fs";
 import path from "path";
-import { ERRORS } from "../constants/index.js";
-
-/**
- * File section markers for locating insertion points
- */
-export const FILE_MARKERS = Object.freeze({
-  SERVER: {
-    IMPORTS: "// Imports",
-    DATABASE_CONNECTION: "// Database connection methods",
-    ROUTES: "// Configure routes",
-    MIDDLEWARE: "// Configure middleware",
-  },
-
-  ENV: {
-    DATABASE: "# Database Configuration",
-    AUTH: "# Authentication",
-    APP: "# App Configuration",
-  },
-});
-
 /**
  * Insert content into a file at a specified marker
  * @param filePath - Path to the file

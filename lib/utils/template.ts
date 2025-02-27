@@ -25,26 +25,26 @@ function getTemplatePath(relativePath: string): string {
  * @param {Object} variables - Variables to inject into the template
  * @returns {string} Rendered template
  */
-function renderTemplate(
-  templatePath: string,
-  variables: Record<string, any> = {}
-): string {
-  // Read the template file
-  let templateContent = fs.readFileSync(templatePath, "utf8");
+// function renderTemplate(
+//   templatePath: string,
+//   variables: Record<string, any> = {}
+// ): string {
+//   // Read the template file
+//   let templateContent = fs.readFileSync(templatePath, "utf8");
 
-  // Replace variables in the template
-  Object.entries(variables).forEach(([key, value]) => {
-    if (value !== undefined) {
-      const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, "g");
-      templateContent = templateContent.replace(regex, value);
-    }
-  });
+//   // Replace variables in the template
+//   Object.entries(variables).forEach(([key, value]) => {
+//     if (value !== undefined) {
+//       const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, "g");
+//       templateContent = templateContent.replace(regex, value);
+//     }
+//   });
 
-  // Process conditionals
-  templateContent = processConditionals(templateContent, variables);
+//   // Process conditionals
+//   templateContent = processConditionals(templateContent, variables);
 
-  return templateContent;
-}
+//   return templateContent;
+// }
 
 /**
  * Process conditional blocks in templates
@@ -123,7 +123,7 @@ function loadTemplates(templatesDir: string): Record<string, string> {
 
 export {
   getTemplatePath,
-  renderTemplate,
+//   renderTemplate,
   ensureDirectoryExists,
   loadTemplates,
 };

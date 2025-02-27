@@ -19,7 +19,6 @@ import {
 import {
   insertContentAtMarker,
   ensureDirectoryExists,
-  FILE_MARKERS,
   addImportIfNotExists,
   updatePackageJson as updatePkgJson,
 } from "./file-manipulation.js";
@@ -27,6 +26,10 @@ import {
   getDatabaseEnvVars,
   normalizeDatabaseName,
 } from "./database-helper.js";
+import {
+  getASTTemplatePath,
+  writeASTTemplate,
+} from "./ast-template-processor.js";
 
 /**
  * Interface for database setup functions
@@ -78,14 +81,14 @@ export class DatabaseSetupHelper {
    * @param outputPath - Destination path
    * @param templateVars - Variables to inject into template
    */
-  static writeConfigFile(
+  static async writeConfigFile(
     context: DatabaseSetupContext,
     templatePath: string,
     outputPath: string,
     templateVars: TemplateVariables = {}
-  ): void {
+  ): Promise<void> {
     // Get absolute template path
-    const absoluteTemplatePath = getTemplatePath(templatePath);
+    // const absoluteTemplatePath = getTemplatePath(templatePath);
 
     // Combine context variables with template variables
     const variables: TemplateVariables = {
@@ -95,8 +98,12 @@ export class DatabaseSetupHelper {
     };
 
     // Write the template with variables
-    writeTemplate(absoluteTemplatePath, outputPath, variables);
-
+    // writeTemplate(absoluteTemplatePath, outputPath, variables);
+	await writeASTTemplate(
+		getASTTemplatePath(templatePath),
+		outputPath,
+		variables
+	  );
     console.log(`Created database config file: ${path.basename(outputPath)}`);
   }
 
@@ -106,30 +113,36 @@ export class DatabaseSetupHelper {
    * @param modelTemplates - Map of model name to template path
    * @param outputDirectory - Directory where models should be saved (relative to src/)
    */
-  static createModels(
+  static async createModels(
     context: DatabaseSetupContext,
     modelTemplates: Record<string, string>,
     outputDirectory: string
-  ): void {
-    const { destination, databaseName } = context;
+  ): Promise<void> {
+    const { destination, databaseName, dialect } = context;
     const modelsDir = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, outputDirectory);
 
     // Ensure models directory exists
     ensureDirectoryExists(modelsDir);
 
     // Create each model file
-    Object.entries(modelTemplates).forEach(([modelName, templatePath]) => {
-      const absoluteTemplatePath = getTemplatePath(templatePath);
+    Object.entries(modelTemplates).forEach(async ([modelName, templatePath]) => {
+    //   const absoluteTemplatePath = getTemplatePath(templatePath);
       const outputPath = path.join(modelsDir, `${modelName}.model.ts`);
 
       // Variables for the template
       const variables: TemplateVariables = {
         databaseName,
         modelName,
+		dialect: dialect ? dialect : 'postgres',
         ModelName: modelName.charAt(0).toUpperCase() + modelName.slice(1),
       };
 
-      writeTemplate(absoluteTemplatePath, outputPath, variables);
+    //   writeTemplate(absoluteTemplatePath, outputPath, variables);
+	  await writeASTTemplate(
+		getASTTemplatePath(templatePath),
+		outputPath,
+		variables
+	  );
       console.log(`Created model: ${modelName}`);
     });
   }
@@ -169,10 +182,10 @@ export class DatabaseSetupHelper {
    * @param context - Database setup context
    * @param serverFilePath - Path to server file
    */
-  static updateServerFile(
+  static async updateServerFile(
     context: DatabaseSetupContext,
     serverFilePath: string
-  ): void {
+  ): Promise<void> {
     const { options, databaseName } = context;
     const databaseType = options?.database || "";
     console.log(
@@ -191,44 +204,100 @@ export class DatabaseSetupHelper {
           serverFilePath,
           `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.COMMON.NAMES.CONNECTION}';`
         );
+        
+        // Generate temp file with the AST template output
+        const tempFilePath = path.join(path.dirname(serverFilePath), 'db-init-temp.ts');
+        await writeASTTemplate(
+          getASTTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT),
+          tempFilePath,
+          {}
+        );
+        
+        // Read the generated content and add it to the server file
+        const generatedContent = fs.readFileSync(tempFilePath, 'utf8');
         insertContentAtMarker(
           serverFilePath,
-          FILE_MARKERS.SERVER.DATABASE_CONNECTION,
-          loadTemplate(getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT))
+          PROJECT.FILES.COMMON.MARKERS.SERVER.DATABASE_CONNECTION,
+          generatedContent
         );
+        
+        // Clean up temp file
+        fs.unlinkSync(tempFilePath);
         break;
       case DATABASE.TYPES.TYPEORM:
         addImportIfNotExists(
           serverFilePath,
           `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.COMMON.NAMES.CONNECTION}';`
         );
-		insertContentAtMarker(
-			serverFilePath,
-			FILE_MARKERS.SERVER.DATABASE_CONNECTION,
-			loadTemplate(getTemplatePath(TEMPLATES.DATABASE.TYPEORM.INIT))
-		  );
+        
+        // Generate temp file with the AST template output
+        const typeormTempFilePath = path.join(path.dirname(serverFilePath), 'db-init-temp.ts');
+        await writeASTTemplate(
+          getASTTemplatePath(TEMPLATES.DATABASE.TYPEORM.INIT),
+          typeormTempFilePath,
+          {}
+        );
+        
+        // Read the generated content and add it to the server file
+        const typeormGeneratedContent = fs.readFileSync(typeormTempFilePath, 'utf8');
+        insertContentAtMarker(
+          serverFilePath,
+          PROJECT.FILES.COMMON.MARKERS.SERVER.DATABASE_CONNECTION,
+          typeormGeneratedContent
+        );
+        
+        // Clean up temp file
+        fs.unlinkSync(typeormTempFilePath);
         break;
       case DATABASE.TYPES.PRISMA:
         addImportIfNotExists(
           serverFilePath,
           `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.COMMON.NAMES.CONNECTION}';`
         );
-		insertContentAtMarker(
-			serverFilePath,
-			FILE_MARKERS.SERVER.DATABASE_CONNECTION,
-			loadTemplate(getTemplatePath(TEMPLATES.DATABASE.PRISMA.INIT))
-		  );
+        
+        // Generate temp file with the AST template output
+        const prismaTempFilePath = path.join(path.dirname(serverFilePath), 'db-init-temp.ts');
+        await writeASTTemplate(
+          getASTTemplatePath(TEMPLATES.DATABASE.PRISMA.INIT),
+          prismaTempFilePath,
+          {}
+        );
+        
+        // Read the generated content and add it to the server file
+        const prismaGeneratedContent = fs.readFileSync(prismaTempFilePath, 'utf8');
+        insertContentAtMarker(
+          serverFilePath,
+          PROJECT.FILES.COMMON.MARKERS.SERVER.DATABASE_CONNECTION,
+          prismaGeneratedContent
+        );
+        
+        // Clean up temp file
+        fs.unlinkSync(prismaTempFilePath);
         break;
       case DATABASE.TYPES.MONGOOSE:
         addImportIfNotExists(
           serverFilePath,
           `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.COMMON.NAMES.CONNECTION}';`
         );
-		insertContentAtMarker(
-			serverFilePath,
-			FILE_MARKERS.SERVER.DATABASE_CONNECTION,
-			loadTemplate(getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.INIT))
-		  );
+        
+        // Generate temp file with the AST template output
+        const mongooseTempFilePath = path.join(path.dirname(serverFilePath), 'db-init-temp.ts');
+        await writeASTTemplate(
+          getASTTemplatePath(TEMPLATES.DATABASE.MONGOOSE.INIT),
+          mongooseTempFilePath,
+          {}
+        );
+        
+        // Read the generated content and add it to the server file
+        const mongooseGeneratedContent = fs.readFileSync(mongooseTempFilePath, 'utf8');
+        insertContentAtMarker(
+          serverFilePath,
+          PROJECT.FILES.COMMON.MARKERS.SERVER.DATABASE_CONNECTION,
+          mongooseGeneratedContent
+        );
+        
+        // Clean up temp file
+        fs.unlinkSync(mongooseTempFilePath);
         break;
     }
     console.log(`Updated ${PROJECT.FILES.SERVER.FILE} with database connection`);
@@ -256,7 +325,7 @@ export class DatabaseSetupHelper {
 
       // Read existing content
       let envContent = fs.readFileSync(envFilePath, "utf8");
-      const dbSectionMarker = FILE_MARKERS.ENV.DATABASE;
+      const dbSectionMarker = PROJECT.FILES.COMMON.MARKERS.ENV.DATABASE;
 
       // Determine if we need to update or append
       if (envContent.includes(dbSectionMarker)) {
@@ -285,14 +354,14 @@ export class DatabaseSetupHelper {
         fs.writeFileSync(envFilePath, updatedContent);
       } else {
         // Append section to the end of the file
-        const newSection = `\n${FILE_MARKERS.ENV.DATABASE}\n${Object.entries(envVars)
+        const newSection = `\n${PROJECT.FILES.COMMON.MARKERS.ENV.DATABASE}\n${Object.entries(envVars)
           .map(([key, value]) => `${key}=${value}`)
           .join("\n")}\n`;
         fs.appendFileSync(envFilePath, newSection);
       }
     } else {
       // Create a new .env file
-      const content = `${FILE_MARKERS.ENV.DATABASE}\n${Object.entries(envVars)
+      const content = `${PROJECT.FILES.COMMON.MARKERS.ENV.DATABASE}\n${Object.entries(envVars)
         .map(([key, value]) => `${key}=${value}`)
         .join("\n")}\n`;
       fs.writeFileSync(envFilePath, content);
@@ -307,18 +376,23 @@ export class DatabaseSetupHelper {
    * @param templatePath - Path to template file
    * @param outputPath - Destination path
    */
-  static createDatabaseIndexFile(
+  static async createDatabaseIndexFile(
     context: DatabaseSetupContext,
     templatePath: string,
     outputPath: string
-  ): void {
-    const absoluteTemplatePath = getTemplatePath(templatePath);
+  ): Promise<void> {
+    // const absoluteTemplatePath = getTemplatePath(templatePath);
     const { databaseName, dialect } = context;
 
-    writeTemplate(absoluteTemplatePath, outputPath, {
-      databaseName,
-      dialect: dialect || "mysql",
-    });
+    // writeTemplate(absoluteTemplatePath, outputPath, {
+    //   databaseName,
+    //   dialect: dialect || "mysql",
+    // });
+	await writeASTTemplate(
+		getASTTemplatePath(templatePath),
+		outputPath,
+		{dialect: dialect || "postgres", databaseName}
+	  );
   }
 }
 
@@ -410,14 +484,14 @@ async function setupSequelize(context: DatabaseSetupContext): Promise<void> {
     PROJECT.DIRECTORIES.SRC.MODELS,
     PROJECT.FILES.MODELS.FILES.INDEX
   );
-  DatabaseSetupHelper.createDatabaseIndexFile(
+  await DatabaseSetupHelper.createDatabaseIndexFile(
     context,
     TEMPLATES.DATABASE.SEQUELIZE.MODEL_INDEX,
     modelsIndexPath
   );
 
   // Create model files
-  DatabaseSetupHelper.createModels(
+  await DatabaseSetupHelper.createModels(
     context,
     {
       example: TEMPLATES.DATABASE.SEQUELIZE.EXAMPLE_MODEL,
@@ -427,7 +501,7 @@ async function setupSequelize(context: DatabaseSetupContext): Promise<void> {
 
   // Update server file
   const serverFilePath = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.FILES.SERVER.FILE);
-  DatabaseSetupHelper.updateServerFile(context, serverFilePath);
+  await DatabaseSetupHelper.updateServerFile(context, serverFilePath);
 
   // Update package.json with scripts
   DatabaseSetupHelper.updatePackageJson(context, {
@@ -459,7 +533,7 @@ async function setupTypeORM(context: DatabaseSetupContext): Promise<void> {
     PROJECT.DIRECTORIES.SRC.DATABASE,
     PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
-  DatabaseSetupHelper.writeConfigFile(
+  await DatabaseSetupHelper.writeConfigFile(
     context,
     TEMPLATES.DATABASE.TYPEORM.CONFIG,
     configPath,
@@ -467,7 +541,7 @@ async function setupTypeORM(context: DatabaseSetupContext): Promise<void> {
   );
 
   // Create entity files
-  DatabaseSetupHelper.createModels(
+  await DatabaseSetupHelper.createModels(
     context,
     {
       example: TEMPLATES.DATABASE.TYPEORM.EXAMPLE_MODEL,
@@ -477,7 +551,7 @@ async function setupTypeORM(context: DatabaseSetupContext): Promise<void> {
 
   // Update server file
   const serverFilePath = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.FILES.SERVER.FILE);
-  DatabaseSetupHelper.updateServerFile(context, serverFilePath);
+  await DatabaseSetupHelper.updateServerFile(context, serverFilePath);
 
   // Update package.json with scripts
   DatabaseSetupHelper.updatePackageJson(context, {
@@ -509,7 +583,7 @@ async function setupPrisma(context: DatabaseSetupContext): Promise<void> {
     PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
 
-  DatabaseSetupHelper.writeConfigFile(
+  await DatabaseSetupHelper.writeConfigFile(
     context,
     TEMPLATES.DATABASE.PRISMA.EXAMPLE_MODEL,
     schemaPath,
@@ -518,7 +592,7 @@ async function setupPrisma(context: DatabaseSetupContext): Promise<void> {
 
   // Update server file
   const serverFilePath = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.FILES.SERVER.FILE);
-  DatabaseSetupHelper.updateServerFile(context, serverFilePath);
+  await DatabaseSetupHelper.updateServerFile(context, serverFilePath);
 
   // Update package.json with scripts
   DatabaseSetupHelper.updatePackageJson(context, {
@@ -542,32 +616,41 @@ async function setupMongoose(context: DatabaseSetupContext): Promise<void> {
   // Create directories
   DatabaseSetupHelper.createDatabaseDirectories(context);
 
-  // Create config file
+  // Create config file using AST template
   const configPath = path.join(
     destination,
     PROJECT.DIRECTORIES.ROOT.SRC,
     PROJECT.DIRECTORIES.SRC.DATABASE,
     PROJECT.FILES.DATABASE.FILES.CONNECTION
   );
-  DatabaseSetupHelper.writeConfigFile(
-    context,
-    TEMPLATES.DATABASE.MONGOOSE.CONFIG,
+  
+  // Use AST template processor instead of the regular template
+  const configAstPath = getASTTemplatePath(TEMPLATES.DATABASE.MONGOOSE.CONFIG);
+  await writeASTTemplate(
+    configAstPath,
     configPath,
     { databaseName }
   );
 
-  // Create model files
-  DatabaseSetupHelper.createModels(
-    context,
-    {
-      example: TEMPLATES.DATABASE.MONGOOSE.EXAMPLE_MODEL,
-    },
-    PROJECT.DIRECTORIES.SRC.MODELS
+  // Create model files using AST template
+  const exampleModelPath = path.join(
+    destination,
+    PROJECT.DIRECTORIES.ROOT.SRC, 
+    PROJECT.DIRECTORIES.SRC.MODELS,
+    "Example.ts"
+  );
+  
+  // Use AST template processor for the example model
+  const modelAstPath = getASTTemplatePath(TEMPLATES.DATABASE.MONGOOSE.EXAMPLE_MODEL);
+  await writeASTTemplate(
+    modelAstPath,
+    exampleModelPath,
+    {}
   );
 
   // Update server file
   const serverFilePath = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.FILES.SERVER.FILE);
-  DatabaseSetupHelper.updateServerFile(context, serverFilePath);
+  await DatabaseSetupHelper.updateServerFile(context, serverFilePath);
 
   // Setup environment variables
   DatabaseSetupHelper.setupEnvironmentVariables(context);
@@ -580,7 +663,7 @@ async function setupMongoose(context: DatabaseSetupContext): Promise<void> {
  * @returns Position of the next marker or -1 if none found
  */
 function findNextSectionMarker(content: string, startPosition: number): number {
-  const possibleMarkers = Object.values(FILE_MARKERS.ENV);
+  const possibleMarkers = Object.values(PROJECT.FILES.COMMON.MARKERS.ENV);
   let nextPosition = -1;
 
   // Find the position of each marker after the starting position

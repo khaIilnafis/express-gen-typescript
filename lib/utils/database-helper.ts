@@ -7,15 +7,23 @@ import path from "path";
 import {
   PROJECT,
   DATABASE,
+  TEMPLATES
 } from "../constants/index.js";
+import { getASTTemplatePath, writeASTTemplate } from "./ast-template-processor.js";
+import { addImportIfNotExists, insertContentAtMarker } from "./file-manipulation.js";
+import { getTemplatePath, loadTemplate } from "./template-loader.js";
 
 /**
- * Normalize a project name to a valid database name
- * @param projectName - The name of the project
+ * Normalizes a database name by converting to lowercase and replacing spaces with underscores
+ * @param dbName - Database name to normalize
  * @returns Normalized database name
  */
 export function normalizeDatabaseName(projectName: string): string {
-  return projectName.toLowerCase().replace(/[^a-z0-9]/g, "_");
+  return projectName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
 }
 
 /**
@@ -213,6 +221,107 @@ export { ${modelName} } from './${modelName}';\n`;
     return true;
   } catch (error) {
     console.error("Error creating models index file:", error);
+    return false;
+  }
+}
+
+/**
+ * Process an AST template and return the generated code as a string
+ * @param astTemplatePath - Path to the AST template
+ * @param options - Options to pass to the template
+ * @returns Promise<string> - The generated code
+ */
+async function processASTTemplate(
+  astTemplatePath: string,
+  options: Record<string, any> = {}
+): Promise<string> {
+  // Create a temporary file to store the output
+  const tempFile = path.join(process.cwd(), '.temp-ast-output.ts');
+  
+  try {
+    // Write the AST to the temporary file
+    await writeASTTemplate(astTemplatePath, tempFile, options);
+    
+    // Read the file contents
+    const content = fs.readFileSync(tempFile, 'utf-8');
+    
+    // Clean up the temporary file
+    fs.unlinkSync(tempFile);
+    
+    return content;
+  } catch (error) {
+    // Ensure temp file is deleted even if there's an error
+    if (fs.existsSync(tempFile)) {
+      fs.unlinkSync(tempFile);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Updates the server.ts file with database initialization code based on database type
+ * @param destination - Project destination directory
+ * @param databaseType - Type of database (e.g., 'sequelize', 'mongoose')
+ * @param options - Database options with databaseName, dialect, etc.
+ * @returns true if successful, false otherwise
+ */
+export async function updateServerWithDatabaseMethodAST(
+  destination: string,
+  databaseType: string,
+  options: Record<string, any> = {}
+): Promise<boolean> {
+  const serverFilePath = path.join(
+    destination,
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.FILES.SERVER.FILE
+  );
+
+  if (!fs.existsSync(serverFilePath)) {
+    console.log(
+      `Warning: ${PROJECT.FILES.SERVER.FILE} not found at: ${serverFilePath}`
+    );
+    return false;
+  }
+
+  try {
+    // Add database imports
+    const importPath = `import { initializeDatabase } from './${PROJECT.DIRECTORIES.SRC.DATABASE}/${PROJECT.FILES.COMMON.NAMES.CONNECTION}';`;
+    addImportIfNotExists(serverFilePath, importPath);
+
+    // Get AST template path based on database type
+    let astTemplatePath = "";
+    switch (databaseType) {
+      case DATABASE.TYPES.SEQUELIZE:
+        astTemplatePath = getASTTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT);
+        break;
+      case DATABASE.TYPES.TYPEORM:
+        astTemplatePath = getASTTemplatePath(TEMPLATES.DATABASE.TYPEORM.INIT);
+        break;
+      case DATABASE.TYPES.PRISMA:
+        astTemplatePath = getASTTemplatePath(TEMPLATES.DATABASE.PRISMA.INIT);
+        break;
+      case DATABASE.TYPES.MONGOOSE:
+        astTemplatePath = getASTTemplatePath(TEMPLATES.DATABASE.MONGOOSE.INIT);
+        break;
+      default:
+        console.error(`Unsupported database type: ${databaseType}`);
+        return false;
+    }
+
+    // Process AST template
+    const methodCode = await processASTTemplate(astTemplatePath, options);
+    
+    // Insert the method code at the proper marker in the server.ts file
+    insertContentAtMarker(
+      serverFilePath, 
+      PROJECT.FILES.COMMON.MARKERS.SERVER.DATABASE_CONNECTION,
+      methodCode
+    );
+    
+    console.log(`Updated ${PROJECT.FILES.SERVER.FILE} with database connection method`);
+    return true;
+  } catch (error) {
+    console.error("Error updating server.ts with database method:", error);
     return false;
   }
 }
