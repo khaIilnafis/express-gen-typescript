@@ -13,6 +13,7 @@ export interface GeneratorOptions {
   authLib?: string | null;
   websocketLib?: string | null;
   viewEngine?: string | null;
+  skipPrompt?: boolean; // Flag to skip interactive prompts
 }
 
 /**

@@ -14,10 +14,13 @@
     "resolveJsonModule": true,
     "noImplicitAny": true,
     "sourceMap": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": [
+      "./node_modules/@types",
+    ]
   },
   "include": ["bin/**/*", "lib/**/*"],
-  "exclude": ["node_modules", "dist", "lib/templates/**"],
+  "exclude": ["node_modules", "dist", "lib/templates/views/**"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"

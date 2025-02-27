@@ -1,6 +1,5 @@
 import { DATABASE, COMMON } from "../../constants/index.js";
 import { setupDatabaseWithHelper } from "../../utils/database-setup-helper.js";
-import path from "path";
 
 /**
  * Options for database setup

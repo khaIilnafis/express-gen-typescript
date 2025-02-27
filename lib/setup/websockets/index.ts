@@ -1,6 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
-import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import { 
+  getASTTemplatePath, 
+  writeASTTemplate 
+} from "../../utils/ast-template-processor.js";
 import {
   PROJECT,
   TEMPLATES,
@@ -57,11 +60,12 @@ async function setupSocketIO(destination: string): Promise<void> {
     PROJECT.DIRECTORIES.SRC.SOCKETS
   );
   
-  // Create index.ts file for Socket.io
+  // Create index.ts file for Socket.io using AST template
   const socketIndexPath = path.join(socketsDir, PROJECT.FILES.SOCKETS.INDEX);
-  writeTemplate(
-    getTemplatePath(TEMPLATES.WEBSOCKETS.SOCKETIO.INDEX),
-    socketIndexPath
+  await writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.WEBSOCKETS.SOCKETIO.INDEX),
+    socketIndexPath,
+    {} // No specific options needed
   );
   
   console.log("Socket.io setup completed");
@@ -78,11 +82,12 @@ async function setupWS(destination: string): Promise<void> {
     PROJECT.DIRECTORIES.SRC.SOCKETS
   );
   
-  // Create index.ts file for WS
+  // Create index.ts file for WS using AST template
   const wsIndexPath = path.join(socketsDir, PROJECT.FILES.SOCKETS.INDEX);
-  writeTemplate(
-    getTemplatePath(TEMPLATES.WEBSOCKETS.WS.INDEX), 
-    wsIndexPath
+  await writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.WEBSOCKETS.WS.INDEX), 
+    wsIndexPath,
+    {} // No specific options needed
   );
   
   console.log("WS setup completed");

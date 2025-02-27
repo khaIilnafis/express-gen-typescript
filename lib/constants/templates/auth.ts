@@ -8,6 +8,7 @@
  */
 export interface AuthTemplates {
 	CONFIG: string;
+	// CONFIG_AST?: string;
   }
 /**
  * Type definition for template auth
@@ -23,12 +24,13 @@ export interface TemplateAuth {
    */
   export const AUTH = Object.freeze({
 	PASSPORT: {
-		CONFIG: 'auth/passport/passport.ts'
+		CONFIG: 'auth/passport/passport.ast.ts',
+		// CONFIG_AST: 'auth/passport/passport.ast.ts'
 	},
 	JWT: {
-		CONFIG: 'auth/jwt/index.ts'
+		CONFIG: 'auth/jwt/index.ast.ts'
 	},
 	EXPRESS_SESSION: {
-		CONFIG: 'auth/express-session/index.ts'
+		CONFIG: 'auth/express-session/index.ast.ts'
 	},
   } as const) satisfies TemplateAuth; 

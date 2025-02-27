@@ -6,6 +6,7 @@ import {
 	DATABASE
 } from "../../constants/index.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-processor.js";
 import {
   normalizeDatabaseName,
   updateServerWithDatabaseInit,
@@ -64,10 +65,13 @@ async function setupPrisma(
     }
   );
 
-  // Create database client file using template
-  writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.PRISMA.CONFIG),
-    dbClientPath
+  // Create database client file using AST template
+  await writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.DATABASE.PRISMA.CONFIG),
+    dbClientPath,
+    {
+      databaseName
+    }
   );
 
   // Add example model type definitions

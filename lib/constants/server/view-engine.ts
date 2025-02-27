@@ -10,7 +10,6 @@ export interface ServerViewEngineSetup {
   PUG: string;
   EJS: string;
   HANDLEBARS: string;
-  PLACEHOLDER: string;
 }
 
 /**
@@ -34,5 +33,4 @@ export const VIEW_ENGINE_SETUP = Object.freeze({
     }));
     this.app.set('view engine', 'handlebars');
     this.app.set('views', path.join(__dirname, 'views'));`,
-  PLACEHOLDER: '// VIEW_ENGINE_CONFIG'
 } as const) satisfies ServerViewEngineSetup; 

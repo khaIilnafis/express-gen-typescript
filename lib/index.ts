@@ -22,8 +22,6 @@ let DATABASEetupCompleted = false;
 
 // Import setup modules
 import setup from "./setup/index.js";
-import setupProjectStructure from "./setup/project-structure/index.js";
-import setupDatabase from "./setup/database/index.js";
 
 // Get dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);

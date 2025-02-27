@@ -96,7 +96,7 @@ export const TYPE_DECLARATIONS = Object.freeze({
 
     // Authentication environment variables
     AUTH: `    JWT_SECRET: string;
-    JWT_EXPIRES_IN: string;`,
+    JWT_EXPIRES_IN: number;`,
   },
 
   // Global type declarations template

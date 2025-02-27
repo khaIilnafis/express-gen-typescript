@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { AUTH, PROJECT, TEMPLATES } from "../../constants/index.js";
-import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-processor.js";
 
 /**
  * Setup Passport.js authentication
@@ -28,7 +28,11 @@ async function setupPassport(destination: string): Promise<void> {
     fs.mkdirSync(middlewareDir, { recursive: true });
   }
 
-  // Create passport.ts file using template
-  writeTemplate(getTemplatePath(TEMPLATES.AUTH.PASSPORT.CONFIG), passportPath);
+  // Create passport.ts file using AST template
+  await writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.AUTH.PASSPORT.CONFIG),
+    passportPath,
+    {} // No specific options needed
+  );
 }
 export default setupPassport;

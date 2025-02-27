@@ -7,8 +7,9 @@ import {
   VIEW_ENGINES,
   SERVER
 } from "../../constants/index.js";
-import { insertContentAtMarker, addImportIfNotExists } from "../../utils/file-manipulation.js";
+import { addImportIfNotExists } from "../../utils/file-manipulation.js";
 import { IMPORTS } from "../../constants/server/imports.js";
+import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-processor.js";
 
 /**
  * Setup view engine based on user selection
@@ -84,7 +85,15 @@ async function setupViewEngine(
 
     // Add configuration to server
     if (configContent) {
-      insertContentAtMarker(serverFilePath, PROJECT.FILES.COMMON.MARKERS.VIEW_ENGINE_CONFIG_MARKER, configContent);
+		const tempFilePath = path.join(path.dirname(serverFilePath), 'db-connect-temp.ts');
+		await writeASTTemplate(
+			getASTTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT),
+			tempFilePath,
+			{}
+		  );
+		fs.unlinkSync(tempFilePath)
+		//   const generatedContent = fs.readFileSync(tempFilePath, 'utf8');
+    //   insertContentAtMarker(serverFilePath, PROJECT.FILES.COMMON.MARKERS.VIEW_ENGINE_CONFIG_MARKER, generatedContent);
     }
   }
 
@@ -143,7 +152,7 @@ async function setupViewEngine(
 		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.HEADER), path.join(partialsDir, headerFileName), templateVars);
 
 		// Create Footer partial
-			writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.FOOTER), path.join(partialsDir, footerFileName), templateVars);
+		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.FOOTER), path.join(partialsDir, footerFileName), templateVars);
       break;
 
     case VIEW_ENGINES.TYPES.HANDLEBARS:
@@ -169,34 +178,7 @@ async function setupViewEngine(
       break;
   }
 
-  // Create a simple route for the index page
-  createViewRoutes(destination);
-
   console.log(`${viewEngine} view engine setup complete.`);
-}
-
-// /**
-//  * Create default view routes
-//  * @param destination - Project destination directory
-//  */
-function createViewRoutes(destination: string): void {
-  const routesDir = path.join(
-    destination, 
-    PROJECT.DIRECTORIES.ROOT.SRC, 
-    PROJECT.DIRECTORIES.SRC.ROUTES
-  );
-  
-  const indexRoutePath = path.join(routesDir, PROJECT.FILES.ROUTES.INDEX);
-    // Create a new index route file with proper view rendering
-    const templateVars = {
-      rootRouteHandler: SERVER.ROOT_ROUTE_HANDLER.DEFAULT
-    };
-    
-    writeTemplate(
-      getTemplatePath(TEMPLATES.ROUTES.INDEX),
-      indexRoutePath,
-      templateVars
-    );
 }
 
 /**

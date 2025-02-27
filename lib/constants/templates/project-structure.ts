@@ -8,6 +8,7 @@
  */
 export interface BinTemplates {
   WWW: string;
+//   WWW_AST: string;
 }
 
 /**
@@ -16,6 +17,15 @@ export interface BinTemplates {
 export interface ServerTemplates {
   MAIN: string;
   TYPES: string;
+//   AST: string;
+}
+
+/**
+ * Type definition for types templates
+ */
+export interface TypesTemplates {
+  GLOBAL: string;
+//   GLOBAL_AST: string;
 }
 
 /**
@@ -25,6 +35,7 @@ export interface TemplateProjectStructure {
   BIN: BinTemplates;
   README: string;
   SERVER: ServerTemplates;
+  TYPES: TypesTemplates;
 }
 
 /**
@@ -33,11 +44,16 @@ export interface TemplateProjectStructure {
  */
 export const PROJECT_STRUCTURE = Object.freeze({
   BIN: {
-    WWW: "project-structure/bin/www.ts",
+    WWW: "project-structure/bin/www.ast.ts",
+    // WWW_AST: "project-structure/bin/www.ast.ts",
   },
   README: "project-structure/README.md",
   SERVER: {
-    MAIN: "project-structure/server.ts",
-    TYPES: "project-structure/server.d.ts",
+    MAIN: "project-structure/server.ast.ts",
+    TYPES: "project-structure/server.ast.d.ts",
+    // AST: "project-structure/server.ast.ts",
+  },
+  TYPES: {
+    GLOBAL: "project-structure/types.ast.ts",
   },
 } as const) satisfies TemplateProjectStructure; 
