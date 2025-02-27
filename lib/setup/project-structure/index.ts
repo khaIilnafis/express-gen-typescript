@@ -345,7 +345,7 @@ function setupRoutesStructure(destination: string, options: ProjectSetupOptions)
   writeASTTemplate(
     getASTTemplatePath(TEMPLATES.CONTROLLERS.EXAMPLE.CONTROLLER),
     exampleControllerLogicPath,
-    {} // No specific options needed for the example controller
+    exampleControllerIndexAstOptions // No specific options needed for the example controller
   );
 }
 
