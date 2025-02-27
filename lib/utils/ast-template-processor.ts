@@ -28,7 +28,6 @@ function normalizeTemplatePath(templatePath: string): string {
 
   // In production, try with .js extension
   const jsPath = templatePath.replace(/\.ast\.ts$/, '.ast.js');
-  console.log(`jsPath: ${jsPath}`);
   if (fs.existsSync(jsPath)) {
     return jsPath;
   }
@@ -49,7 +48,6 @@ export async function processASTTemplate(
   options: ASTTemplateOptions = {}
 ): Promise<string> {
   try {
-	console.log(`Curr Path: ${templatePath}`);
 	console.log(options);
     // Normalize the template path before importing
     const normalizedPath = normalizeTemplatePath(templatePath);
@@ -91,7 +89,6 @@ export async function writeASTTemplate(
 ): Promise<void> {
   try {
     const generatedCode = await processASTTemplate(astTemplatePath, options);
-    console.log(`Code generated`)
     // Ensure directory exists
     const dir = path.dirname(destinationPath);
     if (!fs.existsSync(dir)) {
@@ -119,7 +116,6 @@ export function getASTTemplatePath(relativePath: string): string {
   }
   console.log(`RelativePath: ${relativePath}`)
   let templatePath = path.join(__dirname, "..", "templates", relativePath);
-  console.log(`GotASTPath: ${templatePath}`);
   return templatePath
 }
 

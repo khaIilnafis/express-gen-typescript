@@ -11,7 +11,6 @@ import {
 } from "../constants/index.js";
 import { getASTTemplatePath, writeASTTemplate } from "./ast-template-processor.js";
 import { addImportIfNotExists, insertContentAtMarker } from "./file-manipulation.js";
-import { getTemplatePath, loadTemplate } from "./template-loader.js";
 
 /**
  * Normalizes a database name by converting to lowercase and replacing spaces with underscores

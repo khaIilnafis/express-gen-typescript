@@ -23,8 +23,6 @@ export function insertContentAtMarker(
       console.error(`File not found: ${filePath}`);
       return false;
     }
-	console.log(filePath);
-	console.log(marker);
     let fileContent = fs.readFileSync(filePath, "utf8");
     const markerPosition = fileContent.indexOf(marker);
 
@@ -53,60 +51,6 @@ export function insertContentAtMarker(
     return true;
   } catch (error) {
     console.error(`Error inserting content at marker: ${error}`);
-    return false;
-  }
-}
-
-/**
- * Replace content between markers in a file
- * @param filePath - Path to the file
- * @param startMarker - Start marker string
- * @param endMarker - End marker string
- * @param newContent - New content to insert
- * @returns True if replacement successful, false otherwise
- */
-export function replaceContentBetweenMarkers(
-  filePath: string,
-  startMarker: string,
-  endMarker: string,
-  newContent: string
-): boolean {
-  try {
-    if (!fs.existsSync(filePath)) {
-      console.error(`File not found: ${filePath}`);
-      return false;
-    }
-
-    let fileContent = fs.readFileSync(filePath, "utf8");
-    const startPosition = fileContent.indexOf(startMarker);
-    const endPosition = fileContent.indexOf(endMarker);
-
-    if (
-      startPosition === -1 ||
-      endPosition === -1 ||
-      startPosition >= endPosition
-    ) {
-      console.error(
-        `Markers not found or invalid positions in file: ${filePath}`
-      );
-      return false;
-    }
-
-    // Calculate insertion positions (including the markers themselves)
-    const insertStartPosition = startPosition + startMarker.length;
-
-    // Replace content between markers
-    const newFileContent =
-      fileContent.substring(0, insertStartPosition) +
-      "\n" +
-      newContent +
-      "\n" +
-      fileContent.substring(endPosition);
-
-    fs.writeFileSync(filePath, newFileContent);
-    return true;
-  } catch (error) {
-    console.error(`Error replacing content between markers: ${error}`);
     return false;
   }
 }

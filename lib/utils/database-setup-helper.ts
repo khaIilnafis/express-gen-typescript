@@ -11,9 +11,6 @@ import {
   PROJECT,
 } from "../constants/index.js";
 import {
-  getTemplatePath,
-  loadTemplate,
-  writeTemplate,
   TemplateVariables,
 } from "../utils/template-loader.js";
 import {
@@ -407,18 +404,7 @@ export async function setupDatabaseWithHelper(
   database: string,
   options: Record<string, any> = {}
 ): Promise<void> {
-  // Check if we've already accessed this module from another import path
-  if ((global as any).databaseSetupInProgress) {
-    console.log("Database setup already in progress, skipping duplicate setup");
-    return;
-  }
-
-  // Set flag to prevent duplicate setup
-  (global as any).databaseSetupInProgress = true;
-
   try {
-    console.log(COMMON.MESSAGES.SETUP.DATABASE(database));
-
     // Prepare database name
     const databaseName =
       options.databaseName || normalizeDatabaseName(path.basename(destination));
@@ -447,9 +433,8 @@ export async function setupDatabaseWithHelper(
       default:
         console.log(`Skipping database setup for database type: ${database}`);
     }
-  } finally {
-    // Reset the flag when done
-    (global as any).databaseSetupInProgress = false;
+  }catch(err){
+	throw(err);
   }
 }
 
