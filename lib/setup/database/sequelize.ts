@@ -1,8 +1,7 @@
 import path from "path";
 import {
   TEMPLATES,
-  PROJECT,
-  DATABASE
+  PROJECT
 } from "../../constants/index.js";
 import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-processor.js";
 import {

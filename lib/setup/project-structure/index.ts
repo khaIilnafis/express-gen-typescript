@@ -19,8 +19,7 @@ import {
   WEBSOCKETS,
   VIEW_ENGINES,
   APP,
-  AUTH,
-  SERVER,
+  AUTH
 } from "../../constants/index.js";
 import setupViewEngine from "../views/index.js";
 import setupWebsockets from "../websockets/index.js";
@@ -195,17 +194,6 @@ async function setupDatabaseConfig(
   if (!database || database === DATABASE.TYPES.NONE) {
     return;
   }
-
-  console.log(`${COMMON.MESSAGES.SETUP.DATABASE(database)}`);
-
-  // Check if database setup is already in progress (flag set by database-setup-helper.ts)
-  if ((global as any).databaseSetupInProgress) {
-    console.log(
-      "Database setup already in progress, skipping from project structure setup"
-    );
-    return;
-  }
-
   // Use the database setup module with all necessary options
   await setupDatabase({
     destination,
@@ -287,20 +275,18 @@ function setupRoutesStructure(destination: string, options: ProjectSetupOptions)
 
   // Create index router if it doesn't exist
   const indexRouterPath = path.join(routesDir, PROJECT.FILES.ROUTES.INDEX);
-  if (!fs.existsSync(indexRouterPath)) {
     // Use AST template for index router
     const astOptions = {
       websocketLib: options.websocketLib || WEBSOCKETS.LIBRARIES.NONE,
-      viewEngine: options.viewEngine || VIEW_ENGINES.TYPES.NONE
+    //   viewEngine: options.viewEngine || VIEW_ENGINES.TYPES.NONE
     };
-    
+	console.log(astOptions);
     // Process and write the AST template
     writeASTTemplate(
       getASTTemplatePath(TEMPLATES.ROUTES.INDEX),
       indexRouterPath,
       astOptions
     );
-  }
 
   // Create example routes using AST template
   const exampleRoutesPath = path.join(routesDir, PROJECT.FILES.ROUTES.EXAMPLE);
@@ -345,7 +331,7 @@ function setupRoutesStructure(destination: string, options: ProjectSetupOptions)
   writeASTTemplate(
     getASTTemplatePath(TEMPLATES.CONTROLLERS.EXAMPLE.CONTROLLER),
     exampleControllerLogicPath,
-    exampleControllerIndexAstOptions // No specific options needed for the example controller
+    exampleControllerIndexAstOptions 
   );
 }
 

@@ -7,7 +7,7 @@ import {
   VIEW_ENGINES,
   SERVER
 } from "../../constants/index.js";
-import { insertContentAtMarker, addImportIfNotExists } from "../../utils/file-manipulation.js";
+import { addImportIfNotExists } from "../../utils/file-manipulation.js";
 import { IMPORTS } from "../../constants/server/imports.js";
 import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-processor.js";
 
@@ -177,36 +177,7 @@ async function setupViewEngine(
       break;
   }
 
-  // Create a simple route for the index page
-  createViewRoutes(destination);
-
   console.log(`${viewEngine} view engine setup complete.`);
-}
-
-// /**
-//  * Create default view routes
-//  * @param destination - Project destination directory
-//  */
-function createViewRoutes(destination: string): void {
-  const routesDir = path.join(
-    destination, 
-    PROJECT.DIRECTORIES.ROOT.SRC, 
-    PROJECT.DIRECTORIES.SRC.ROUTES
-  );
-  
-//   const indexRoutePath = path.join(PROJECT.DIRECTORIES.SRC.ROUTES, TEMPLATES.ROUTES.INDEX);
-    // Create a new index route file with proper view rendering
-    const templateVars = {
-      rootRouteHandler: SERVER.ROOT_ROUTE_HANDLER.DEFAULT
-    };
-    
-    // writeTemplate(
-    //   getTemplatePath(TEMPLATES.ROUTES.INDEX),
-    //   indexRoutePath,
-    //   templateVars
-    // );
-	console.log(path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC,PROJECT.DIRECTORIES.SRC.ROUTES, PROJECT.FILES.ROUTES.INDEX))
-	writeASTTemplate(getASTTemplatePath(TEMPLATES.ROUTES.INDEX),path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC,PROJECT.DIRECTORIES.SRC.ROUTES, PROJECT.FILES.ROUTES.INDEX),templateVars)
 }
 
 /**
