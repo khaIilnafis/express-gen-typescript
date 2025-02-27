@@ -8,6 +8,7 @@
  */
 export interface WebsocketLibraryTemplates {
   INDEX: string;
+//   INDEX_AST: string;
   IMPORTS: string;
   METHODS: string;
 }
@@ -26,12 +27,14 @@ export interface TemplateWebsockets {
  */
 export const WEBSOCKETS = Object.freeze({
   SOCKETIO: {
-    INDEX: "websockets/socketio/index.ts",
+    INDEX: "websockets/socketio/index.ast.ts",
+    // INDEX_AST: "websockets/socketio/index.ast.ts",
     IMPORTS: "websockets/socketio/imports.ts",
     METHODS: "websockets/socketio/methods.ts",
   },
   WS: {
-    INDEX: "websockets/ws/index.ts",
+    INDEX: "websockets/ws/index.ast.ts",
+    // INDEX_AST: "websockets/ws/index.ast.ts",
     IMPORTS: "websockets/ws/imports.ts",
     METHODS: "websockets/ws/methods.ts",
   },

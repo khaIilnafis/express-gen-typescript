@@ -25,6 +25,7 @@ export const BASE_DEV_DEPENDENCIES: Record<string, string> = Object.freeze({
   "@types/compression": "^1.7.5",
   "@types/helmet": "^4.0.0",
   "@types/node": "^22.13.5",
+  "ts-node": "^10.9.2",
   rimraf: "^6.0.1",
   debug: "^4.4.0",
   nodemon: "^3.1.9",

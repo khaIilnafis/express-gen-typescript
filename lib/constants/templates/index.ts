@@ -11,6 +11,9 @@ import { DATABASE } from './database.js';
 import { VIEWS } from './views.js';
 import { WEBSOCKETS } from './websockets.js';
 import { TEMPLATE_STRINGS } from './strings.js';
+import { SERVICES } from './services.js';
+import { MODELS } from './models.js';
+import { SERVER_COMMENTS, CONTROLLER_COMMENTS } from './comments.js';
 
 /**
  * Type definition for template structure
@@ -25,10 +28,14 @@ export interface TemplateStructure {
   VIEWS: typeof VIEWS;
   WEBSOCKETS: typeof WEBSOCKETS;
   STRINGS: typeof TEMPLATE_STRINGS;
+  SERVICES: typeof SERVICES;
+  MODELS: typeof MODELS;
+  SERVER_COMMENTS: typeof SERVER_COMMENTS;
+  CONTROLLER_COMMENTS: typeof CONTROLLER_COMMENTS;
 }
 
 // Re-export individual template constants
-export { BASE, ROUTES, CONTROLLERS, PROJECT_STRUCTURE, DATABASE, VIEWS, WEBSOCKETS, TEMPLATE_STRINGS };
+export { BASE, ROUTES, CONTROLLERS, PROJECT_STRUCTURE, DATABASE, VIEWS, WEBSOCKETS, TEMPLATE_STRINGS, SERVICES, MODELS, SERVER_COMMENTS, CONTROLLER_COMMENTS };
 
 /**
  * Combined template constants
@@ -43,4 +50,8 @@ export const TEMPLATES = Object.freeze({
   VIEWS,
   WEBSOCKETS,
   STRINGS: TEMPLATE_STRINGS,
+  SERVICES,
+  MODELS,
+  SERVER_COMMENTS,
+  CONTROLLER_COMMENTS
 } as const) satisfies TemplateStructure; 

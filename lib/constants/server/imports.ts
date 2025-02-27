@@ -22,6 +22,8 @@ export interface ServerImports {
   WEBSOCKET: {
     SOCKETIO: string;
     WS: string;
+    SOCKETIO_TYPES: string;
+    WS_TYPES: string;
   };
   VIEW_ENGINE: {
     EJS: string;
@@ -62,6 +64,8 @@ export const IMPORTS = Object.freeze({
     SOCKETIO:
       "// WebSocket imports\nimport { Server as SocketIOServer } from 'socket.io';\nimport {setupSocketHandlers} from './sockets';\n",
     WS: "// WebSocket imports\nimport WebSocket from 'ws';\nimport setupWebSocketServer from './sockets';\n",
+    SOCKETIO_TYPES: "import { Server as SocketIOServer } from 'socket.io';\n",
+    WS_TYPES: "import WebSocket from 'ws';\n",
   },
 
   // View engine imports
