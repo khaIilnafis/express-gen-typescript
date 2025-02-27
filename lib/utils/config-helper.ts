@@ -22,15 +22,15 @@ export interface EnvConfig {
  */
 export function createEnvFile(
   destination: string,
-  variables: Record<string, string>
+  variables: Record<string, string | number>
 ): void {
   try {
     const envPath = path.join(destination, ".env");
 
     // Group variables by type
-    const appVars: Record<string, string> = {};
-    const dbVars: Record<string, string> = {};
-    const authVars: Record<string, string> = {};
+    const appVars: Record<string, string | number> = {};
+    const dbVars: Record<string, string | number> = {};
+    const authVars: Record<string, string | number> = {};
 
     // Categorize variables
     Object.entries(variables).forEach(([key, value]) => {

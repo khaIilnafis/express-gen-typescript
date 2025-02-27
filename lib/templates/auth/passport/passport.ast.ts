@@ -35,8 +35,8 @@ export default function generatePassportConfigAST(options: TemplateOptions = {})
       b.stringLiteral("passport-jwt")
     ),
     b.importDeclaration(
-      [b.importSpecifier(b.identifier("Example"))],
-      b.stringLiteral("../models/Example")
+      [b.importDefaultSpecifier(b.identifier("Example"))],
+      b.stringLiteral("../models/example")
     ),
     b.importDeclaration(
       [
@@ -80,86 +80,90 @@ export default function generatePassportConfigAST(options: TemplateOptions = {})
       ])
     )
   ]);
-
+  const strategyCallback = b.functionExpression( null,
+	[b.identifier("jwt_payload"), b.identifier("done")],
+	b.blockStatement([
+	  // let user;
+	  b.variableDeclaration("let", [
+		b.variableDeclarator(b.identifier("user"))
+	  ]),
+	  
+	  // try-catch block
+	  b.tryStatement(
+		b.blockStatement([
+		  // user = await Example.findOne({ where: { id: jwt_payload._id } });
+		  b.expressionStatement(
+			b.assignmentExpression(
+			  "=",
+			  b.identifier("user"),
+			  b.awaitExpression(
+				b.callExpression(
+				  b.memberExpression(
+					b.identifier("Example"),
+					b.identifier("findOne")
+				  ),
+				  [
+					b.objectExpression([
+					  b.objectProperty(
+						b.identifier("where"),
+						b.objectExpression([
+						  b.objectProperty(
+							b.identifier("id"),
+							b.memberExpression(
+							  b.identifier("jwt_payload"),
+							  b.identifier("_id")
+							)
+						  )
+						])
+					  )
+					])
+				  ]
+				)
+			  )
+			)
+		  ),
+		  
+		  // return done(null, user);
+		  b.returnStatement(
+			b.callExpression(b.identifier("done"), [
+				b.nullLiteral(),
+				b.logicalExpression(
+				  "||",
+				  b.identifier("user"),
+				  b.booleanLiteral(false)
+				)
+			  ])
+		  )
+		]),
+		
+		// catch block
+		b.catchClause(
+		  b.identifier("e"),
+		  null,
+		  b.blockStatement([
+			// return done(e, false);
+			b.returnStatement(
+			  b.callExpression(b.identifier("done"), [
+				b.identifier("e"),
+				b.booleanLiteral(false)
+			  ])
+			)
+		  ])
+		)
+	  )
+	]),
+	false,  // Not a generator
+	true    // Async function
+  );
+  strategyCallback.async = true;
   // Passport strategy setup
   const passportUseStatement = b.expressionStatement(
     b.callExpression(
       b.memberExpression(b.identifier("passport"), b.identifier("use")),
       [
         b.newExpression(b.identifier("Strategy"), [
-          b.identifier("opts"),
-          b.functionExpression(
-            null,
-            [b.identifier("jwt_payload"), b.identifier("done")],
-            b.blockStatement([
-              // let user;
-              b.variableDeclaration("let", [
-                b.variableDeclarator(b.identifier("user"))
-              ]),
-              
-              // try-catch block
-              b.tryStatement(
-                b.blockStatement([
-                  // user = await User.findOne({ where: { id: jwt_payload._id } });
-                  b.expressionStatement(
-                    b.assignmentExpression(
-                      "=",
-                      b.identifier("user"),
-                      b.awaitExpression(
-                        b.callExpression(
-                          b.memberExpression(
-                            b.identifier("User"),
-                            b.identifier("findOne")
-                          ),
-                          [
-                            b.objectExpression([
-                              b.objectProperty(
-                                b.identifier("where"),
-                                b.objectExpression([
-                                  b.objectProperty(
-                                    b.identifier("id"),
-                                    b.memberExpression(
-                                      b.identifier("jwt_payload"),
-                                      b.identifier("_id")
-                                    )
-                                  )
-                                ])
-                              )
-                            ])
-                          ]
-                        )
-                      )
-                    )
-                  ),
-                  
-                  // return done(null, user);
-                  b.returnStatement(
-                    b.callExpression(b.identifier("done"), [
-                      b.nullLiteral(),
-                      b.identifier("user")
-                    ])
-                  )
-                ]),
-                
-                // catch block
-                b.catchClause(
-                  b.identifier("e"),
-                  null,
-                  b.blockStatement([
-                    // return done(e, false);
-                    b.returnStatement(
-                      b.callExpression(b.identifier("done"), [
-                        b.identifier("e"),
-                        b.booleanLiteral(false)
-                      ])
-                    )
-                  ])
-                )
-              )
-            ]),
-            false,  // Not a generator
-            true    // Async function
-          )
+          b.identifier("opts"), 
+		  strategyCallback          
         ])
       ]
     )
@@ -185,52 +189,53 @@ export default function generatePassportConfigAST(options: TemplateOptions = {})
       ]
     )
   );
-
+  const deserializeCallback = b.functionExpression(
+	null,
+	[
+	  // user parameter with type annotation
+	  b.identifier("user"),
+	  b.identifier("done")
+	],
+	b.blockStatement([
+	  // const fetchedUser = Example.findOne({ where: { id: user._id } });
+	  b.variableDeclaration("const", [
+		b.variableDeclarator(
+		  b.identifier("fetchedUser"),
+		  b.callExpression(
+			b.memberExpression(b.identifier("Example"), b.identifier("findOne")),
+			[
+			  b.objectExpression([
+				b.objectProperty(
+				  b.identifier("where"),
+				  b.objectExpression([
+					b.objectProperty(
+					  b.identifier("id"),
+					  b.memberExpression(b.identifier("user"), b.identifier("_id"))
+					)
+				  ])
+				)
+			  ])
+			]
+		  )
+		)
+	  ]),
+	  
+	  // done(null, fetchedUser);
+	  b.expressionStatement(
+		b.callExpression(b.identifier("done"), [
+		  b.nullLiteral(),
+		  b.identifier("fetchedUser")
+		])
+	  )
+	])
+  );
+  deserializeCallback.async = true;
   // Passport deserializeUser
   const deserializeUserStatement = b.expressionStatement(
     b.callExpression(
       b.memberExpression(b.identifier("passport"), b.identifier("deserializeUser")),
       [
-        b.functionExpression(
-          null,
-          [
-            // user parameter with type annotation
-            b.identifier("user"),
-            b.identifier("done")
-          ],
-          b.blockStatement([
-            // const fetchedUser = User.findOne({ where: { id: user._id } });
-            b.variableDeclaration("const", [
-              b.variableDeclarator(
-                b.identifier("fetchedUser"),
-                b.callExpression(
-                  b.memberExpression(b.identifier("User"), b.identifier("findOne")),
-                  [
-                    b.objectExpression([
-                      b.objectProperty(
-                        b.identifier("where"),
-                        b.objectExpression([
-                          b.objectProperty(
-                            b.identifier("id"),
-                            b.memberExpression(b.identifier("user"), b.identifier("_id"))
-                          )
-                        ])
-                      )
-                    ])
-                  ]
-                )
-              )
-            ]),
-            
-            // done(null, fetchedUser);
-            b.expressionStatement(
-              b.callExpression(b.identifier("done"), [
-                b.nullLiteral(),
-                b.identifier("fetchedUser")
-              ])
-            )
-          ])
-        )
+        deserializeCallback
       ]
     )
   );
@@ -427,34 +432,47 @@ export default function generatePassportConfigAST(options: TemplateOptions = {})
             
             // return jwt.sign(...);
             b.returnStatement(
-              b.callExpression(
-                b.memberExpression(b.identifier("jwt"), b.identifier("sign")),
-                [
-                  b.identifier("payload"),
-                  b.logicalExpression(
-                    "||",
-                    b.memberExpression(
-                      b.memberExpression(b.identifier("process"), b.identifier("env")),
-                      b.identifier("JWT_SECRET")
-                    ),
-                    b.stringLiteral("your-secret-key")
-                  ),
-                  b.objectExpression([
-                    b.objectProperty(
-                      b.identifier("expiresIn"),
-                      b.logicalExpression(
-                        "||",
-                        b.memberExpression(
-                          b.memberExpression(b.identifier("process"), b.identifier("env")),
-                          b.identifier("JWT_EXPIRES_IN")
-                        ),
-                        b.stringLiteral("24h")
-                      )
-                    )
-                  ])
-                ]
-              )
-            )
+				b.callExpression(
+				  b.memberExpression(b.identifier("jwt"), b.identifier("sign")),
+				  [
+					b.identifier("payload"),
+					// secret: process.env.JWT_SECRET ? process.env.JWT_SECRET : "your-secret-key"
+					b.conditionalExpression(
+					  b.memberExpression(
+						b.memberExpression(b.identifier("process"), b.identifier("env")),
+						b.identifier("JWT_SECRET")
+					  ),
+					  b.memberExpression(
+						b.memberExpression(b.identifier("process"), b.identifier("env")),
+						b.identifier("JWT_SECRET")
+					  ),
+					  b.stringLiteral("your-secret-key")
+					),
+					// options: { expiresIn: process.env.JWT_EXPIRES_IN ? process.env.JWT_EXPIRES_IN : 15 }
+					b.objectExpression([
+					  b.objectProperty(
+						b.identifier("expiresIn"),
+						b.conditionalExpression(
+						  b.memberExpression(
+							b.memberExpression(b.identifier("process"), b.identifier("env")),
+							b.identifier("JWT_EXPIRES_IN")
+						  ),
+						  b.callExpression(
+							b.identifier("Number"),
+							[
+							  b.memberExpression(
+								b.memberExpression(b.identifier("process"), b.identifier("env")),
+								b.identifier("JWT_EXPIRES_IN")
+							  )
+							]
+						  ),
+						  b.numericLiteral(15)
+						)
+					  )
+					])
+				  ]
+				)
+			  )
           ])
         )
       )

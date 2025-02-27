@@ -124,7 +124,7 @@ export class DatabaseSetupHelper {
     // Create each model file
     Object.entries(modelTemplates).forEach(async ([modelName, templatePath]) => {
     //   const absoluteTemplatePath = getTemplatePath(templatePath);
-      const outputPath = path.join(modelsDir, `${modelName}.model.ts`);
+      const outputPath = path.join(modelsDir, `${modelName}.ts`);
 
       // Variables for the template
       const variables: TemplateVariables = {

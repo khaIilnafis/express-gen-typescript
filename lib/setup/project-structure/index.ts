@@ -425,7 +425,7 @@ function createEnvironmentFile(
   console.log(COMMON.MESSAGES.SETUP.ENV_FILE);
 
   // Start with default environment variables
-  const envVars: Record<string, string> = {
+  const envVars: Record<string, string | number> = {
     PORT: APP.DEFAULTS.PORT.toString(),
     NODE_ENV: APP.ENV.DEVELOPMENT,
   };

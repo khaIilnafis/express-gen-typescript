@@ -5,6 +5,7 @@
 
 import * as recast from 'recast';
 import * as tsParser from 'recast/parsers/typescript.js';
+import { DATABASE_COMMENTS } from '../../../constants/templates/index.js';
 
 const b = recast.types.builders;
 
@@ -90,7 +91,7 @@ export default function generateSequelizeConfigAST(options: TemplateOptions = {}
             ),
             // user
             b.objectProperty(
-              b.identifier("user"),
+              b.identifier("username"),
               b.logicalExpression(
                 "||",
                 b.memberExpression(
@@ -150,8 +151,7 @@ export default function generateSequelizeConfigAST(options: TemplateOptions = {}
   ]);
 
   // Initialize database function
-  const initializeFunction = b.exportNamedDeclaration(
-    b.functionDeclaration(
+  const initializeFunction = b.functionDeclaration(
       b.identifier("initializeDatabase"),
       [],
       b.blockStatement([
@@ -224,41 +224,33 @@ export default function generateSequelizeConfigAST(options: TemplateOptions = {}
           )
         )
       ]),
-      true, // async function
-      false  // not a generator
-    ),
-    []
-  );
+      false, 
+      false 
+    );
 
   // Add return type annotation to initializeFunction
-  const initFunction = initializeFunction.declaration as recast.types.namedTypes.FunctionDeclaration;
+  const initFunction = initializeFunction;
   initFunction.returnType = b.tsTypeAnnotation(
     b.tsTypeReference(
       b.identifier("Promise"),
       b.tsTypeParameterInstantiation([
-        b.tsTypeReference(b.identifier("Sequelize"))
+        b.tsTypeReference(b.identifier("void"))
       ])
     )
   );
-
+  initFunction.async = true;
   // Export default sequelize
   const defaultExport = b.exportDefaultDeclaration(
     b.identifier("sequelize")
   );
+  const exportInitialize = b.exportNamedDeclaration(initializeFunction, []);
 
-  // Add JSDoc comment for initializeDatabase
-  const functionComment = `
-/**
- * Initialize Sequelize connection
- * @returns Sequelize instance
- */`;
-
+  exportInitialize.comments = [b.commentBlock(DATABASE_COMMENTS.INITIALIZE_DATBASE, true)];
   // Build the AST program
   const program = b.program([
     ...imports,
     sequelizeDeclaration,
-    b.expressionStatement(b.stringLiteral(functionComment)),
-    initializeFunction,
+    exportInitialize,
     defaultExport
   ]);
 

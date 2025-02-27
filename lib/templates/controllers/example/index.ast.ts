@@ -47,7 +47,7 @@ export default function generateExampleControllerIndexAST(options: TemplateOptio
   if (opts.websocketLib === "socketio") {
     controllerImports.push(
       b.importDeclaration(
-        [b.importSpecifier(b.identifier("Server"), b.identifier("SocketServer"))],
+        [b.importSpecifier(b.identifier("Server"), b.identifier("SocketIOServer"))],
         b.stringLiteral("socket.io")
       )
     );
@@ -67,10 +67,13 @@ export default function generateExampleControllerIndexAST(options: TemplateOptio
     ioProperty.static = false;
     // Use proper type casting to set private property
     (ioProperty as any).private = true;
-    
+
     // Add type annotation separately
     ioProperty.typeAnnotation = b.tsTypeAnnotation(
-        b.tsTypeReference(b.identifier("SocketServer"))
+        b.tsUnionType([
+			b.tsTypeReference(b.identifier("SocketIOServer")),
+			b.tsUndefinedKeyword()
+		  ])
     );
     
     classProperties.push(ioProperty);
@@ -113,7 +116,7 @@ export default function generateExampleControllerIndexAST(options: TemplateOptio
     const ioParam = b.identifier("io");
 	ioParam.optional = true;
     ioParam.typeAnnotation = b.tsTypeAnnotation(
-        b.tsTypeReference(b.identifier("SocketServer"))
+        b.tsTypeReference(b.identifier("SocketIOServer"))
     );
     constructorParams.push(ioParam);
   }

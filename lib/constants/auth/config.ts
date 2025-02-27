@@ -9,7 +9,7 @@
 export interface JwtConfig {
   SECRET_LENGTH: number;
   EXPIRATION: {
-    ACCESS: string;
+    ACCESS: number;
     REFRESH: string;
   };
 }
@@ -29,7 +29,7 @@ export const CONFIG = Object.freeze({
   JWT: {
     SECRET_LENGTH: 64,
     EXPIRATION: {
-      ACCESS: "15m", // 15 minutes
+      ACCESS: 15, // 15 minutes
       REFRESH: "7d", // 7 days
     },
   },
