@@ -85,13 +85,14 @@ async function setupViewEngine(
 
     // Add configuration to server
     if (configContent) {
-		const tempFilePath = path.join(path.dirname(serverFilePath), 'view-init-temp.ts');
+		const tempFilePath = path.join(path.dirname(serverFilePath), 'db-connect-temp.ts');
 		await writeASTTemplate(
 			getASTTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT),
 			tempFilePath,
 			{}
 		  );
-		  const generatedContent = fs.readFileSync(tempFilePath, 'utf8');
+		fs.unlinkSync(tempFilePath)
+		//   const generatedContent = fs.readFileSync(tempFilePath, 'utf8');
     //   insertContentAtMarker(serverFilePath, PROJECT.FILES.COMMON.MARKERS.VIEW_ENGINE_CONFIG_MARKER, generatedContent);
     }
   }

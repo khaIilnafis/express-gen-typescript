@@ -78,7 +78,7 @@ export default function generateSequelizeMethodAST(options: TemplateOptions = {}
     [],
     methodBody,
     false,  // not computed
-    false,    // is private
+    true,    // is private
   );
 
   // Add async modifier

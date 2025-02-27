@@ -316,7 +316,7 @@ function getConstructorMethod(options: TemplateOptions) {
     constructorStatements.push(
       b.expressionStatement(
         b.callExpression(
-          b.memberExpression(b.thisExpression(), b.identifier("connectToDatabase")),
+          b.memberExpression(b.identifier("Server"), b.identifier("connectToDatabase")),
           []
         )
       )
@@ -1253,6 +1253,87 @@ export default function generateServerAST(options: TemplateOptions = {}) {
             })(),
             // public listen(port: number): void { ... }
             (() => {
+				const errorHandlingBlock = b.blockStatement([
+					// const bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
+					b.variableDeclaration("const", [
+					  b.variableDeclarator(
+						b.identifier("bind"),
+						b.conditionalExpression(
+						  b.binaryExpression(
+							"===",
+							b.unaryExpression("typeof", b.identifier("port"), true),
+							b.stringLiteral("string")
+						  ),
+						  b.binaryExpression("+", b.stringLiteral("Pipe "), b.identifier("port")),
+						  b.binaryExpression("+", b.stringLiteral("Port "), b.identifier("port"))
+						)
+					  )
+					]),
+					// switch (error.code) { ... }
+					b.switchStatement(
+					  b.memberExpression(b.identifier("err"), b.identifier("name")),
+					  [
+						// case "EACCES":
+						b.switchCase(
+						  b.stringLiteral("EACCES"),
+						  [
+							b.expressionStatement(
+							  b.callExpression(
+								b.memberExpression(b.identifier("console"), b.identifier("error")),
+								[
+								  b.binaryExpression(
+									"+",
+									b.identifier("bind"),
+									b.identifier("err.message"),
+								  )
+								]
+							  )
+							),
+							b.expressionStatement(
+							  b.callExpression(
+								b.memberExpression(b.identifier("process"), b.identifier("exit")),
+								[b.numericLiteral(1)]
+							  )
+							),
+							b.breakStatement()
+						  ]
+						),
+						// case "EADDRINUSE":
+						b.switchCase(
+						  b.stringLiteral("EADDRINUSE"),
+						  [
+							b.expressionStatement(
+							  b.callExpression(
+								b.memberExpression(b.identifier("console"), b.identifier("error")),
+								[
+								  b.binaryExpression(
+									"+",
+									b.identifier("bind"),
+									b.identifier("err.message"),
+								  )
+								]
+							  )
+							),
+							b.expressionStatement(
+							  b.callExpression(
+								b.memberExpression(b.identifier("process"), b.identifier("exit")),
+								[b.numericLiteral(1)]
+							  )
+							),
+							b.breakStatement()
+						  ]
+						),
+						// default:
+						b.switchCase(
+						  null,
+						  [
+							b.throwStatement(b.identifier("err"))
+						  ]
+						)
+					  ]
+					)
+				  ]);
+				  
               const listenMethod = b.methodDefinition(
                 "method",
                 b.identifier("listen"),
@@ -1289,7 +1370,22 @@ export default function generateServerAST(options: TemplateOptions = {}) {
                           )
                         ]
                       )
-                    )
+                    ),
+					b.expressionStatement(
+						b.callExpression(
+						  b.memberExpression(
+							b.memberExpression(b.thisExpression(), b.identifier("server")),
+							b.identifier("on")
+						  ),
+						  [
+							b.stringLiteral("error"),
+							b.arrowFunctionExpression(
+							  [b.identifier("err")],
+							  errorHandlingBlock
+							)
+						  ]
+						)
+					)
                   ])
                 )
               );
