@@ -4,11 +4,10 @@ import {
   PROJECT,
   DATABASE
 } from "../../constants/index.js";
-import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-processor.js";
 import {
   normalizeDatabaseName,
   updateServerWithDatabaseInit,
-  createModelsIndexFile,
 } from "../../utils/database-helper.js";
 
 /**
@@ -52,9 +51,9 @@ async function setupSequelize(
   // Get dialect from options or use default
   const dialect = options.dialect || "postgres";
 
-  // Create database config file using template
-  writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.CONFIG),
+  // Create database config file using AST template
+  await writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.CONFIG),
     dbConfigPath,
     {
       databaseName,
@@ -62,14 +61,29 @@ async function setupSequelize(
     }
   );
 
-  // Create example model using template
-  writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.EXAMPLE_MODEL),
-    exampleModelPath
+  // Create example model using AST template
+  await writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.EXAMPLE_MODEL),
+    exampleModelPath,
+    {}
   );
 
-  // Create models index.ts file
-  createModelsIndexFile(destination, DATABASE.TYPES.SEQUELIZE, PROJECT.FILES.COMMON.NAMES.EXAMPLE);
+  // Create models index.ts file using AST template
+  const modelsIndexPath = path.join(
+    destination,
+    PROJECT.DIRECTORIES.ROOT.SRC,
+    PROJECT.DIRECTORIES.SRC.MODELS,
+    PROJECT.FILES.MODELS.FILES.INDEX
+  );
+  
+  await writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.MODEL_INDEX),
+    modelsIndexPath,
+    {
+      databaseName,
+      dialect
+    }
+  );
 
   // Update server.ts to initialize database on startup
   updateServerWithDatabaseInit(destination);

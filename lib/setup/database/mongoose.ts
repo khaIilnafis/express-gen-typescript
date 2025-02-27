@@ -4,7 +4,10 @@ import {
   DATABASE,
   PROJECT,
 } from "../../constants/index.js";
-import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import { 
+  getASTTemplatePath, 
+  writeASTTemplate 
+} from "../../utils/ast-template-processor.js";
 import {
   normalizeDatabaseName,
   updateServerWithDatabaseInit,
@@ -47,19 +50,20 @@ async function setupMongoose(
   const databaseName =
     options.databaseName || normalizeDatabaseName(path.basename(destination));
 
-  // Create database config file using template
-  writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.CONFIG),
+  // Create database config file using AST template
+  await writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.DATABASE.MONGOOSE.CONFIG),
     dbConfigPath,
     {
       databaseName,
     }
   );
 
-  // Create example model using template
-  writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.MONGOOSE.EXAMPLE_MODEL),
-    exampleModelPath
+  // Create example model using AST template
+  await writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.DATABASE.MONGOOSE.EXAMPLE_MODEL),
+    exampleModelPath,
+    {}
   );
 
   // Create models index.ts file

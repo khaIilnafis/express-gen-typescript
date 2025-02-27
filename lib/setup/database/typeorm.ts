@@ -5,7 +5,7 @@ import {
   PROJECT,
   DATABASE
 } from "../../constants/index.js";
-import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-processor.js";
 import {
   normalizeDatabaseName,
   updateServerWithDatabaseInit,
@@ -17,6 +17,7 @@ import {
  */
 export interface TypeORMSetupOptions {
   databaseName?: string;
+  dialect?: string;
   [key: string]: any;
 }
 
@@ -58,18 +59,24 @@ async function setupTypeORM(
   const databaseName =
     options.databaseName || normalizeDatabaseName(path.basename(destination));
 
-  // Create database config file using template
-  writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.TYPEORM.CONFIG),
+  // Get dialect from options or use default
+  const dialect = options.dialect || "postgres";
+
+  // Create database config file using AST template
+  await writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.DATABASE.TYPEORM.CONFIG),
     dbConfigPath,
     {
       databaseName,
+      dialect
     }
   );
-  // Create Example entity file using template
-  writeTemplate(
-    getTemplatePath(TEMPLATES.DATABASE.TYPEORM.EXAMPLE_MODEL),
-    exampleEntityPath
+  
+  // Create example model using AST template
+  await writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.DATABASE.TYPEORM.EXAMPLE_MODEL),
+    exampleEntityPath,
+    {}
   );
 
   // Create entities index file

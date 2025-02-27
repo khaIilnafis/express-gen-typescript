@@ -3,6 +3,7 @@ import path from "path";
 import serverGenerator from "./server.js";
 import setupPassport from "../auth/passport.js";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
+import { writeASTTemplate, getASTTemplatePath } from "../../utils/ast-template-processor.js";
 import setupDatabase from "../database/index.js";
 import {
   getDefaultDatabaseName,
@@ -77,8 +78,8 @@ async function setupProjectStructure(
   };
 
   // Generate server files
-  serverGenerator.generateServerFiles(destination, serverOptions);
-  serverGenerator.generateGlobalTypesFile(destination, serverOptions);
+  await serverGenerator.generateServerFiles(destination, serverOptions);
+//   await serverGenerator.generateGlobalTypesFile(destination, serverOptions);
 
   // Create bin directory with startup files
   createBinFiles(destination);
@@ -107,14 +108,14 @@ async function setupProjectStructure(
   }
 
   // Create basic routes structure
-  setupRoutesStructure(destination, options.viewEngine);
+  setupRoutesStructure(destination, options);
 
   // Create README.md file
   createReadme(destination, options);
 }
 
 /**
- * Create bin directory files
+ * Create binary files for the project
  * @param destination - Project destination directory
  */
 function createBinFiles(destination: string): void {
@@ -125,9 +126,22 @@ function createBinFiles(destination: string): void {
     fs.mkdirSync(binDir);
   }
 
-  // Create www.ts file
+  // Create www.ts file using AST template
   const wwwPath = path.join(binDir, PROJECT.FILES.BIN.SERVER);
-  writeTemplate(getTemplatePath(TEMPLATES.PROJECT_STRUCTURE.BIN.WWW), wwwPath);
+  
+  // Use AST template if available
+  try {
+    // Use the AST template processor
+    writeASTTemplate(
+      getASTTemplatePath(TEMPLATES.PROJECT_STRUCTURE.BIN.WWW),
+      wwwPath,
+      {}
+    );
+  } catch (error) {
+    // Fallback to regular template if AST template fails
+    console.warn("AST template failed, falling back to regular template:", error);
+    writeTemplate(getTemplatePath(TEMPLATES.PROJECT_STRUCTURE.BIN.WWW), wwwPath);
+  }
 }
 
 /**
@@ -248,9 +262,9 @@ async function setupViewsConfig(
 /**
  * Setup basic routes structure
  * @param destination - Project destination directory
- * @param viewEngine - Selected view engine (optional)
+ * @param options - Project setup options including websocketLib and viewEngine
  */
-function setupRoutesStructure(destination: string, viewEngine?: string): void {
+function setupRoutesStructure(destination: string, options: ProjectSetupOptions): void {
   const { ROOT, SRC } = PROJECT.DIRECTORIES;
 
   const routesDir = path.join(destination, ROOT.SRC, SRC.ROUTES);
@@ -262,38 +276,76 @@ function setupRoutesStructure(destination: string, viewEngine?: string): void {
     fs.mkdirSync(exampleControllerDir, { recursive: true });
   }
 
+  // Create main controllers index file
+  const controllersIndexPath = path.join(controllersDir, PROJECT.FILES.CONTROLLERS.INDEX);
+  // Process and write the AST template
+  writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.CONTROLLERS.INDEX),
+    controllersIndexPath,
+    {} // No specific options needed for the controllers index
+  );
+
   // Create index router if it doesn't exist
   const indexRouterPath = path.join(routesDir, PROJECT.FILES.ROUTES.INDEX);
   if (!fs.existsSync(indexRouterPath)) {
-    // Determine which root route handler to use based on view engine
-    const templateVars = {
-      rootRouteHandler: SERVER.ROOT_ROUTE_HANDLER.DEFAULT
+    // Use AST template for index router
+    const astOptions = {
+      websocketLib: options.websocketLib || WEBSOCKETS.LIBRARIES.NONE,
+      viewEngine: options.viewEngine || VIEW_ENGINES.TYPES.NONE
     };
     
-    writeTemplate(getTemplatePath(TEMPLATES.ROUTES.INDEX), indexRouterPath, templateVars);
+    // Process and write the AST template
+    writeASTTemplate(
+      getASTTemplatePath(TEMPLATES.ROUTES.INDEX),
+      indexRouterPath,
+      astOptions
+    );
   }
 
-  // Create example routes
+  // Create example routes using AST template
   const exampleRoutesPath = path.join(routesDir, PROJECT.FILES.ROUTES.EXAMPLE);
-  writeTemplate(getTemplatePath(TEMPLATES.ROUTES.EXAMPLE), exampleRoutesPath);
+  // Define AST options for example routes
+  const exampleRoutesAstOptions = {
+    websocketLib: options.websocketLib || WEBSOCKETS.LIBRARIES.NONE,
+    authentication: Boolean(options.authentication)
+  };
+  
+  // Process and write the AST template
+  writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.ROUTES.EXAMPLE),
+    exampleRoutesPath,
+    exampleRoutesAstOptions
+  );
 
   // Create example controller files
   const exampleControllerIndexPath = path.join(
     exampleControllerDir,
     PROJECT.FILES.CONTROLLERS.INDEX
   );
-  writeTemplate(
-    getTemplatePath(TEMPLATES.CONTROLLERS.EXAMPLE.INDEX),
-    exampleControllerIndexPath
+  
+  // Use AST template for example controller index
+  const exampleControllerIndexAstOptions = {
+    websocketLib: options.websocketLib || WEBSOCKETS.LIBRARIES.NONE
+  };
+  
+  // Process and write the AST template
+  writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.CONTROLLERS.EXAMPLE.INDEX),
+    exampleControllerIndexPath,
+    exampleControllerIndexAstOptions
   );
 
+  // Create example controller using AST template
   const exampleControllerLogicPath = path.join(
     exampleControllerDir,
     PROJECT.FILES.CONTROLLERS.EXAMPLE
   );
-  writeTemplate(
-    getTemplatePath(TEMPLATES.CONTROLLERS.EXAMPLE.CONTROLLER),
-    exampleControllerLogicPath
+  
+  // Process and write the AST template
+  writeASTTemplate(
+    getASTTemplatePath(TEMPLATES.CONTROLLERS.EXAMPLE.CONTROLLER),
+    exampleControllerLogicPath,
+    {} // No specific options needed for the example controller
   );
 }
 
