@@ -43,12 +43,12 @@ export default function generateRoutesIndexAST(options: TemplateOptions = {}) {
       b.stringLiteral("./example")
     )
   ];
-
+  console.log(opts.websocketLib);
   // Add WebSocket imports if needed
   if (opts.websocketLib === "socketio") {
     routeImports.push(
       b.importDeclaration(
-        [b.importSpecifier(b.identifier("Server"), b.identifier("SocketServer"))],
+        [b.importSpecifier(b.identifier("Server"), b.identifier("SocketIOServer"))],
         b.stringLiteral("socket.io")
       )
     );
@@ -67,7 +67,7 @@ export default function generateRoutesIndexAST(options: TemplateOptions = {}) {
     const ioParam = b.identifier("io");
 	ioParam.optional = true;
     ioParam.typeAnnotation = b.tsTypeAnnotation(
-        b.tsTypeReference(b.identifier("SocketServer"))
+        b.tsTypeReference(b.identifier("SocketIOServer"))
     );
     functionParams.push(ioParam);
   } else if (opts.websocketLib === "ws") {
@@ -84,25 +84,6 @@ export default function generateRoutesIndexAST(options: TemplateOptions = {}) {
 
   // Build the root route handler
   let rootRouteHandler;
-  if (opts.viewEngine !== "none") {
-    // If view engine is enabled, render the index view
-    rootRouteHandler = b.blockStatement([
-      b.expressionStatement(
-        b.callExpression(
-          b.memberExpression(b.identifier("res"), b.identifier("render")),
-          [
-            b.stringLiteral("index"),
-            b.objectExpression([
-              b.objectProperty(
-                b.identifier("title"),
-                b.stringLiteral("Express TypeScript App")
-              )
-            ])
-          ]
-        )
-      )
-    ]);
-  } else {
     // Default JSON response
     rootRouteHandler = b.blockStatement([
       b.expressionStatement(
@@ -119,7 +100,6 @@ export default function generateRoutesIndexAST(options: TemplateOptions = {}) {
         )
       )
     ]);
-  }
 
   // Create the function body
   const functionBody = [
