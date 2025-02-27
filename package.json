@@ -4,10 +4,11 @@
   "type": "module",
   "description": "Express Generator for TypeScript",
   "scripts": {
-    "build": "tsc && cp -r lib/templates dist/lib/",
+    "build": "rimraf dist && tsc && yarn copy-templates",
+    "copy-templates": "rsync -av --exclude='*.ts' lib/templates dist/lib",
     "start": "node dist/bin/cli.js",
     "dev": "ts-node bin/cli.ts",
-    "prepare": "npm run build",
+    "prepare": "yarn build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "main": "dist/lib/express-generator-typescript.js",
@@ -55,18 +56,25 @@
   },
   "homepage": "https://github.com/khaIilnafis/express-gen-typescript#readme",
   "dependencies": {
+    "@babel/parser": "^7.26.9",
     "edit-json-file": "^1.7.0",
-    "inquirer": "^12.4.2"
+    "inquirer": "^12.4.2",
+    "recast": "^0.23.10"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.7",
     "@types/node": "^20.11.30",
     "prettier": "^3.5.2",
+    "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.3"
   },
   "engines": {
     "node": ">=14.0.0"
   },
+  "workspaces": [
+    "express-generator-typescript",
+    "express-typescript-app"
+  ],
   "packageManager": "yarn@4.6.0+sha512.5383cc12567a95f1d668fbe762dfe0075c595b4bfff433be478dbbe24e05251a8e8c3eb992a986667c1d53b6c3a9c85b8398c35a960587fbd9fa3a0915406728"
 }

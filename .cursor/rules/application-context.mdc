@@ -12,7 +12,7 @@ This is an Express Generator for TypeScript applications. It generates a complet
 - `/lib`: Core generator code
   - `/constants`: Constants and configuration values
   - `/setup`: Setup modules for different parts of the generated application
-  - `/templates`: Template files used for code generation
+  - `/templates`: Template files in AST format used for code generation
   - `/utils`: Utility functions for the generator
 - `/dist`: Compiled JavaScript output (generated during build)
 
@@ -38,7 +38,7 @@ This is an Express Generator for TypeScript applications. It generates a complet
 1. User is prompted for project options via interactive CLI
 2. Project structure is created in the target directory
 3. Package.json and dependencies are configured based on selected options
-4. Template files are copied and customized according to selected features
+4. Template files are generated customized according to selected features
 5. Git repository is initialized and package manager setup is completed
 
 ## Common Developer Workflows

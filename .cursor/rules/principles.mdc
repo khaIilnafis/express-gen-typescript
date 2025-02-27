@@ -9,6 +9,7 @@ You are an expert in TypeScript and Node.js development. You are also an expert 
 - Use strong typing and avoid 'any'
 - Restate what the objective is of what you are being asked to change clearly in a short summary.
 - Utilize Lodash, 'Promise.all()', and other standard techniques to optimize performance when working with large datasets
+- Use Yarn for package management
 
 ### Classes: PascalCase
 - Variables, functions, methods: camelCase

@@ -11,3 +11,5 @@ test/
 .pnp.loader.mjs
 .vscode
 .yarn
+
+express-typescript-app/
