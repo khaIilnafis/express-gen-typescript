@@ -2,13 +2,12 @@ import * as fs from "fs";
 import * as path from "path";
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
 import {
-  PROJECT,
-  TEMPLATES,
   VIEW_ENGINES,
-  SERVER
+  SERVER,
+  PATHS
 } from "../../constants/index.js";
 import { addImportIfNotExists } from "../../utils/file-manipulation.js";
-import { IMPORTS } from "../../constants/server/imports.js";
+import { IMPORTS } from "../../constants/templates/server/imports.js";
 import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-processor.js";
 
 /**
@@ -34,21 +33,21 @@ async function setupViewEngine(
   // Create necessary directories if they don't exist
   const viewsDir = path.join(
     destination, 
-    PROJECT.DIRECTORIES.ROOT.SRC, 
-    PROJECT.DIRECTORIES.SRC.VIEWS
+    PATHS.DIRECTORIES.ROOT.SRC, 
+    PATHS.DIRECTORIES.SRC.VIEWS
   );
   if (!fs.existsSync(viewsDir)) {
     fs.mkdirSync(viewsDir, { recursive: true });
   }
 
   // Create layouts directory
-  const layoutsDir = path.join(viewsDir, PROJECT.DIRECTORIES.VIEWS.LAYOUTS);
+  const layoutsDir = path.join(viewsDir, PATHS.DIRECTORIES.VIEWS.LAYOUTS);
   if (!fs.existsSync(layoutsDir)) {
     fs.mkdirSync(layoutsDir, { recursive: true });
   }
 
   // Create partials directory
-  const partialsDir = path.join(viewsDir, PROJECT.DIRECTORIES.VIEWS.PARTIALS);
+  const partialsDir = path.join(viewsDir, PATHS.DIRECTORIES.VIEWS.PARTIALS);
   if (!fs.existsSync(partialsDir)) {
     fs.mkdirSync(partialsDir, { recursive: true });
   }
@@ -56,8 +55,8 @@ async function setupViewEngine(
   // Update server.ts to include view engine configuration
   const serverFilePath = path.join(
     destination, 
-    PROJECT.DIRECTORIES.ROOT.SRC, 
-    PROJECT.FILES.SERVER.FILE
+    PATHS.DIRECTORIES.ROOT.SRC, 
+    PATHS.FILES.SERVER.FILE
   );
 
   if (fs.existsSync(serverFilePath)) {
@@ -82,18 +81,18 @@ async function setupViewEngine(
     if (importStatement) {
       addImportIfNotExists(serverFilePath, importStatement);
     }
-
+	// WHy am i doing this here.
     // Add configuration to server
     if (configContent) {
 		const tempFilePath = path.join(path.dirname(serverFilePath), 'db-connect-temp.ts');
 		await writeASTTemplate(
-			getASTTemplatePath(TEMPLATES.DATABASE.SEQUELIZE.INIT),
+			getASTTemplatePath(PATHS.FILES.MODELS.INIT_TEMPLATE_LOC('sequelize')),
 			tempFilePath,
 			{}
 		  );
 		fs.unlinkSync(tempFilePath)
-		//   const generatedContent = fs.readFileSync(tempFilePath, 'utf8');
-    //   insertContentAtMarker(serverFilePath, PROJECT.FILES.COMMON.MARKERS.VIEW_ENGINE_CONFIG_MARKER, generatedContent);
+		//const generatedContent = fs.readFileSync(tempFilePath, 'utf8');
+    	//insertContentAtMarker(serverFilePath, PROJECT.FILES.COMMON.MARKERS.VIEW_ENGINE_CONFIG_MARKER, generatedContent);
     }
   }
 
@@ -109,72 +108,55 @@ async function setupViewEngine(
   const indexFileName = `index${viewExtension}`;
   const headerFileName = `header${viewExtension}`;
   const footerFileName = `footer${viewExtension}`;
-
   switch (viewEngine) {
     case VIEW_ENGINES.TYPES.EJS:
-      // Create main layout
-      writeTemplate(
-        getTemplatePath(TEMPLATES.VIEWS.EJS.LAYOUTS.MAIN),
-        path.join(layoutsDir, layoutFileName),
-        templateVars
-      );
+		let engine = VIEW_ENGINES.TYPES.EJS.toString();
+
+      	// Create main layout
+      	writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.LAYOUTS.MAIN(engine)),path.join(layoutsDir, layoutFileName),templateVars);
       
-    // Create index view
-      writeTemplate(
-        getTemplatePath(TEMPLATES.VIEWS.EJS.INDEX),
-        path.join(viewsDir, indexFileName),
-        templateVars
-      );
+    	// Create index view
+      	writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.INDEX(engine)),path.join(viewsDir, indexFileName),templateVars);
 
-	// Create Header partial
-		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.EJS.PARTIALS.HEADER), path.join(partialsDir, headerFileName), templateVars);
+		// Create Header partial
+		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.HEADER(engine)), path.join(partialsDir, headerFileName), templateVars);
 
-	// Create Footer partial
-		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.EJS.PARTIALS.FOOTER), path.join(partialsDir, footerFileName), templateVars);
+		// Create Footer partial
+		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.FOOTER(engine)), path.join(partialsDir, footerFileName), templateVars);
       break;
 
     case VIEW_ENGINES.TYPES.PUG:
-      // Create main layout
-      writeTemplate(
-        getTemplatePath(TEMPLATES.VIEWS.PUG.LAYOUTS.MAIN),
-        path.join(layoutsDir, layoutFileName),
-        templateVars
-      );
-      
-      // Create index view
-      writeTemplate(
-        getTemplatePath(TEMPLATES.VIEWS.PUG.INDEX),
-        path.join(viewsDir, indexFileName),
-        templateVars
-      );
+		engine = VIEW_ENGINES.TYPES.PUG.toString();
 
-	  // Create Header partial
-		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.HEADER), path.join(partialsDir, headerFileName), templateVars);
+      	// Create main layout
+      	writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.LAYOUTS.MAIN(engine)),path.join(layoutsDir, layoutFileName),templateVars);
+      
+      	// Create index view
+      	writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.INDEX(engine)),path.join(viewsDir, indexFileName),templateVars);
+
+	  	// Create Header partial
+		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.HEADER(engine)), path.join(partialsDir, headerFileName), templateVars);
 
 		// Create Footer partial
-		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.PUG.PARTIALS.FOOTER), path.join(partialsDir, footerFileName), templateVars);
+		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.FOOTER(engine)), path.join(partialsDir, footerFileName), templateVars);
       break;
 
     case VIEW_ENGINES.TYPES.HANDLEBARS:
+		engine = VIEW_ENGINES.TYPES.HANDLEBARS.toString();
       // Create main layout
       writeTemplate(
-        getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.LAYOUTS.MAIN),
+        getTemplatePath(PATHS.FILES.VIEWS.LAYOUTS.MAIN(engine)),
         path.join(layoutsDir, layoutFileName),
         templateVars
       );
-      
-    //   // Create index view
-      writeTemplate(
-        getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.INDEX),
-        path.join(viewsDir, indexFileName),
-        templateVars
-      );
+ 	 	// Create index view
+      	writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.INDEX(engine)),path.join(viewsDir, indexFileName),templateVars);
 
-	  // Create Header partial
-		writeTemplate(getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.HEADER), path.join(partialsDir, headerFileName), templateVars);
+	  	// Create Header partial
+		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.HEADER(engine)), path.join(partialsDir, headerFileName), templateVars);
 
 		// Create Footer partial
-			writeTemplate(getTemplatePath(TEMPLATES.VIEWS.HANDLEBARS.PARTIALS.FOOTER), path.join(partialsDir, footerFileName), templateVars);
+		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.FOOTER(engine)), path.join(partialsDir, footerFileName), templateVars);
       break;
   }
 

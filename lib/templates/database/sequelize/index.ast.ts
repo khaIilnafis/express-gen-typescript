@@ -5,7 +5,7 @@
 
 import * as recast from 'recast';
 import * as tsParser from 'recast/parsers/typescript.js';
-import { DATABASE_COMMENTS } from '../../../constants/templates/index.js';
+import { COMMENTS } from '../../../constants/templates/index.js';
 
 const b = recast.types.builders;
 
@@ -245,7 +245,7 @@ export default function generateSequelizeConfigAST(options: TemplateOptions = {}
   );
   const exportInitialize = b.exportNamedDeclaration(initializeFunction, []);
 
-  exportInitialize.comments = [b.commentBlock(DATABASE_COMMENTS.INITIALIZE_DATBASE, true)];
+  exportInitialize.comments = [b.commentBlock(COMMENTS.DATABASE.INITIALIZE_DATBASE, true)];
   // Build the AST program
   const program = b.program([
     ...imports,

@@ -1,20 +1,5 @@
 import inquirer from "inquirer";
-
-/**
- * User configuration options for the project generator
- */
-export interface GeneratorOptions {
-  projectName: string;
-  database?: string | null;
-  databaseOrm?: string | null;
-  databaseName?: string;
-  dialect?: string;
-  authentication?: string | boolean;
-  authLib?: string | null;
-  websocketLib?: string | null;
-  viewEngine?: string | null;
-  skipPrompt?: boolean; // Flag to skip interactive prompts
-}
+import { GeneratorOptions } from "./utils/types.js";
 
 /**
  * Prompts the user for project configuration options
@@ -50,6 +35,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       choices: ["postgres", "mysql", "sqlite", "mariadb", "mssql", "mongodb"],
       default: "postgres",
       when: (answers: any) => answers.useDatabase,
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "list",
@@ -57,6 +43,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select a database ORM:",
       choices: ["Sequelize", "TypeORM", "Prisma"],
       when: (answers: any) => answers.dialect !== "mongodb",
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "list",
@@ -64,6 +51,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select a database ORM:",
       choices: ["Mongoose", "Prisma"],
       when: (answers: any) => answers.dialect == "mongodb",
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "confirm",
@@ -77,6 +65,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select an authentication library:",
       choices: ["Passport", "Express-session"],
       when: (answers: any) => answers.useAuth,
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "list",
@@ -84,6 +73,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select Passport Auth Strategy",
       choices: ["Local", "JWT"],
       when: (answers: any) => answers.authLib == "Passport",
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "confirm",
@@ -97,6 +87,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select a websocket library:",
       choices: ["Socket.io", "WS"],
       when: (answers: any) => answers.useWebsockets,
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "confirm",
@@ -110,41 +101,40 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select a view engine:",
       choices: ["EJS", "Pug (Jade)", "Handlebars"],
       when: (answers: any) => answers.useViews,
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
   ]);
-
+  console.log(answers);
   // Transform answers into the expected format
   const options: GeneratorOptions = {
+	destination: '',
     projectName: answers.projectName,
+	authentication: answers.useAuth,
+	database: answers.useDatabase,
+	webSockets: answers.useWebsockets,
+	view: answers.useViews
   };
 
   // Add database options if selected
-  if (answers.useDatabase) {
-    options.database = answers.databaseOrm.toLowerCase();
+  if (options.database) {
+    options.database = answers.useDatabase;
     options.databaseOrm = answers.databaseOrm;
-
-    if (answers.databaseName) {
-      options.databaseName = answers.databaseName;
-    }
-
-    if (answers.dialect) {
-      options.dialect = answers.dialect;
-    }
+	options.databaseName = answers.databaseName ? answers.databaseName : answers.projectName;
+	options.dialect = answers.dialect;
   }
 
   // Add authentication options if selected
-  if (answers.useAuth) {
-    options.authentication = answers.authLib.toLowerCase();
+  if (options.authentication) {
     options.authLib = answers.authLib;
   }
 
   // Add websocket options if selected
-  if (answers.useWebsockets) {
+  if (options.webSockets) {
     options.websocketLib = answers.websocketLib;
   }
 
   // Add view engine options if selected
-  if (answers.useViews) {
+  if (options.view) {
     options.viewEngine = answers.viewEngine;
   }
 

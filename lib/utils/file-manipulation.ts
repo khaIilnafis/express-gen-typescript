@@ -134,10 +134,10 @@ export function ensureDirectoryExists(dirPath: string): boolean {
  * @param updates - Object with updates to apply
  * @returns True if successful, false otherwise
  */
-export function updatePackageJson(
+export async function updatePackageJson(
   projectPath: string,
   updates: Record<string, any>
-): boolean {
+): Promise<boolean> {
   try {
     const packageJsonPath = path.join(projectPath, "package.json");
 
@@ -147,9 +147,9 @@ export function updatePackageJson(
     }
 
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
-
     // Apply updates
     for (const [key, value] of Object.entries(updates)) {
+		console.log(key);
       if (
         typeof value === "object" &&
         value !== null &&

@@ -1,17 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { GeneratorOptions, TemplateVariables } from "./types.js";
 
 // Get the directory name equivalent for ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-/**
- * Template variables interface
- */
-export interface TemplateVariables {
-  [key: string]: string | number | boolean;
-}
 
 /**
  * Loads a template file and replaces placeholders with values

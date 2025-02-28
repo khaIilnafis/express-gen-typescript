@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { GeneratorOptions, TemplateOptions } from "./types.js";
 
 // Get the directory name equivalent for ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -45,10 +46,9 @@ function normalizeTemplatePath(templatePath: string): string {
  */
 export async function processASTTemplate(
   templatePath: string,
-  options: ASTTemplateOptions = {}
+  options: TemplateOptions
 ): Promise<string> {
   try {
-	console.log(options);
     // Normalize the template path before importing
     const normalizedPath = normalizeTemplatePath(templatePath);
     
@@ -85,7 +85,7 @@ export async function processASTTemplate(
 export async function writeASTTemplate(
   astTemplatePath: string,
   destinationPath: string,
-  options: ASTTemplateOptions = {}
+  options: TemplateOptions = {}
 ): Promise<void> {
   try {
     const generatedCode = await processASTTemplate(astTemplatePath, options);
@@ -114,7 +114,6 @@ export function getASTTemplatePath(relativePath: string): string {
   if (process.env.NODE_ENV !== 'development') {
     relativePath = relativePath.replace(/\.ast\.ts$/, '.ast.js');
   }
-  console.log(`RelativePath: ${relativePath}`)
   let templatePath = path.join(__dirname, "..", "templates", relativePath);
   return templatePath
 }

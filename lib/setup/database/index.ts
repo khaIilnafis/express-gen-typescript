@@ -1,51 +1,25 @@
-import { DATABASE, COMMON } from "../../constants/index.js";
-import { setupDatabaseWithHelper } from "../../utils/database-setup-helper.js";
-
-/**
- * Options for database setup
- */
-export interface DatabaseSetupOptions {
-  /**
-   * Destination directory for project
-   */
-  destination: string;
-
-  /**
-   * Database type to set up
-   */
-  database: string;
-
-  /**
-   * Database name to use
-   */
-  databaseName?: string;
-
-  /**
-   * Additional options for database setup
-   */
-  [key: string]: any;
-}
-
+import { LOGS, DATABASE } from "../../constants/index.js";
+import { setupDatabaseWithHelper } from "./database-setup-helper.js";
+import { GeneratorOptions } from "../../utils/types.js";
+import { error } from "console";
 /**
  * Set up selected database type
  */
 export async function setupDatabase(
-  options: DatabaseSetupOptions
+  options: GeneratorOptions
 ): Promise<void> {
-  const { destination, database } = options;
-
+  const { database, dialect } = options; 
+  if(!dialect){ throw error }
   // Log setup message
-  console.log(COMMON.MESSAGES.SETUP.DATABASE(database));
+  console.log(LOGS.SETUP.DATABASE(dialect));
 
   // Skip if no database or none was selected
-  if (!database || database === DATABASE.TYPES.NONE) {
+  if (!database) {
     return;
   }
 
   // Use the database setup helper for implementation
-  await setupDatabaseWithHelper(destination, database, {
-    ...options,
-  });
+  await setupDatabaseWithHelper(options);
 }
 
 export default setupDatabase;

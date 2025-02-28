@@ -5,11 +5,11 @@ import {
   writeASTTemplate 
 } from "../../utils/ast-template-processor.js";
 import {
-  PROJECT,
-  TEMPLATES,
+	LOGS,
+  PATHS,
   WEBSOCKETS,
-  COMMON
 } from "../../constants/index.js";
+import { GeneratorOptions } from "../../utils/types.js";
 
 /**
  * Setup websockets based on user selection
@@ -17,21 +17,21 @@ import {
  * @param {string} websocketLib - Selected websocket library
  */
 async function setupWebsockets(
-  destination: string,
-  websocketLib: string
+  options: GeneratorOptions
 ): Promise<void> {
+	const {destination, websocketLib} = options;
   // Skip if no websocket library or none was selected
   if (!websocketLib || websocketLib === WEBSOCKETS.LIBRARIES.NONE) {
     return;
   }
 
-  console.log(COMMON.MESSAGES.SETUP.WEBSOCKETS(websocketLib));
+  console.log(LOGS.SETUP.WEBSOCKETS(websocketLib));
 
   // Create necessary directories
   const socketsDir = path.join(
     destination, 
-    PROJECT.DIRECTORIES.ROOT.SRC, 
-    PROJECT.DIRECTORIES.SRC.SOCKETS
+    PATHS.DIRECTORIES.ROOT.SRC, 
+    PATHS.DIRECTORIES.SRC.SOCKETS
   );
   
   if (!fs.existsSync(socketsDir)) {
@@ -41,56 +41,40 @@ async function setupWebsockets(
   // Setup based on selected websocket lib
   switch (websocketLib) {
     case WEBSOCKETS.LIBRARIES.SOCKETIO:
-      await setupSocketIO(destination);
+      await setupSocketIO(options);
       break;
     case WEBSOCKETS.LIBRARIES.WS:
-      await setupWS(destination);
+      await setupWS(options);
       break;
   }
 }
 
 /**
  * Setup Socket.io
- * @param {string} destination - Project destination directory
+ * @param {string} options - Generator Options
  */
-async function setupSocketIO(destination: string): Promise<void> {
-  const socketsDir = path.join(
-    destination, 
-    PROJECT.DIRECTORIES.ROOT.SRC, 
-    PROJECT.DIRECTORIES.SRC.SOCKETS
-  );
-  
+async function setupSocketIO(options: GeneratorOptions): Promise<void> {  
   // Create index.ts file for Socket.io using AST template
-  const socketIndexPath = path.join(socketsDir, PROJECT.FILES.SOCKETS.INDEX);
-  await writeASTTemplate(
-    getASTTemplatePath(TEMPLATES.WEBSOCKETS.SOCKETIO.INDEX),
-    socketIndexPath,
-    {} // No specific options needed
+  await writeASTTemplate(getASTTemplatePath(PATHS.FILES.SOCKETS.INDEX_TEMPLATE_LOC(WEBSOCKETS.LIBRARIES.SOCKETIO)),PATHS.FILES.SOCKETS.INDEX_LOC(options.destination),
+    options
   );
   
-  console.log("Socket.io setup completed");
+  console.log(LOGS.SOCKETS.CONFIG.SUCCESS(WEBSOCKETS.LIBRARIES.SOCKETIO));
 }
 
 /**
  * Setup WS (ws package)
- * @param {string} destination - Project destination directory
+ * @param {string} options - Generator Options
  */
-async function setupWS(destination: string): Promise<void> {
-  const socketsDir = path.join(
-    destination, 
-    PROJECT.DIRECTORIES.ROOT.SRC, 
-    PROJECT.DIRECTORIES.SRC.SOCKETS
-  );
-  
-  // Create index.ts file for WS using AST template
-  const wsIndexPath = path.join(socketsDir, PROJECT.FILES.SOCKETS.INDEX);
+async function setupWS(options: GeneratorOptions): Promise<void> {
+    // Create index.ts file for WS using AST template
   await writeASTTemplate(
-    getASTTemplatePath(TEMPLATES.WEBSOCKETS.WS.INDEX), 
-    wsIndexPath,
-    {} // No specific options needed
+    getASTTemplatePath(PATHS.FILES.SOCKETS.INDEX_TEMPLATE_LOC(WEBSOCKETS.LIBRARIES.WS)), 
+    PATHS.FILES.SOCKETS.INDEX_LOC(options.destination),
+    options
   );
   
-  console.log("WS setup completed");
+  console.log(LOGS.SOCKETS.CONFIG.SUCCESS(WEBSOCKETS.LIBRARIES.WS));
 }
 
 export default setupWebsockets;

@@ -4,7 +4,7 @@
 
 import fs from "fs";
 import path from "path";
-import { APP, ERRORS } from "../constants/index.js";
+import { LOGS } from "../constants/index.js";
 
 /**
  * Interface for standardized environment configuration
@@ -60,7 +60,7 @@ export function createEnvFile(
       Object.entries(appVars)
         .map(([key, value]) => `${key}=${value}`)
         .join("\n") + "\n";
-
+	console.log(`DB VARS LENGTH: ${Object.keys(dbVars).length}`)
     // Add database section if needed
     if (Object.keys(dbVars).length > 0) {
       envContent += "\n# Database Configuration\n";
@@ -81,6 +81,6 @@ export function createEnvFile(
     fs.writeFileSync(envPath, envContent, "utf8");
     console.log(".env file created successfully");
   } catch (error) {
-    console.error(ERRORS.MESSAGES.SERVER.CONFIGURATION_ERROR, error);
+    console.error(LOGS.SETUP.ERROR.GENERAL, error);
   }
 }

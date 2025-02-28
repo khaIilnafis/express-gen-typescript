@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import path from "path";
-import { promptForOptions, GeneratorOptions } from "../lib/prompt.js";
+import { promptForOptions } from "../lib/prompt.js";
 import { generateExpressTypeScriptApp } from "../lib/index.js";
+import { GeneratorOptions } from "../lib/utils/types.js";
 
 /**
  * Parse command line arguments
@@ -18,13 +19,13 @@ function parseArgs(): Partial<GeneratorOptions> {
     if (arg === '--projectName' && i + 1 < args.length) {
       options.projectName = args[++i];
     } else if (arg === '--database' && i + 1 < args.length) {
-      options.database = args[++i];
-    } else if (arg === '--databaseOrm' && i + 1 < args.length) {
+      options.database = Boolean(args[++i]);
+    } else if (arg === '--dialect' && i + 1 < args.length) {
+	  options.dialect = args[++i];
+	} else if (arg === '--databaseOrm' && i + 1 < args.length) {
       options.databaseOrm = args[++i];
     } else if (arg === '--databaseName' && i + 1 < args.length) {
       options.databaseName = args[++i];
-    } else if (arg === '--dialect' && i + 1 < args.length) {
-      options.dialect = args[++i];
     } else if (arg === '--skipPrompt') {
       options.skipPrompt = true;
     } else if (arg === '--help') {
@@ -32,10 +33,10 @@ function parseArgs(): Partial<GeneratorOptions> {
 Express TypeScript Generator CLI Options:
   --skipPrompt             Skip interactive prompts and use provided options
   --projectName <name>     Specify project name
-  --database <type>        Database type (sequelize, typeorm, prisma, mongoose)
+  --database <type>        Database (true / false)
+  --dialect <dialect>      Database dialect (postgres, mysql, sqlite, etc.)
   --databaseOrm <orm>      Database ORM (Sequelize, TypeORM, Prisma, Mongoose)
   --databaseName <name>    Database name
-  --dialect <dialect>      Database dialect (postgres, mysql, sqlite, etc.)
   
 Example for testing Sequelize:
   node bin/cli.js --skipPrompt --projectName test-app --database sequelize --databaseOrm Sequelize --dialect postgres
@@ -62,19 +63,21 @@ async function run(): Promise<void> {
     if (cliOptions.skipPrompt) {
       options = {
         projectName: cliOptions.projectName || "express-typescript-app",
+		destination: path.join(process.cwd(), cliOptions.projectName || "express-typescript-app"),
+		database: cliOptions.database ? true : false,
+		authentication: cliOptions.authentication ? true : false,
+		webSockets: cliOptions.webSockets ? true : false,
+		view: cliOptions.view ? true: false,
         ...cliOptions
       };
       console.log("Using options:", options);
     } else {
       options = await promptForOptions();
+	  options.destination =  path.join(process.cwd(), cliOptions.projectName || "express-typescript-app");
     }
-
-    // Setup destination path
-    const projectName = options.projectName || "express-typescript-app";
-    const destination = path.join(process.cwd(), projectName);
-
+	console.log(options);
     // Create new project with the provided options
-    await generateExpressTypeScriptApp(destination, options);
+    await generateExpressTypeScriptApp(options);
   } catch (error) {
     console.error("Error setting up project:", error);
     process.exit(1);
