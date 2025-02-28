@@ -5,10 +5,9 @@ import {
   writeASTTemplate 
 } from "../../utils/ast-template-processor.js";
 import {
-  PROJECT,
-  TEMPLATES,
+	LOGS,
+  PATHS,
   WEBSOCKETS,
-  COMMON
 } from "../../constants/index.js";
 
 /**
@@ -25,13 +24,13 @@ async function setupWebsockets(
     return;
   }
 
-  console.log(COMMON.MESSAGES.SETUP.WEBSOCKETS(websocketLib));
+  console.log(LOGS.SETUP.WEBSOCKETS(websocketLib));
 
   // Create necessary directories
   const socketsDir = path.join(
     destination, 
-    PROJECT.DIRECTORIES.ROOT.SRC, 
-    PROJECT.DIRECTORIES.SRC.SOCKETS
+    PATHS.DIRECTORIES.ROOT.SRC, 
+    PATHS.DIRECTORIES.SRC.SOCKETS
   );
   
   if (!fs.existsSync(socketsDir)) {
@@ -53,22 +52,13 @@ async function setupWebsockets(
  * Setup Socket.io
  * @param {string} destination - Project destination directory
  */
-async function setupSocketIO(destination: string): Promise<void> {
-  const socketsDir = path.join(
-    destination, 
-    PROJECT.DIRECTORIES.ROOT.SRC, 
-    PROJECT.DIRECTORIES.SRC.SOCKETS
-  );
-  
+async function setupSocketIO(destination: string): Promise<void> {  
   // Create index.ts file for Socket.io using AST template
-  const socketIndexPath = path.join(socketsDir, PROJECT.FILES.SOCKETS.INDEX);
-  await writeASTTemplate(
-    getASTTemplatePath(TEMPLATES.WEBSOCKETS.SOCKETIO.INDEX),
-    socketIndexPath,
+  await writeASTTemplate(getASTTemplatePath(PATHS.FILES.SOCKETS.INDEX_TEMPLATE_LOC(WEBSOCKETS.LIBRARIES.SOCKETIO)),PATHS.FILES.SOCKETS.INDEX_LOC(destination),
     {} // No specific options needed
   );
   
-  console.log("Socket.io setup completed");
+  console.log(LOGS.SOCKETS.CONFIG.SUCCESS(WEBSOCKETS.LIBRARIES.SOCKETIO));
 }
 
 /**
@@ -76,21 +66,14 @@ async function setupSocketIO(destination: string): Promise<void> {
  * @param {string} destination - Project destination directory
  */
 async function setupWS(destination: string): Promise<void> {
-  const socketsDir = path.join(
-    destination, 
-    PROJECT.DIRECTORIES.ROOT.SRC, 
-    PROJECT.DIRECTORIES.SRC.SOCKETS
-  );
-  
-  // Create index.ts file for WS using AST template
-  const wsIndexPath = path.join(socketsDir, PROJECT.FILES.SOCKETS.INDEX);
+    // Create index.ts file for WS using AST template
   await writeASTTemplate(
-    getASTTemplatePath(TEMPLATES.WEBSOCKETS.WS.INDEX), 
-    wsIndexPath,
+    getASTTemplatePath(PATHS.FILES.SOCKETS.INDEX_TEMPLATE_LOC(WEBSOCKETS.LIBRARIES.WS)), 
+    PATHS.FILES.SOCKETS.INDEX_LOC(destination),
     {} // No specific options needed
   );
   
-  console.log("WS setup completed");
+  console.log(LOGS.SOCKETS.CONFIG.SUCCESS(WEBSOCKETS.LIBRARIES.WS));
 }
 
 export default setupWebsockets;

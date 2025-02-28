@@ -2,26 +2,19 @@ import path from "path";
 import fs from "fs";
 import { promises as fsPromises } from "fs";
 import { promisify } from "util";
-import { GeneratorOptions } from "./prompt.js";
 import { exec } from "child_process";
 import { fileURLToPath } from "url";
 import {
-  BASE_DEPENDENCIES,
-  BASE_DEV_DEPENDENCIES,
-  FEATURE_DEPENDENCIES,
-  COMMON,
   DATABASE,
   WEBSOCKETS,
   VIEW_ENGINES,
   AUTH,
+  LOGS,
+  DEPENDENCIES,
 } from "./constants/index.js";
-import { normalizeDatabaseName } from "./utils/database-helper.js";
-
-// Track if database setup has been performed
-let DATABASEetupCompleted = false;
-
 // Import setup modules
 import setup from "./setup/index.js";
+import { GeneratorOptions } from "./utils/types.js";
 
 // Get dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -42,68 +35,35 @@ const execPromise = promisify(exec);
  * @param options - User selected options
  */
 export async function generateExpressTypeScriptApp(
-  destination: string,
   options: GeneratorOptions
 ): Promise<void> {
   try {
-    // Reset the database setup flag at the start of generation
-    DATABASEetupCompleted = false;
-
     console.log("Starting express-generator-typescript...");
 
     // Check if destination exists, if not create it
-    if (!fs.existsSync(destination)) {
-      await mkdir(destination, { recursive: true });
-    }
-
-    // Get database name from options or use default based on project name
-    if (
-      options.database &&
-      options.database !== DATABASE.TYPES.NONE &&
-      !options.databaseName
-    ) {
-      options.databaseName = normalizeDatabaseName(path.basename(destination));
+    if (!fs.existsSync(options.destination)) {
+      await mkdir(options.destination, { recursive: true });
     }
 
     // Normalize options to ensure consistent casing and values
-    normalizeOptions(options);
+    options = normalizeOptions(options);
 
     // Create basic .env file
-    await createEnvFile(destination);
+    await createEnvFile(options.destination);
 
-    // Set up project structure first
-    // Create a properly typed object for setup.projectStructure
-    interface SetupOptions {
-      database: string;
-      authentication: boolean;
-      websocketLib: string;
-      viewEngine: string;
-      [key: string]: any;
-    }
-
-    const setupOptions: SetupOptions = {
-      database: (options.database as string) || DATABASE.TYPES.NONE,
-      authentication: Boolean(options.authentication),
-      websocketLib:
-        (options.websocketLib as string) || WEBSOCKETS.LIBRARIES.NONE,
-      viewEngine: (options.viewEngine as string) || VIEW_ENGINES.TYPES.NONE,
-      databaseName: options.databaseName,
-      dialect: options.dialect,
-    };
-
-    await setup.projectStructure(destination, setupOptions);
+    await setup.projectStructure(options);
 
     // Copy Yarn configuration files before creating package.json
-    await copyYarnFiles(destination);
+    await copyYarnFiles(options.destination);
 
     // Create package.json
-    await initPackageManager(destination, options);
+    await initPackageManager(options);
 
     // Create tsconfig.json
-    await createTsConfig(destination);
+    await createTsConfig(options.destination);
 
     // Initialize git repository
-    await initializeGitRepository(destination);
+    await initializeGitRepository(options.destination);
 
     // Database setup is now handled within setup.projectStructure
     // Keeping the comment for clarity
@@ -111,9 +71,9 @@ export async function generateExpressTypeScriptApp(
     // Database setup is now done in setupProjectStructure
 
     // Print next steps
-    printNextSteps(destination);
+    printNextSteps(options.destination);
   } catch (error) {
-    console.error(COMMON.MESSAGES.ERROR.GENERAL, error);
+    console.error(LOGS.SETUP.ERROR.GENERAL, error);
     process.exit(1);
   }
 }
@@ -122,38 +82,49 @@ export async function generateExpressTypeScriptApp(
  * Normalize options to ensure consistent casing and values
  * @param options - User selected options
  */
-function normalizeOptions(options: GeneratorOptions): void {
-  // Normalize database option
-  if (options.database) {
-    options.database = options.database.toLowerCase();
-  }
+const normalizeOptions = (options: GeneratorOptions): GeneratorOptions => {
+	const normalizedOptions = options;
 
-  // Normalize authentication option
-  if (options.authentication) {
-    if (typeof options.authentication === "string") {
-      options.authentication = options.authentication.toLowerCase();
-    }
-  }
+	if (
+		options.database &&
+		options.database !== DATABASE.TYPES.NONE &&
+		!options.databaseName
+	  ) {
+		normalizedOptions.databaseName = options.destination
+		.toLowerCase()
+		.replace(/[^a-z0-9]/g, "_")
+		.replace(/_+/g, "_")
+		.replace(/^_|_$/g, "");
+	  }
+	// Normalize database option
+	if (options.database) {
+		normalizedOptions.database = options.database.toLowerCase() || DATABASE.TYPES.NONE;
+	}
 
-  // Normalize websocketLib option
-  if (options.websocketLib) {
-    options.websocketLib = options.websocketLib.toLowerCase();
+	// Normalize authentication option
+	if (options.authentication) {
+		normalizedOptions.authentication = Boolean(options.authentication);
+	}
 
-    // Map "Socket.io" to "socketio" for consistency
-    if (options.websocketLib === "socket.io") {
-      options.websocketLib = WEBSOCKETS.LIBRARIES.SOCKETIO;
-    }
-  }
+	// Normalize websocketLib option
+	if (options.websocketLib) {
+		normalizedOptions.websocketLib = options.websocketLib.toLowerCase() || WEBSOCKETS.LIBRARIES.NONE;
+		// Map "Socket.io" to "socketio" for consistency
+		if (options.websocketLib === "socket.io") {
+			normalizedOptions.websocketLib = WEBSOCKETS.LIBRARIES.SOCKETIO;
+		}
+	}
 
-  // Normalize viewEngine option
-  if (options.viewEngine) {
-    options.viewEngine = options.viewEngine.toLowerCase();
+	// Normalize viewEngine option
+	if (options.viewEngine) {
+		normalizedOptions.viewEngine = options.viewEngine.toLowerCase() || VIEW_ENGINES.TYPES.NONE;
 
-    // Map "Pug (Jade)" to "pug" for consistency
-    if (options.viewEngine === "pug (jade)") {
-      options.viewEngine = VIEW_ENGINES.TYPES.PUG;
-    }
-  }
+		// Map "Pug (Jade)" to "pug" for consistency
+		if (options.viewEngine === "pug (jade)") {
+			normalizedOptions.viewEngine = VIEW_ENGINES.TYPES.PUG;
+		}
+  	}
+  return normalizedOptions;
 }
 
 /**
@@ -162,15 +133,14 @@ function normalizeOptions(options: GeneratorOptions): void {
  * @param options - User selected options
  */
 async function initPackageManager(
-  destination: string,
   options: GeneratorOptions
 ): Promise<void> {
-  const packageJsonPath = path.join(destination, "package.json");
+  const packageJsonPath = path.join(options.destination, "package.json");
 
   try {
     // First run yarn init to create a base package.json with proper Yarn integration
     console.log("Initializing package.json with yarn init...");
-    await execPromise("yarn init -y", { cwd: destination });
+    await execPromise("yarn init -y", { cwd: options.destination });
 
     // Read the Yarn-generated package.json
     const generatedPackageJson = JSON.parse(
@@ -178,16 +148,16 @@ async function initPackageManager(
     );
 
     // Start with base dependencies
-    const dependencies: Record<string, string> = { ...BASE_DEPENDENCIES };
+    const dependencies: Record<string, string> = { ...DEPENDENCIES.BASE_DEPENDENCIES };
     const devDependencies: Record<string, string> = {
-      ...BASE_DEV_DEPENDENCIES,
+      ...DEPENDENCIES.BASE_DEV_DEPENDENCIES,
     };
 
     // Add feature-specific dependencies
     addFeatureDependencies(dependencies, devDependencies, options);
 
     // Check for stored database scripts and add them
-    const dbScriptsPath = path.join(destination, ".db-scripts.json");
+    const dbScriptsPath = path.join(options.destination, ".db-scripts.json");
     if (fs.existsSync(dbScriptsPath)) {
       try {
         const dbScripts = JSON.parse(fs.readFileSync(dbScriptsPath, "utf-8"));
@@ -222,7 +192,7 @@ async function initPackageManager(
       ...templatePackageJson,
       ...generatedPackageJson,
       // Override with our specific values
-      name: path.basename(destination),
+      name: path.basename(options.destination),
       description: templatePackageJson.description,
       scripts: templatePackageJson.scripts,
       keywords: templatePackageJson.keywords,
@@ -244,9 +214,9 @@ async function initPackageManager(
 
     // Fallback to creating package.json directly from our template
     // Start with base dependencies
-    const dependencies: Record<string, string> = { ...BASE_DEPENDENCIES };
+    const dependencies: Record<string, string> = { ...DEPENDENCIES.BASE_DEPENDENCIES };
     const devDependencies: Record<string, string> = {
-      ...BASE_DEV_DEPENDENCIES,
+      ...DEPENDENCIES.BASE_DEV_DEPENDENCIES,
     };
 
     // Add feature-specific dependencies
@@ -265,7 +235,7 @@ async function initPackageManager(
     const packageJsonObj = JSON.parse(packageJsonTemplate);
 
     // Fill in the dynamic values
-    packageJsonObj.name = path.basename(destination);
+    packageJsonObj.name = path.basename(options.destination);
     packageJsonObj.dependencies = dependencies;
     packageJsonObj.devDependencies = devDependencies;
 
@@ -288,8 +258,8 @@ function addFeatureDependencies(
   // Add database dependencies
   if (options.database && options.database !== DATABASE.TYPES.NONE) {
     const dbDeps =
-      FEATURE_DEPENDENCIES.database[
-        options.database as keyof typeof FEATURE_DEPENDENCIES.database
+      DEPENDENCIES.FEATURE_DEPENDENCIES.database[
+        options.database as keyof typeof DEPENDENCIES.FEATURE_DEPENDENCIES.database
       ];
     if (dbDeps) {
       Object.assign(dependencies, dbDeps.deps);
@@ -306,8 +276,8 @@ function addFeatureDependencies(
     }
 
     const authDeps =
-      FEATURE_DEPENDENCIES.auth[
-        authType as keyof typeof FEATURE_DEPENDENCIES.auth
+      DEPENDENCIES.FEATURE_DEPENDENCIES.auth[
+        authType as keyof typeof DEPENDENCIES.FEATURE_DEPENDENCIES.auth
       ];
     if (authDeps) {
       Object.assign(dependencies, authDeps.deps);
@@ -321,8 +291,8 @@ function addFeatureDependencies(
     options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
   ) {
     const wsDeps =
-      FEATURE_DEPENDENCIES.websockets[
-        options.websocketLib as keyof typeof FEATURE_DEPENDENCIES.websockets
+      DEPENDENCIES.FEATURE_DEPENDENCIES.websockets[
+        options.websocketLib as keyof typeof DEPENDENCIES.FEATURE_DEPENDENCIES.websockets
       ];
     if (wsDeps) {
       Object.assign(dependencies, wsDeps.deps);
@@ -333,8 +303,8 @@ function addFeatureDependencies(
   // Add view engine dependencies
   if (options.viewEngine && options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
     const viewDeps =
-      FEATURE_DEPENDENCIES.views[
-        options.viewEngine as keyof typeof FEATURE_DEPENDENCIES.views
+      DEPENDENCIES.FEATURE_DEPENDENCIES.views[
+        options.viewEngine as keyof typeof DEPENDENCIES.FEATURE_DEPENDENCIES.views
       ];
     if (viewDeps) {
       Object.assign(dependencies, viewDeps.deps);

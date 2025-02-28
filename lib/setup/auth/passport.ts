@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { AUTH, PROJECT, TEMPLATES } from "../../constants/index.js";
+import { PATHS, TEMPLATES } from "../../constants/index.js";
 import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-processor.js";
 
 /**
@@ -13,25 +13,25 @@ async function setupPassport(destination: string): Promise<void> {
   // Define paths for destination files
   const passportPath = path.join(
     destination, 
-    PROJECT.DIRECTORIES.ROOT.SRC,
-    AUTH.PATHS.FILES.PASSPORT.CONFIG
+    PATHS.DIRECTORIES.ROOT.SRC,
+    PATHS.DIRECTORIES.SRC.AUTH
   );
   // Create auth directory if it doesn't exist
-  const authDir = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.DIRECTORIES.SRC.AUTH);
+  const authDir = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.DIRECTORIES.SRC.AUTH);
   if (!fs.existsSync(authDir)) {
     fs.mkdirSync(authDir, { recursive: true });
   }
 
   // Create middleware directory if it doesn't exist
-  const middlewareDir = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.DIRECTORIES.SRC.MIDDLEWARE);
+  const middlewareDir = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.DIRECTORIES.SRC.MIDDLEWARE);
   if (!fs.existsSync(middlewareDir)) {
     fs.mkdirSync(middlewareDir, { recursive: true });
   }
 
   // Create passport.ts file using AST template
   await writeASTTemplate(
-    getASTTemplatePath(TEMPLATES.AUTH.PASSPORT.CONFIG),
-    passportPath,
+    getASTTemplatePath(PATHS.FILES.AUTH.CONFIG_TEMPLATE(TEMPLATES.AUTH.TYPES.PASSPORT)),
+    PATHS.FILES.AUTH.CONFIG(destination,TEMPLATES.AUTH.TYPES.PASSPORT),
     {} // No specific options needed
   );
 }

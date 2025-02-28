@@ -5,7 +5,7 @@
 
 import * as recast from 'recast';
 import * as tsParser from 'recast/parsers/typescript.js';
-import { CONTROLLER_COMMENTS } from '../../../constants/templates/index.js';
+import { COMMENTS } from '../../../constants/templates/index.js';
 
 const b = recast.types.builders;
 
@@ -76,7 +76,7 @@ export default function generateExampleControllerAST(options: TemplateOptions = 
 
   // Add JSDoc comment to the interface
   exampleInterface.comments = [
-    b.commentBlock(CONTROLLER_COMMENTS.EXAMPLE_MODEL, true)
+    b.commentBlock(COMMENTS.CONTROLLER.EXAMPLE_MODEL, true)
   ];
 
   // Create socket parameter with optional type annotation
@@ -216,7 +216,7 @@ export default function generateExampleControllerAST(options: TemplateOptions = 
 
   // Add JSDoc comment to the getAllController function
   getAllControllerFunction.comments = [
-    b.commentBlock(CONTROLLER_COMMENTS.GETALL_CONTROLLER, true)
+    b.commentBlock(COMMENTS.CONTROLLER.GETALL_CONTROLLER, true)
   ];
 
   // Create the getByIdController factory function
@@ -346,7 +346,7 @@ export default function generateExampleControllerAST(options: TemplateOptions = 
 
   // Add JSDoc comment to the getByIdController function
   getByIdControllerFunction.comments = [
-    b.commentBlock(CONTROLLER_COMMENTS.GETBYID_CONTROLLER, true)
+    b.commentBlock(COMMENTS.CONTROLLER.GETBYID_CONTROLLER, true)
   ];
 
   // Create the createController factory function
@@ -478,7 +478,7 @@ export default function generateExampleControllerAST(options: TemplateOptions = 
 
   // Add JSDoc comment to the createController function
   createControllerFunction.comments = [
-    b.commentBlock(CONTROLLER_COMMENTS.CREATE_CONTROLLER, true)
+    b.commentBlock(COMMENTS.CONTROLLER.CREATE_CONTROLLER, true)
   ];
 
   // Create the updateController factory function
@@ -604,7 +604,7 @@ export default function generateExampleControllerAST(options: TemplateOptions = 
 
   // Add JSDoc comment to the updateController function
   updateControllerFunction.comments = [
-    b.commentBlock(CONTROLLER_COMMENTS.UPDATE_CONTROLLER, true)
+    b.commentBlock(COMMENTS.CONTROLLER.UPDATE_CONTROLLER, true)
   ];
 
   // Create the deleteController factory function
@@ -720,7 +720,7 @@ export default function generateExampleControllerAST(options: TemplateOptions = 
 
   // Add JSDoc comment to the deleteController function
   deleteControllerFunction.comments = [
-    b.commentBlock(CONTROLLER_COMMENTS.DELETE_CONTROLLER, true)
+    b.commentBlock(COMMENTS.CONTROLLER.DELETE_CONTROLLER, true)
   ];
 
   // Build the AST program

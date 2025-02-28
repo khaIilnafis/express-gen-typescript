@@ -1,8 +1,3 @@
-import path from "path";
-import {
-  writeTemplate,
-  getTemplatePath,
-} from "../../utils/template-loader.js";
 import {
   writeASTTemplate,
   getASTTemplatePath,
@@ -10,15 +5,14 @@ import {
 } from "../../utils/ast-template-processor.js";
 import {
   WEBSOCKETS,
-  TEMPLATES,
-  VIEW_ENGINES,
   DATABASE,
   SERVER,
-  PROJECT,
+  PATHS,
 } from "../../constants/index.js";
 
 // Import interface from index.ts
 import { ServerGeneratorOptions } from "./index.js";
+import { GeneratorOptions } from "../../utils/types.js";
 
 /**
  * Generate server files (server.ts and server.d.ts)
@@ -27,8 +21,7 @@ import { ServerGeneratorOptions } from "./index.js";
  * @returns True if server files were generated successfully
  */
 export async function generateServerFiles(
-  destination: string,
-  options: ServerGeneratorOptions
+  options: GeneratorOptions
 ): Promise<boolean> {
   const { database, authentication, websocketLib, viewEngine, databaseName, dialect } = options;
 
@@ -42,19 +35,12 @@ export async function generateServerFiles(
       databaseName: databaseName || "",
       dialect: dialect || "",
     };
-
-    // Get AST template path
-    const astTemplatePath = getASTTemplatePath(TEMPLATES.PROJECT_STRUCTURE.SERVER.MAIN);
     
     // Process and write the AST template
-    await writeASTTemplate(
-      astTemplatePath,
-      path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.FILES.SERVER.FILE),
-      astOptions
-    );
+    await writeASTTemplate(getASTTemplatePath(PATHS.FILES.SERVER.FILE_TEMPLATE_LOC()), PATHS.FILES.SERVER.FILE_LOC(options.destination),astOptions);
 
     // Generate server.d.ts with type declarations
-    await generateServerTypesFile(destination, options);
+    // await generateServerTypesFile(options);
 
     return true;
   } catch (error) {
@@ -69,8 +55,7 @@ export async function generateServerFiles(
  * @param options - User selected options
  */
 async function generateServerTypesFile(
-  destination: string,
-  options: ServerGeneratorOptions
+  options: GeneratorOptions
 ): Promise<void> {
   // Create template vars for types file
   const templateVars = {
@@ -96,14 +81,8 @@ async function generateServerTypesFile(
       SERVER.TYPE_DECLARATIONS.INTERFACE_PROPERTIES.WS;
   }
 
-  // Write the server.d.ts file
-//   const serverTypesPath = getTemplatePath(TEMPLATES.PROJECT_STRUCTURE.TYPES.GLOBAL);
-  
-  writeASTTemplate(
-    getASTTemplatePath(TEMPLATES.PROJECT_STRUCTURE.TYPES.GLOBAL),
-    path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.FILES.GLOBAL.TYPES),
-    templateVars
-  );
+  	// Write the server.d.ts file
+  	writeASTTemplate(getASTTemplatePath(PATHS.FILES.SERVER.TYPES_TEMPLATE_LOC()),PATHS.FILES.SERVER.TYPES_LOC(options.destination),templateVars);
 }
 
 /**
@@ -115,13 +94,8 @@ export function generateGlobalTypesFile(
   destination: string,
   options: ServerGeneratorOptions
 ): void {
-  const globalTypesTemplate = getTemplatePath(TEMPLATES.PROJECT_STRUCTURE.TYPES.GLOBAL);
-  
-  writeTemplate(
-    globalTypesTemplate,
-    path.join(destination, PROJECT.FILES.GLOBAL.TYPES),
-    {}
-  );
+
+	writeASTTemplate(getASTTemplatePath(PATHS.FILES.CONFIG.TYPES_TEMPLATE_LOC()),PATHS.FILES.CONFIG.TYPES_LOC(options.destination),{});
 }
 
 export default {

@@ -4,7 +4,7 @@
 
 import fs from "fs";
 import path from "path";
-import { APP, ERRORS } from "../constants/index.js";
+import { APP, LOGS } from "../constants/index.js";
 
 /**
  * Interface for standardized environment configuration
@@ -81,6 +81,6 @@ export function createEnvFile(
     fs.writeFileSync(envPath, envContent, "utf8");
     console.log(".env file created successfully");
   } catch (error) {
-    console.error(ERRORS.MESSAGES.SERVER.CONFIGURATION_ERROR, error);
+    console.error(LOGS.SETUP.ERROR.GENERAL, error);
   }
 }

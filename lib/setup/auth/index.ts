@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import passportSetup from "./passport.js";
-import { AUTH, PROJECT } from "../../constants/index.js";
+import { AUTH, PATHS } from "../../constants/index.js";
 
 /**
  * Setup authentication based on user selection
@@ -12,12 +12,12 @@ async function setupAuth(destination: string, authLib: string): Promise<void> {
   console.log(`Setting up ${authLib} authentication...`);
 
   // Create necessary directories
-  const authDir = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.DIRECTORIES.SRC.AUTH);
+  const authDir = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.DIRECTORIES.SRC.AUTH);
   if (!fs.existsSync(authDir)) {
     fs.mkdirSync(authDir, { recursive: true });
   }
 
-  const middlewareDir = path.join(destination, PROJECT.DIRECTORIES.ROOT.SRC, PROJECT.DIRECTORIES.SRC.MIDDLEWARE);
+  const middlewareDir = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.DIRECTORIES.SRC.MIDDLEWARE);
   if (!fs.existsSync(middlewareDir)) {
     fs.mkdirSync(middlewareDir, { recursive: true });
   }

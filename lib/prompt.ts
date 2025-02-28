@@ -1,20 +1,5 @@
 import inquirer from "inquirer";
-
-/**
- * User configuration options for the project generator
- */
-export interface GeneratorOptions {
-  projectName: string;
-  database?: string | null;
-  databaseOrm?: string | null;
-  databaseName?: string;
-  dialect?: string;
-  authentication?: string | boolean;
-  authLib?: string | null;
-  websocketLib?: string | null;
-  viewEngine?: string | null;
-  skipPrompt?: boolean; // Flag to skip interactive prompts
-}
+import { GeneratorOptions } from "./utils/types.js";
 
 /**
  * Prompts the user for project configuration options
@@ -115,6 +100,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
 
   // Transform answers into the expected format
   const options: GeneratorOptions = {
+	destination: '',
     projectName: answers.projectName,
   };
 

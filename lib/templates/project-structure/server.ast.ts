@@ -5,8 +5,7 @@
 
 import * as recast from 'recast';
 import * as tsParser from 'recast/parsers/typescript.js';
-import { SERVER_COMMENTS } from '../../constants/templates/index.js';
-import { PROJECT } from '../../constants/index.js';
+import { COMMENTS, TEMPLATES } from '../../constants/templates/index.js';
 
 const b = recast.types.builders;
 
@@ -119,7 +118,7 @@ function getImports(options: TemplateOptions) {
     }
   } else {
     // Add placeholder comment for database imports
-    imports.push(b.expressionStatement(b.identifier(PROJECT.FILES.COMMON.MARKERS.DATABASE_IMPORT)));
+    imports.push(b.expressionStatement(b.identifier(TEMPLATES.STRINGS.MARKERS.DATABASE_IMPORT)));
   }
 
   // Authentication imports
@@ -132,7 +131,7 @@ function getImports(options: TemplateOptions) {
     );
   } else {
     // Add placeholder comment for auth imports
-    imports.push(b.expressionStatement(b.identifier(PROJECT.FILES.COMMON.MARKERS.AUTH_IMPORT)));
+    imports.push(b.expressionStatement(b.identifier(TEMPLATES.STRINGS.MARKERS.AUTH_IMPORT)));
   }
 
   // WebSocket imports
@@ -154,7 +153,7 @@ function getImports(options: TemplateOptions) {
     }
   } else {
     // Add placeholder comment for websocket imports
-    imports.push(b.expressionStatement(b.identifier(PROJECT.FILES.COMMON.MARKERS.WEBSOCKET_IMPORT)));
+    imports.push(b.expressionStatement(b.identifier(TEMPLATES.STRINGS.MARKERS.WEBSOCKET_IMPORT)));
   }
 
   // View engine imports
@@ -488,7 +487,7 @@ function getDatabaseMethod(options: TemplateOptions) {
           [b.stringLiteral(`Connecting to ${options.database} database...`)]
         )
       ),
-      b.expressionStatement(b.identifier(PROJECT.FILES.COMMON.MARKERS.SERVER.DATABASE_CONNECTION))
+      b.expressionStatement(b.identifier(TEMPLATES.STRINGS.MARKERS.SERVER.DATABASE_CONNECTION))
     ]);
   }
 
@@ -945,7 +944,7 @@ export default function generateServerAST(options: TemplateOptions = {}) {
                 true // static method
               );
               bootstrapMethod.comments = [
-                b.commentBlock(SERVER_COMMENTS.BOOTSTRAP_METHOD, true)
+                b.commentBlock(COMMENTS.SERVER.BOOTSTRAP_METHOD, true)
               ];
               return bootstrapMethod;
             })(),
@@ -953,7 +952,7 @@ export default function generateServerAST(options: TemplateOptions = {}) {
             (() => {
               const constructorMethod = getConstructorMethod(opts);
               constructorMethod.comments = [
-                b.commentBlock(SERVER_COMMENTS.CONSTRUCTOR_METHOD, true)
+                b.commentBlock(COMMENTS.SERVER.CONSTRUCTOR_METHOD, true)
               ];
               return constructorMethod;
             })(),
@@ -1033,7 +1032,7 @@ export default function generateServerAST(options: TemplateOptions = {}) {
                 )
               );
               initMiddlewaresMethod.comments = [
-                b.commentBlock(SERVER_COMMENTS.INITIALIZE_MIDDLEWARES, true)
+                b.commentBlock(COMMENTS.SERVER.INITIALIZE_MIDDLEWARES, true)
               ];
               return initMiddlewaresMethod;
             })(),
@@ -1042,7 +1041,7 @@ export default function generateServerAST(options: TemplateOptions = {}) {
             //   const dbMethod = getDatabaseMethod(opts);
             //   if (dbMethod) {
             //     dbMethod.comments = [
-            //       b.commentBlock(SERVER_COMMENTS.CONNECT_DATABASE, true)
+            //       b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true)
             //     ];
             //   }
             //   return dbMethod;
@@ -1051,7 +1050,7 @@ export default function generateServerAST(options: TemplateOptions = {}) {
 				// Create a static block with an empty block statement.
 				const staticBlock = b.staticBlock([]);
 				staticBlock.comments = [
-				  b.commentLine(PROJECT.FILES.COMMON.MARKERS.SERVER.DATABASE_CONNECTION, true)
+				  b.commentLine(TEMPLATES.STRINGS.MARKERS.SERVER.DATABASE_CONNECTION, true)
 				];
 				return staticBlock;
 			  })(),
@@ -1060,7 +1059,7 @@ export default function generateServerAST(options: TemplateOptions = {}) {
               const wsMethod = getWebSocketMethod(opts);
               if (wsMethod) {
                 wsMethod.comments = [
-                  b.commentBlock(SERVER_COMMENTS.INITIALIZE_WEBSOCKETS, true)
+                  b.commentBlock(COMMENTS.SERVER.INITIALIZE_WEBSOCKETS, true)
                 ];
               }
               return wsMethod;
@@ -1135,7 +1134,7 @@ export default function generateServerAST(options: TemplateOptions = {}) {
                 )
               );
               initRoutesMethod.comments = [
-                b.commentBlock(SERVER_COMMENTS.INITIALIZE_ROUTES, true)
+                b.commentBlock(COMMENTS.SERVER.INITIALIZE_ROUTES, true)
               ];
               return initRoutesMethod;
             })(),
@@ -1247,7 +1246,7 @@ export default function generateServerAST(options: TemplateOptions = {}) {
                 )
               );
               errorHandlingMethod.comments = [
-                b.commentBlock(SERVER_COMMENTS.INITIALIZE_ERROR_HANDLING, true)
+                b.commentBlock(COMMENTS.SERVER.INITIALIZE_ERROR_HANDLING, true)
               ];
               return errorHandlingMethod;
             })(),
@@ -1402,7 +1401,7 @@ export default function generateServerAST(options: TemplateOptions = {}) {
               );
               
               listenMethod.comments = [
-                b.commentBlock(SERVER_COMMENTS.LISTEN_METHOD, true)
+                b.commentBlock(COMMENTS.SERVER.LISTEN_METHOD, true)
               ];
               return listenMethod;
             })()
@@ -1414,7 +1413,7 @@ export default function generateServerAST(options: TemplateOptions = {}) {
       
       // Add the server class comment to the export declaration, not the class
       exportDecl.comments = [
-        b.commentBlock(SERVER_COMMENTS.SERVER_CLASS, true)
+        b.commentBlock(COMMENTS.SERVER.SERVER_CLASS, true)
       ];
       
       return exportDecl;
