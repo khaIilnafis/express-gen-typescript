@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import path from "path";
-import { promptForOptions, GeneratorOptions } from "../lib/prompt.js";
+import { promptForOptions } from "../lib/prompt.js";
 import { generateExpressTypeScriptApp } from "../lib/index.js";
+import { GeneratorOptions } from "../lib/utils/types.js";
 
 /**
  * Parse command line arguments
@@ -62,19 +63,17 @@ async function run(): Promise<void> {
     if (cliOptions.skipPrompt) {
       options = {
         projectName: cliOptions.projectName || "express-typescript-app",
+		destination: path.join(process.cwd(), cliOptions.projectName || "express-typescript-app"),
         ...cliOptions
       };
       console.log("Using options:", options);
     } else {
       options = await promptForOptions();
+	  options.destination =  path.join(process.cwd(), cliOptions.projectName || "express-typescript-app");
     }
-
-    // Setup destination path
-    const projectName = options.projectName || "express-typescript-app";
-    const destination = path.join(process.cwd(), projectName);
-
+	console.log(options);
     // Create new project with the provided options
-    await generateExpressTypeScriptApp(destination, options);
+    await generateExpressTypeScriptApp(options);
   } catch (error) {
     console.error("Error setting up project:", error);
     process.exit(1);
