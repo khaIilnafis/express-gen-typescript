@@ -75,7 +75,6 @@ async function run(): Promise<void> {
       options = await promptForOptions();
 	  options.destination =  path.join(process.cwd(), cliOptions.projectName || "express-typescript-app");
     }
-	console.log(options);
     // Create new project with the provided options
     await generateExpressTypeScriptApp(options);
   } catch (error) {

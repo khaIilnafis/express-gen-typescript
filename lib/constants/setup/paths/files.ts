@@ -10,7 +10,7 @@ import { ConfigFilePaths, CONFIG } from "./config.js";
 import { TemplateViewPaths, VIEWS } from "./view.js";
 import { RouteFilePaths, ROUTES } from "./routes.js";
 import { CONTROLLERS, ControllersFilePaths } from "./controllers.js";
-
+import { EXTENSIONS, FileExtensions } from "./extensions.js";
 /**
  * Type definitions for file paths
  */
@@ -27,6 +27,7 @@ export interface ProjectFiles {
   COMMON: CommonFilePaths;
   CONFIG: ConfigFilePaths;
   VIEWS: TemplateViewPaths;
+  EXTENSIONS: FileExtensions;
 }
 
 /**
@@ -45,5 +46,6 @@ export const FILES = Object.freeze({
 	SERVER,
 	SERVICES,
 	VIEWS,
-	COMMON
+	COMMON,
+	EXTENSIONS
 } as const) satisfies ProjectFiles; 

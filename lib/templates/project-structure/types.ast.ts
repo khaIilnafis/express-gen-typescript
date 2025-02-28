@@ -5,22 +5,15 @@
 
 import * as recast from 'recast';
 import * as tsParser from 'recast/parsers/typescript.js';
+import { GeneratorOptions } from '../../utils/types.js';
 
 const b = recast.types.builders;
-
-/**
- * Template options interface
- */
-export interface TemplateOptions {
-  [key: string]: any;
-}
-
 /**
  * Generates the types.d.ts AST with provided options
  * @param options Template options
  * @returns AST for types.d.ts file
  */
-export default function generateTypeDefinitionsAST(options: TemplateOptions = {}) {
+export default function generateTypeDefinitionsAST(options: GeneratorOptions) {
   // Create an array of comments to preserve in the output
   const topLevelComment = b.commentBlock("*\n * Global type definitions\n ", true, false);
   
@@ -133,7 +126,7 @@ export default function generateTypeDefinitionsAST(options: TemplateOptions = {}
  * Export a print function to convert the AST to code
  */
 export function print(ast: any): string {
-  return recast.print(ast, { 
+  return recast.prettyPrint(ast, { 
     parser: tsParser,
     tabWidth: 2,
     quote: "single"

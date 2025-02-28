@@ -104,7 +104,6 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
 	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
   ]);
-  console.log(answers);
   // Transform answers into the expected format
   const options: GeneratorOptions = {
 	destination: '',

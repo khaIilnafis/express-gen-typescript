@@ -1527,7 +1527,6 @@ __metadata:
     "@types/node": "npm:^20.11.30"
     edit-json-file: "npm:^1.7.0"
     inquirer: "npm:^12.4.2"
-    prettier: "npm:^3.5.2"
     recast: "npm:^0.23.10"
     rimraf: "npm:^6.0.1"
     ts-node: "npm:^10.9.2"
@@ -3036,15 +3035,6 @@ __metadata:
   dependencies:
     xtend: "npm:^4.0.0"
   checksum: 10c0/c1734c3cb79e7f22579af0b268a463b1fa1d084e742a02a7a290c4f041e349456f3bee3b4ee0bb3f226828597f7b76deb615c1b857db9a742c45520100456272
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^3.5.2":
-  version: 3.5.2
-  resolution: "prettier@npm:3.5.2"
-  bin:
-    prettier: bin/prettier.cjs
-  checksum: 10c0/d7b597ed33f39c32ace675896ad187f06a3e48dc8a1e80051b5c5f0dae3586d53981704b8fda5ac3b080e6c2e0e197d239131b953702674f044351621ca5e1ac
   languageName: node
   linkType: hard
 

@@ -110,7 +110,7 @@ export default function generateMongooseMethodAST(options: TemplateOptions = {})
   );
 
   // Return just the method body as a string
-  return "  " + recast.print(connectToDatabaseMethod).code;
+  return "  " + recast.prettyPrint(connectToDatabaseMethod).code;
 }
 
 /**

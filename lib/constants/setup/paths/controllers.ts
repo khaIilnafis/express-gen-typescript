@@ -1,5 +1,6 @@
 import path from "path";
 import { PATHS } from "./index.js";
+import { EXTENSIONS } from "./extensions.js";
 
 export interface ControllersFilePaths {
 	EXAMPLE: string;
@@ -13,11 +14,11 @@ export interface ControllersFilePaths {
   };
 
   export const CONTROLLERS = Object.freeze({
-	EXAMPLE: "exampleController.ts",
-	INDEX: "index.ts",
-	EXAMPLE_TEMPLATE: "exampleController.ast.ts",
-	INDEX_TEMPLATE: "index.ast.ts",
-	EXAMPLE_LOC: (destination: string): string => path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.DIRECTORIES.SRC.CONTROLLERS, PATHS.DIRECTORIES.CONTROLLERS.example, CONTROLLERS.EXAMPLE),
+	EXAMPLE: "exampleController",
+	INDEX: "index",
+	EXAMPLE_TEMPLATE: "exampleController",
+	INDEX_TEMPLATE: "index",
+	EXAMPLE_LOC: (destination: string): string => path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.DIRECTORIES.SRC.CONTROLLERS, PATHS.DIRECTORIES.CONTROLLERS.example, CONTROLLERS.EXAMPLE + EXTENSIONS.TS),
 	INDEX_LOC: (destination: string, base: boolean): string => {
 		const controllerPath = base
 		? path.join(PATHS.DIRECTORIES.SRC.CONTROLLERS, PATHS.DIRECTORIES.CONTROLLERS.example)
@@ -27,14 +28,17 @@ export interface ControllersFilePaths {
 			destination, 
 			PATHS.DIRECTORIES.ROOT.SRC, 
 			controllerPath, 
-			CONTROLLERS.INDEX
+			CONTROLLERS.INDEX + EXTENSIONS.TS
 		);
 	},
-	EXAMPLE_TEMPLATE_LOC: (): string => `${PATHS.DIRECTORIES.SRC.CONTROLLERS}/${PATHS.DIRECTORIES.CONTROLLERS.example}/${CONTROLLERS.EXAMPLE_TEMPLATE}`,
+	EXAMPLE_TEMPLATE_LOC: (): string => path.join(PATHS.DIRECTORIES.SRC.CONTROLLERS, PATHS.DIRECTORIES.CONTROLLERS.example, CONTROLLERS.EXAMPLE_TEMPLATE + EXTENSIONS.AST),
+		// `${PATHS.DIRECTORIES.SRC.CONTROLLERS}/${PATHS.DIRECTORIES.CONTROLLERS.example}/${CONTROLLERS.EXAMPLE_TEMPLATE}`,
 	INDEX_TEMPLATE_LOC: (base: boolean): string => {
 		const basePath = PATHS.DIRECTORIES.SRC.CONTROLLERS;
 		return base 
-			? `${basePath}/${PATHS.DIRECTORIES.CONTROLLERS.example}/${CONTROLLERS.INDEX_TEMPLATE}`
-			: `${basePath}/${CONTROLLERS.INDEX_TEMPLATE}`;
+			? path.join(basePath, PATHS.DIRECTORIES.CONTROLLERS.example, CONTROLLERS.INDEX_TEMPLATE + EXTENSIONS.AST)
+			// `${basePath}/${PATHS.DIRECTORIES.CONTROLLERS.example}/${CONTROLLERS.INDEX_TEMPLATE}`
+			: path.join(basePath, CONTROLLERS.INDEX_TEMPLATE + EXTENSIONS.AST)
+			// `${basePath}/${CONTROLLERS.INDEX_TEMPLATE}`;
 	},
   }as const) satisfies ControllersFilePaths;

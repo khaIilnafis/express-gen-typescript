@@ -5,6 +5,7 @@
 
 import * as recast from 'recast';
 import * as tsParser from 'recast/parsers/typescript.js';
+import { IMPORTS } from '../../../constants/templates/server/index.js';
 
 const b = recast.types.builders;
 
@@ -30,7 +31,7 @@ export default function generateTypeORMMethodAST(options: TemplateOptions = {}) 
         b.expressionStatement(
           b.awaitExpression(
             b.callExpression(
-              b.identifier("initializeDatabase"),
+              b.identifier(IMPORTS.DATABASE.INITIALIZE),
               []
             )
           )
@@ -92,7 +93,7 @@ export default function generateTypeORMMethodAST(options: TemplateOptions = {}) 
   );
 
   // Return just the method body as a string
-  return "  " + recast.print(connectToDatabaseMethod).code;
+  return "  " + recast.prettyPrint(connectToDatabaseMethod).code;
 }
 
 /**

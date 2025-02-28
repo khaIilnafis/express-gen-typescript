@@ -5,7 +5,7 @@
   "description": "Express Generator for TypeScript",
   "scripts": {
     "build": "rimraf dist && tsc && yarn copy-templates",
-    "copy-templates": "rsync -av --exclude='*.ts' lib/templates dist/lib",
+    "copy-templates": "rsync -a --exclude='*.ts' lib/templates dist/lib",
     "start": "node dist/bin/cli.js",
     "dev": "ts-node bin/cli.ts",
     "prepare": "yarn build",
@@ -64,7 +64,6 @@
   "devDependencies": {
     "@types/inquirer": "^9.0.7",
     "@types/node": "^20.11.30",
-    "prettier": "^3.5.2",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.3"

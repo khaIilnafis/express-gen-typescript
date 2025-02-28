@@ -6,27 +6,18 @@
 import * as recast from 'recast';
 import * as tsParser from 'recast/parsers/typescript.js';
 import { COMMENTS, TEMPLATES } from '../../constants/templates/index.js';
-
+import { GeneratorOptions } from '../../utils/types.js';
+import path from 'path';
+import { PATHS } from '../../constants/index.js';
+import { EXTENSIONS } from '../../constants/setup/paths/extensions.js';
+import { IMPORTS } from '../../constants/templates/server/imports.js';
 const b = recast.types.builders;
-
-/**
- * Template options interface
- */
-export interface TemplateOptions {
-  database?: string;
-  authentication?: boolean;
-  websocketLib?: string;
-  viewEngine?: string;
-  databaseName?: string;
-  dialect?: string;
-  [key: string]: any;
-}
 
 /**
  * Function to conditionally add imports based on options
  * @returns Array of import declarations
  */
-function getImports(options: TemplateOptions) {
+function getImports(options: GeneratorOptions) {
   const imports = [
     // Base imports that are always included
     b.importDeclaration(
@@ -79,36 +70,42 @@ function getImports(options: TemplateOptions) {
   ];
 
   // Database imports
-  if (options.database !== "none") {
-    if (options.database === "mongoose") {
+  if (options.database) {
+    if (options.databaseOrm === "mongoose") {
       imports.push(
         b.importDeclaration(
           [b.importDefaultSpecifier(b.identifier("mongoose"))],
           b.stringLiteral("mongoose")
         )
       );
-    } else if (options.database === "typeorm") {
+    } else if (options.databaseOrm === "typeorm") {
       imports.push(
         b.importDeclaration(
           [b.importDefaultSpecifier(b.identifier("typeorm"))],
           b.stringLiteral("typeorm")
         )
       );
-    } else if (options.database === "sequelize") {
+    } else if (options.databaseOrm === "sequelize") {
       imports.push(
         b.importDeclaration(
           [b.importDefaultSpecifier(b.identifier("sequelize")),],
           b.stringLiteral("sequelize")
         )
       );
-    } else if (options.database === "sequelize-typescript") {
+	  imports.push(
+		b.importDeclaration(
+			[b.importSpecifier(b.identifier(IMPORTS.DATABASE.INITIALIZE)),],
+			b.stringLiteral(EXTENSIONS.REL_PATH + PATHS.DIRECTORIES.SRC.DATABASE)
+		)
+	  )
+    } else if (options.databaseOrm === "sequelize-typescript") {
       imports.push(
         b.importDeclaration(
           [b.importSpecifier(b.identifier("Sequelize")),],
           b.stringLiteral("sequelize-typescript")
         )
       );
-    } else if (options.database === "prisma") {
+    } else if (options.databaseOrm === "prisma") {
       imports.push(
         b.importDeclaration(
           [b.importDefaultSpecifier(b.identifier("prisma"))],
@@ -200,7 +197,7 @@ function getImports(options: TemplateOptions) {
 /**
  * Function to get class properties based on options
  */
-function getClassProperties(options: TemplateOptions) {
+function getClassProperties(options: GeneratorOptions) {
   const properties: any[] = [];
   const appProp = b.classProperty(
 	b.identifier("app"),
@@ -248,7 +245,7 @@ properties.push(serverProp);
   }
 
   // Add database client if using Prisma
-  if (options.database === "prisma") {
+  if (options.databaseOrm === "prisma") {
     const prismaProperty = b.classProperty(
       b.identifier("prisma"),
       null,
@@ -267,7 +264,7 @@ properties.push(serverProp);
  * Function to generate constructor method with appropriate calls
  * @returns Method definition for constructor
  */
-function getConstructorMethod(options: TemplateOptions) {
+function getConstructorMethod(options: GeneratorOptions) {
   const constructorStatements = [
     // Default constructor statements
     b.expressionStatement(
@@ -311,7 +308,7 @@ function getConstructorMethod(options: TemplateOptions) {
   ];
 
   // Add database initialization if needed
-  if (options.database !== "none") {
+  if (options.database) {
     constructorStatements.push(
       b.expressionStatement(
         b.callExpression(
@@ -369,15 +366,64 @@ function getConstructorMethod(options: TemplateOptions) {
  * Function to get database connection method
  * @returns Method definition for database connection or null if no database selected
  */
-function getDatabaseMethod(options: TemplateOptions) {
-	let methodBody;
-	if (options.database === "none") {
-    return null;
-  }
+function getDatabaseMethod(options: GeneratorOptions) {
+	if (!options.database) {
+    	return null;
+  	}
 
+  let methodBody: recast.types.namedTypes.BlockStatement;
   
-
-  if (options.database === "mongoose") {
+  if(options.databaseOrm === "sequelize"){
+	methodBody = b.blockStatement([
+		// try {
+		b.tryStatement(
+		  b.blockStatement([
+			// await initializeDatabase();
+			b.expressionStatement(
+			  b.awaitExpression(
+				b.callExpression(
+				  b.identifier(IMPORTS.DATABASE.INITIALIZE),
+				  []
+				)
+			  )
+			),
+			// console.log('Database connection established successfully.');
+			b.expressionStatement(
+			  b.callExpression(
+				b.memberExpression(
+				  b.identifier("console"),
+				  b.identifier("log")
+				),
+				[b.stringLiteral("Database connection established successfully.")]
+			  )
+			)
+		  ]),
+		  // catch (error) {
+		  b.catchClause(
+			b.identifier("error"),
+			null, // No guard expression
+			b.blockStatement([
+			  // console.error('Database connection error:', error);
+			  b.expressionStatement(
+				b.callExpression(
+				  b.memberExpression(
+					b.identifier("console"),
+					b.identifier("error")
+				  ),
+				  [
+					b.stringLiteral("Database connection error:"),
+					b.identifier("error")
+				  ]
+				)
+			  ),
+			  // Comment: // process.exit(1);
+			  b.emptyStatement()
+			])
+		  )
+		)
+	  ]);
+  }else
+  if (options.databaseOrm === "mongoose") {
     methodBody = b.blockStatement([
       b.tryStatement(
         b.blockStatement([
@@ -431,7 +477,7 @@ function getDatabaseMethod(options: TemplateOptions) {
         )
       )
     ]);
-  } else if (options.database === "prisma") {
+  } else if (options.databaseOrm === "prisma") {
     methodBody = b.blockStatement([
       b.tryStatement(
         b.blockStatement([
@@ -490,23 +536,36 @@ function getDatabaseMethod(options: TemplateOptions) {
       b.expressionStatement(b.identifier(TEMPLATES.STRINGS.MARKERS.SERVER.DATABASE_CONNECTION))
     ]);
   }
-
-  return b.methodDefinition(
-    "method",
-    b.identifier("connectToDatabase"),
-    b.functionExpression(
-      null,
-      [],
-      methodBody
-    )
-  );
+	  // Add method node with async and private modifiers
+	  const connectToDatabaseMethod = b.classMethod(
+		"method",
+		b.identifier("connectToDatabase"),
+		[],
+		methodBody,
+		false,  // not computed
+		true,    // is private
+	  );
+	  connectToDatabaseMethod.comments = [
+		b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true)
+	  ];
+	  // Add async modifier
+	  connectToDatabaseMethod.async = true;
+	
+	  // Add return type annotation
+	  connectToDatabaseMethod.returnType = b.tsTypeAnnotation(
+		b.tsTypeReference(
+		  b.identifier("Promise"),
+		  b.tsTypeParameterInstantiation([b.tsVoidKeyword()])
+		)
+	  );
+  return connectToDatabaseMethod
 }
 
 /**
  * Function to get WebSocket initialization method
  * @returns Method definition for WebSocket initialization or null if no WebSocket library selected
  */
-function getWebSocketMethod(options: TemplateOptions) {
+function getWebSocketMethod(options: GeneratorOptions) {
   if (options.websocketLib === "none") {
     return null;
   }
@@ -647,7 +706,7 @@ function getWebSocketMethod(options: TemplateOptions) {
  * Get view engine setup code
  * @returns Array of statements for view engine setup or null if no view engine selected
  */
-function getViewEngineSetup(options: TemplateOptions) {
+function getViewEngineSetup(options: GeneratorOptions) {
   if (options.viewEngine === "none") {
     return null;
   }
@@ -731,7 +790,7 @@ function getViewEngineSetup(options: TemplateOptions) {
  * Function to generate the router initialization code
  * @returns Expression statement for router initialization
  */
-function getRouterInit(options: TemplateOptions) {
+function getRouterInit(options: GeneratorOptions) {
   if (options.websocketLib === "socketio") {
     return b.variableDeclaration("const", [
       b.variableDeclarator(
@@ -773,7 +832,7 @@ function getRouterInit(options: TemplateOptions) {
  * Function to get the view route handler
  * @returns Expression statement for view route handler or null if no view engine selected
  */
-function getViewRouteHandler(options: TemplateOptions) {
+function getViewRouteHandler(options: GeneratorOptions) {
   if (options.viewEngine !== "none") {
     return b.expressionStatement(
       b.callExpression(
@@ -811,7 +870,7 @@ function getViewRouteHandler(options: TemplateOptions) {
 }
 
 // Gets the arrow function from getViewRouteHandler and adds type annotations to its parameters
-function getTypedViewRouteHandler(options: TemplateOptions) {
+function getTypedViewRouteHandler(options: GeneratorOptions) {
   if (options.viewEngine !== "none") {
     const exprStatement = getViewRouteHandler(options);
     if (exprStatement.type === "EmptyStatement") {
@@ -903,18 +962,7 @@ function addTypeAnnotationsToRouteHandler(arrowFunc: any) {
  * @param options Template options 
  * @returns AST for server.ts file
  */
-export default function generateServerAST(options: TemplateOptions = {}) {
-  // Provide defaults for options
-  const opts = {
-    database: options.database || "none",
-    authentication: Boolean(options.authentication),
-    websocketLib: options.websocketLib || "none",
-    viewEngine: options.viewEngine || "none",
-    databaseName: options.databaseName || "",
-    dialect: options.dialect || "",
-    ...options
-  };
-  
+export default function generateServerAST(opts: GeneratorOptions) {
   // Build the AST for our server.ts file
   return b.program([
     ...getImports(opts),
@@ -1037,23 +1085,15 @@ export default function generateServerAST(options: TemplateOptions = {}) {
               return initMiddlewaresMethod;
             })(),
             // Database method if needed
-            // ...((getDatabaseMethod(opts) ? [(() => {
-            //   const dbMethod = getDatabaseMethod(opts);
-            //   if (dbMethod) {
-            //     dbMethod.comments = [
-            //       b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true)
-            //     ];
-            //   }
-            //   return dbMethod;
-            // })()] : [])),
-			(() => {
-				// Create a static block with an empty block statement.
-				const staticBlock = b.staticBlock([]);
-				staticBlock.comments = [
-				  b.commentLine(TEMPLATES.STRINGS.MARKERS.SERVER.DATABASE_CONNECTION, true)
-				];
-				return staticBlock;
-			  })(),
+			...((getDatabaseMethod(opts)? [(()=>{
+				const dbMethod = getDatabaseMethod(opts);
+				if (dbMethod) {
+					dbMethod.comments = [
+					  b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true)
+					];
+				  }
+              	return dbMethod;
+			})()]: [])),
             // WebSocket method if needed
             ...((getWebSocketMethod(opts) ? [(() => {
               const wsMethod = getWebSocketMethod(opts);
@@ -1425,5 +1465,5 @@ export default function generateServerAST(options: TemplateOptions = {}) {
  * Export a print function to convert the AST to code
  */
 export function print(ast: any): string {
-  return recast.print(ast, { parser: tsParser }).code;
+  return recast.prettyPrint(ast, { parser: tsParser }).code;
 } 

@@ -51,6 +51,7 @@ export const IMPORTS = Object.freeze({
       "// Database imports\nimport { PrismaClient } from '@prisma/client';\n",
     TYPEORM:
       "// Database imports\nimport { createConnection } from 'typeorm';\n",
+	INITIALIZE: "initializeDatabase"
   },
 
   // Authentication imports

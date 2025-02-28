@@ -213,7 +213,7 @@ export function generateTypeORMExampleEntityAST(options: TemplateOptions): typeo
 }
 
 export const print = (ast: recast.types.namedTypes.Program): string => {
-  return recast.print(ast, { tabWidth: 2 }).code;
+  return recast.prettyPrint(ast, { tabWidth: 2 }).code;
 };
 
 export default generateTypeORMExampleEntityAST; 
