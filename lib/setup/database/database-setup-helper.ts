@@ -10,9 +10,6 @@ import {
   PATHS,
 } from "../../constants/index.js";
 import {
-  TemplateVariables,
-} from "../../utils/template-loader.js";
-import {
   insertContentAtMarker,
   ensureDirectoryExists,
   addImportIfNotExists,
@@ -22,7 +19,7 @@ import {
   getASTTemplatePath,
   writeASTTemplate,
 } from "../../utils/ast-template-processor.js";
-import { GeneratorOptions } from "../../utils/types.js";
+import { GeneratorOptions, TemplateOptions, TemplateVariables } from "../../utils/types.js";
 
 /**
  * Utility class for database setup operations
@@ -70,13 +67,9 @@ export class DatabaseSetupHelper {
     outputPath: string,
     templateVars: TemplateVariables = {}
   ): Promise<void> {
-    // Get absolute template path
-    // const absoluteTemplatePath = getTemplatePath(templatePath);
-
     // Combine options variables with template variables
-    const variables: TemplateVariables = {
-      databaseName: options.databaseName!,
-      dialect: options.dialect || "mysql",
+    const variables: TemplateOptions = {
+      ...options,
       ...templateVars,
     };
 
@@ -169,9 +162,8 @@ export class DatabaseSetupHelper {
     options: GeneratorOptions,
     serverFilePath: string
   ): Promise<void> {
-    const databaseType = options?.database || "";
     console.log(
-      `Updating server file for database connection (${databaseType})`
+      `Updating server file for database connection (${options.dialect})`
     );
     
     if (!fs.existsSync(serverFilePath)) {
@@ -180,7 +172,7 @@ export class DatabaseSetupHelper {
     }
 
     // Add database imports
-    switch (databaseType) {
+    switch (options.dialect) {
       case DATABASE.TYPES.SEQUELIZE:
         addImportIfNotExists(
           serverFilePath,
@@ -192,7 +184,7 @@ export class DatabaseSetupHelper {
         await writeASTTemplate(
           getASTTemplatePath(PATHS.FILES.MODELS.INIT_TEMPLATE_LOC(DATABASE.TYPES.SEQUELIZE)),
           tempFilePath,
-          {}
+          options
         );
         
         // Read the generated content and add it to the server file
@@ -217,7 +209,7 @@ export class DatabaseSetupHelper {
         await writeASTTemplate(
           getASTTemplatePath(PATHS.FILES.MODELS.INDEX_TEMPLATE_LOC(DATABASE.TYPES.TYPEORM)),
           typeormTempFilePath,
-          {}
+          options
         );
         
         // Read the generated content and add it to the server file
@@ -242,7 +234,7 @@ export class DatabaseSetupHelper {
         await writeASTTemplate(
           getASTTemplatePath(PATHS.FILES.MODELS.INDEX_TEMPLATE_LOC(DATABASE.TYPES.PRISMA)),
           prismaTempFilePath,
-          {}
+        options
         );
         
         // Read the generated content and add it to the server file
@@ -267,7 +259,7 @@ export class DatabaseSetupHelper {
         await writeASTTemplate(
           getASTTemplatePath(PATHS.FILES.MODELS.INDEX_TEMPLATE_LOC(DATABASE.TYPES.MONGOOSE)),
           mongooseTempFilePath,
-          {}
+          options
         );
         
         // Read the generated content and add it to the server file
@@ -293,11 +285,11 @@ export class DatabaseSetupHelper {
   static setupEnvironmentVariables(
     options: GeneratorOptions
   ): Record<string, string> {
-    const { destination, databaseName } = options;
-    const databaseType = options?.database || "";
+    const { destination, databaseName, dialect } = options;
+    const dbDialect = options?.dialect || "";
 
     // Get database-specific environment variables
-    const envVars = getDatabaseEnvVars(databaseType, databaseName!);
+    const envVars = getDatabaseEnvVars(dbDialect, databaseName!);
 
     // Create or update .env file
     const envFilePath = path.join(destination, ".env");
@@ -373,7 +365,7 @@ export class DatabaseSetupHelper {
 	await writeASTTemplate(
 		getASTTemplatePath(templatePath),
 		outputPath,
-		{dialect: dialect || "postgres", databaseName}
+		options
 	  );
   }
 }
@@ -385,17 +377,17 @@ export class DatabaseSetupHelper {
  */
 export function getDefaultDatabaseName(
 	projectName: string,
-	dbType: string
+	dialect: string
   ): string {
 	// Return appropriate default name based on database type
-	if (dbType === DATABASE.TYPES.MONGOOSE) {
+	if (dialect === DATABASE.TYPES.MONGOOSE) {
 	  return projectName || DATABASE.DEFAULTS.MONGODB.DEFAULT_DB_NAME;
 	} else if (
-	  dbType === DATABASE.TYPES.PRISMA ||
-	  dbType === DATABASE.TYPES.TYPEORM
+		dialect === DATABASE.TYPES.PRISMA ||
+		dialect === DATABASE.TYPES.TYPEORM
 	) {
 	  return projectName || DATABASE.DEFAULTS.POSTGRES.DEFAULT_DB_NAME;
-	} else if (dbType === DATABASE.TYPES.SEQUELIZE) {
+	} else if (dialect === DATABASE.TYPES.SEQUELIZE) {
 	  return projectName || DATABASE.DEFAULTS.MYSQL.DEFAULT_DB_NAME;
 	}
   
@@ -408,16 +400,16 @@ export function getDefaultDatabaseName(
  * @returns Object containing environment variables
  */
 export function getDatabaseEnvVars(
-	dbType: string,
+	dialect: string,
 	dbName: string
   ): Record<string, string> {
 	const envVars: Record<string, string> = {};
   
-	if (dbType === DATABASE.TYPES.MONGOOSE) {
+	if (dialect === DATABASE.TYPES.MONGOOSE) {
 	  envVars.MONGODB_URI = DATABASE.DEFAULTS.MONGODB.URI(dbName);
-	} else if (dbType === DATABASE.TYPES.PRISMA) {
+	} else if (dialect === DATABASE.TYPES.PRISMA) {
 	  envVars.DATABASE_URL = DATABASE.DEFAULTS.POSTGRES.URI(dbName);
-	} else if (dbType === DATABASE.TYPES.TYPEORM) {
+	} else if (dialect === DATABASE.TYPES.TYPEORM) {
 	  const { HOST, PORT, USER, PASSWORD } = DATABASE.DEFAULTS.POSTGRES;
 	  envVars.DB_TYPE = DATABASE.DIALECTS.POSTGRES;
 	  envVars.DB_HOST = HOST;
@@ -425,7 +417,7 @@ export function getDatabaseEnvVars(
 	  envVars.DB_NAME = dbName;
 	  envVars.DB_USER = USER;
 	  envVars.DB_PASSWORD = PASSWORD;
-	} else if (dbType === DATABASE.TYPES.SEQUELIZE) {
+	} else if (dialect === DATABASE.TYPES.SEQUELIZE) {
 	  const { HOST, PORT, USER, PASSWORD } = DATABASE.DEFAULTS.MYSQL;
 	  envVars.DB_HOST = HOST;
 	  envVars.DB_PORT = PORT;
@@ -446,7 +438,7 @@ export async function setupDatabaseWithHelper(
   options: GeneratorOptions
 ): Promise<void> {
   try {
-    switch (options.database) {
+    switch (options.dialect) {
       case DATABASE.TYPES.SEQUELIZE:
         await setupSequelize(options);
         break;
@@ -643,7 +635,7 @@ async function setupMongoose(options: GeneratorOptions): Promise<void> {
   await writeASTTemplate(
     configAstPath,
     configPath,
-    { databaseName }
+    options
   );
 
   // Create model files using AST template
@@ -659,7 +651,7 @@ async function setupMongoose(options: GeneratorOptions): Promise<void> {
   await writeASTTemplate(
     modelAstPath,
     exampleModelPath,
-    {}
+    options
   );
 
   // Update server file

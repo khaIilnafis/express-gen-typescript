@@ -11,11 +11,11 @@ async function setupPassport(destination: string): Promise<void> {
   console.log("Setting up Passport.js authentication...");
 
   // Define paths for destination files
-  const passportPath = path.join(
-    destination, 
-    PATHS.DIRECTORIES.ROOT.SRC,
-    PATHS.DIRECTORIES.SRC.AUTH
-  );
+//   const passportPath = path.join(
+//     destination, 
+//     PATHS.DIRECTORIES.ROOT.SRC,
+//     PATHS.DIRECTORIES.SRC.AUTH
+//   );
   // Create auth directory if it doesn't exist
   const authDir = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.DIRECTORIES.SRC.AUTH);
   if (!fs.existsSync(authDir)) {

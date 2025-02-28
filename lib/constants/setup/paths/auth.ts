@@ -11,7 +11,7 @@ export interface AuthFilePaths {
 };
 
 export const AUTH = Object.freeze({
-	CONFIG: (authLib: string, destination: string): string => path.join(destination, PATHS.DIRECTORIES.SRC.AUTH, authLib, `${authLib}.ts`),
+	CONFIG: (authLib: string, destination: string): string => path.join(destination, PATHS.DIRECTORIES.SRC.AUTH, `${authLib}`, `${authLib}.ts`),
 	CONFIG_TEMPLATE: (authLib: string) => `auth/${authLib}/${authLib}.ast.ts`,
 	MIDDLEWARE: {
 		AUTH: "middleware/auth.ts",

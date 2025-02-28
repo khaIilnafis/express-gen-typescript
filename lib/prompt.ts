@@ -102,36 +102,33 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
   const options: GeneratorOptions = {
 	destination: '',
     projectName: answers.projectName,
+	authentication: answers.useAuth,
+	database: answers.useDatabase,
+	webSockets: answers.useWebsockets,
+	view: answers.useViews
   };
 
   // Add database options if selected
-  if (answers.useDatabase) {
-    options.database = answers.databaseOrm.toLowerCase();
-    options.databaseOrm = answers.databaseOrm;
-
-    if (answers.databaseName) {
-      options.databaseName = answers.databaseName;
-    }
-
-    if (answers.dialect) {
-      options.dialect = answers.dialect;
-    }
+  if (options.database) {
+    options.database = answers.useDatabase;
+    options.databaseOrm = answers.databaseOrm.toLowerCase();
+	options.databaseName = answers.databaseName ? answers.databaseName.toLowerCase() : answers.projectName.toLowerCase();
+	options.dialect = answers.dialect;
   }
 
   // Add authentication options if selected
-  if (answers.useAuth) {
-    options.authentication = answers.authLib.toLowerCase();
-    options.authLib = answers.authLib;
+  if (options.authentication) {
+    options.authLib = answers.authLib.toLowerCase();
   }
 
   // Add websocket options if selected
-  if (answers.useWebsockets) {
-    options.websocketLib = answers.websocketLib;
+  if (options.webSockets) {
+    options.websocketLib = answers.websocketLib.toLowerCase();
   }
 
   // Add view engine options if selected
-  if (answers.useViews) {
-    options.viewEngine = answers.viewEngine;
+  if (options.view) {
+    options.viewEngine = answers.viewEngine.toLowerCase();
   }
 
   return options;

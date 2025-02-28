@@ -19,13 +19,13 @@ function parseArgs(): Partial<GeneratorOptions> {
     if (arg === '--projectName' && i + 1 < args.length) {
       options.projectName = args[++i];
     } else if (arg === '--database' && i + 1 < args.length) {
-      options.database = args[++i];
-    } else if (arg === '--databaseOrm' && i + 1 < args.length) {
+      options.database = Boolean(args[++i]);
+    } else if (arg === '--dialect' && i + 1 < args.length) {
+	  options.dialect = args[++i];
+	} else if (arg === '--databaseOrm' && i + 1 < args.length) {
       options.databaseOrm = args[++i];
     } else if (arg === '--databaseName' && i + 1 < args.length) {
       options.databaseName = args[++i];
-    } else if (arg === '--dialect' && i + 1 < args.length) {
-      options.dialect = args[++i];
     } else if (arg === '--skipPrompt') {
       options.skipPrompt = true;
     } else if (arg === '--help') {
@@ -33,10 +33,10 @@ function parseArgs(): Partial<GeneratorOptions> {
 Express TypeScript Generator CLI Options:
   --skipPrompt             Skip interactive prompts and use provided options
   --projectName <name>     Specify project name
-  --database <type>        Database type (sequelize, typeorm, prisma, mongoose)
+  --database <type>        Database (true / false)
+  --dialect <dialect>      Database dialect (postgres, mysql, sqlite, etc.)
   --databaseOrm <orm>      Database ORM (Sequelize, TypeORM, Prisma, Mongoose)
   --databaseName <name>    Database name
-  --dialect <dialect>      Database dialect (postgres, mysql, sqlite, etc.)
   
 Example for testing Sequelize:
   node bin/cli.js --skipPrompt --projectName test-app --database sequelize --databaseOrm Sequelize --dialect postgres
@@ -64,6 +64,10 @@ async function run(): Promise<void> {
       options = {
         projectName: cliOptions.projectName || "express-typescript-app",
 		destination: path.join(process.cwd(), cliOptions.projectName || "express-typescript-app"),
+		database: cliOptions.database ? true : false,
+		authentication: cliOptions.authentication ? true : false,
+		webSockets: cliOptions.webSockets ? true : false,
+		view: cliOptions.view ? true: false,
         ...cliOptions
       };
       console.log("Using options:", options);

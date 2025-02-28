@@ -23,7 +23,7 @@ import {
 import setupViewEngine from "../views/index.js";
 import setupWebsockets from "../websockets/index.js";
 import { GeneratorOptions } from "../../utils/types.js";
-
+import { error } from "console";
 
 /**
  * Server generator parameters expected structure
@@ -58,7 +58,7 @@ async function setupProjectStructure(
 //   await serverGenerator.generateGlobalTypesFile(destination, serverOptions);
 
   // Create bin directory with startup files
-  createBinFiles(options.destination);
+  createBinFiles(options.destination, options);
 
   // Setup authentication if enabled
   if (options.authentication) {
@@ -66,7 +66,7 @@ async function setupProjectStructure(
   }
 
   // Setup database config and models
-  if (options.database && options.database !== DATABASE.TYPES.NONE) {
+  if (options.database) {
     await setupDatabaseConfig(options);
   }
 
@@ -94,7 +94,7 @@ async function setupProjectStructure(
  * Create binary files for the project
  * @param destination - Project destination directory
  */
-function createBinFiles(destination: string): void {
+function createBinFiles(destination: string, options: GeneratorOptions): void {
   const binDir = path.join(destination, PATHS.DIRECTORIES.ROOT.BIN);
 
   // Create bin directory if it doesn't exist
@@ -107,7 +107,7 @@ function createBinFiles(destination: string): void {
     writeASTTemplate(
       getASTTemplatePath(PATHS.FILES.BIN.SERVER_TEMPLATE_LOC()),
       PATHS.FILES.BIN.SERVER_LOC(destination),
-      {}
+      options
     );
   } catch (error) {
     // Fallback to regular template if AST template fails
@@ -161,7 +161,7 @@ async function setupDatabaseConfig(
   options: GeneratorOptions
 ): Promise<void> {
   // Skip if no database or none was selected
-  if (!options.database || options.database === DATABASE.TYPES.NONE) {
+  if (!options.database) {
     return;
   }
   // Use the database setup module with all necessary options
@@ -304,7 +304,6 @@ function setupRoutesStructure(options: GeneratorOptions): void {
  */
 function createReadme(options: GeneratorOptions): void {
   const readmePath = path.join(options.destination, PATHS.FILES.CONFIG.README);
-
   // Default values
   const templateVars: Record<string, string> = {
     databaseName: DATABASE.TYPES.NONE,
@@ -318,8 +317,8 @@ function createReadme(options: GeneratorOptions): void {
   };
 
   // Set database name if available
-  if (options.database && options.database !== DATABASE.TYPES.NONE) {
-    templateVars.databaseName = options.database;
+  if (options.database) {
+    templateVars.databaseName = options.databaseName!;
   }
 
   // Set websocket library if available
@@ -342,20 +341,22 @@ function createReadme(options: GeneratorOptions): void {
   }
 
   // Add database prerequisites based on selected database
-  if (options.database === DATABASE.TYPES.MONGOOSE) {
+  if (options.dialect === DATABASE.TYPES.MONGOOSE) {
     templateVars.databasePrereqs += `${TEMPLATES.STRINGS.DATABASE_PREREQUISITES.MONGODB}\n`;
-  } else if (options.database === DATABASE.TYPES.TYPEORM || options.database === DATABASE.TYPES.PRISMA) {
+  } else if (options.dialect === DATABASE.TYPES.TYPEORM || options.dialect === DATABASE.TYPES.PRISMA) {
     templateVars.databasePrereqs += `${TEMPLATES.STRINGS.DATABASE_PREREQUISITES.POSTGRES}\n`;
-  } else if (options.database === DATABASE.TYPES.SEQUELIZE) {
+  } else if (options.dialect === DATABASE.TYPES.SEQUELIZE) {
     templateVars.databasePrereqs += `${TEMPLATES.STRINGS.DATABASE_PREREQUISITES.MYSQL}\n`;
   }
 
-  // Add database environment variables section
-  const dbName = options.databaseName || 
-    getDefaultDatabaseName(path.basename(options.destination), options.database || DATABASE.TYPES.NONE);
+
   
-  if (options.database && options.database !== DATABASE.TYPES.NONE) {
-    const dbEnvVars = getDatabaseEnvVars(options.database, dbName);
+  if (options.database) {
+	if(!options.dialect){ throw error }
+	  // Add database environment variables section
+	  const dbName = options.databaseName || 
+	  getDefaultDatabaseName(path.basename(options.destination), options.dialect);
+    const dbEnvVars = getDatabaseEnvVars(options.dialect, dbName);
     templateVars.databaseEnvVars = Object.entries(dbEnvVars)
       .map(([key, value]) => `${key}=${value}`)
       .join("\n") + "\n";
@@ -384,7 +385,6 @@ function createEnvironmentFile(
   options: GeneratorOptions
 ): void {
   console.log(LOGS.SETUP.ENV_FILE);
-
   // Start with default environment variables
   const envVars: Record<string, string | number> = {
     PORT: APP.DEFAULTS.PORT.toString(),
@@ -392,12 +392,13 @@ function createEnvironmentFile(
   };
 
   // Add database-specific environment variables
-  if (options.database && options.database !== DATABASE.TYPES.NONE) {
+  if (options.database) {
+	if(!options.dialect){ throw error }
     const dbName = options.databaseName ||
-      getDefaultDatabaseName(path.basename(options.destination), options.database);
+      getDefaultDatabaseName(path.basename(options.destination), options.dialect);
     
     // Use the utility function to get standardized database env vars
-    const dbEnvVars = getDatabaseEnvVars(options.database, dbName);
+    const dbEnvVars = getDatabaseEnvVars(options.dialect, dbName);
     Object.assign(envVars, dbEnvVars);
   }
 

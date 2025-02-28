@@ -85,10 +85,7 @@ export async function generateExpressTypeScriptApp(
 const normalizeOptions = (options: GeneratorOptions): GeneratorOptions => {
 	const normalizedOptions = options;
 
-	if (
-		options.database &&
-		options.database !== DATABASE.TYPES.NONE &&
-		!options.databaseName
+	if (options.database && options.databaseName
 	  ) {
 		normalizedOptions.databaseName = options.destination
 		.toLowerCase()
@@ -96,19 +93,8 @@ const normalizeOptions = (options: GeneratorOptions): GeneratorOptions => {
 		.replace(/_+/g, "_")
 		.replace(/^_|_$/g, "");
 	  }
-	// Normalize database option
-	if (options.database) {
-		normalizedOptions.database = options.database.toLowerCase() || DATABASE.TYPES.NONE;
-	}
-
-	// Normalize authentication option
-	if (options.authentication) {
-		normalizedOptions.authentication = Boolean(options.authentication);
-	}
-
 	// Normalize websocketLib option
 	if (options.websocketLib) {
-		normalizedOptions.websocketLib = options.websocketLib.toLowerCase() || WEBSOCKETS.LIBRARIES.NONE;
 		// Map "Socket.io" to "socketio" for consistency
 		if (options.websocketLib === "socket.io") {
 			normalizedOptions.websocketLib = WEBSOCKETS.LIBRARIES.SOCKETIO;
@@ -117,8 +103,6 @@ const normalizeOptions = (options: GeneratorOptions): GeneratorOptions => {
 
 	// Normalize viewEngine option
 	if (options.viewEngine) {
-		normalizedOptions.viewEngine = options.viewEngine.toLowerCase() || VIEW_ENGINES.TYPES.NONE;
-
 		// Map "Pug (Jade)" to "pug" for consistency
 		if (options.viewEngine === "pug (jade)") {
 			normalizedOptions.viewEngine = VIEW_ENGINES.TYPES.PUG;
@@ -256,10 +240,10 @@ function addFeatureDependencies(
   options: GeneratorOptions
 ): void {
   // Add database dependencies
-  if (options.database && options.database !== DATABASE.TYPES.NONE) {
+  if (options.database) {
     const dbDeps =
       DEPENDENCIES.FEATURE_DEPENDENCIES.database[
-        options.database as keyof typeof DEPENDENCIES.FEATURE_DEPENDENCIES.database
+        options.dialect as keyof typeof DEPENDENCIES.FEATURE_DEPENDENCIES.database
       ];
     if (dbDeps) {
       Object.assign(dependencies, dbDeps.deps);
@@ -269,13 +253,9 @@ function addFeatureDependencies(
 
   // Add authentication dependencies
   if (options.authentication) {
-    let authType = options.authentication;
-    // Handle boolean case for backward compatibility
-    if (typeof authType === "boolean" && authType === true) {
-      authType = AUTH.TYPES.PASSPORT; // Default to passport if only boolean true is provided
-    }
+    let authType = options.authLib;
 
-    const authDeps =
+	const authDeps =
       DEPENDENCIES.FEATURE_DEPENDENCIES.auth[
         authType as keyof typeof DEPENDENCIES.FEATURE_DEPENDENCIES.auth
       ];

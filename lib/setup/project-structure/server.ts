@@ -1,7 +1,6 @@
 import {
   writeASTTemplate,
   getASTTemplatePath,
-  ASTTemplateOptions,
 } from "../../utils/ast-template-processor.js";
 import {
   WEBSOCKETS,
@@ -25,19 +24,9 @@ export async function generateServerFiles(
 ): Promise<boolean> {
   const { database, authentication, websocketLib, viewEngine, databaseName, dialect } = options;
 
-  try {
-    // Convert generator options to AST template options
-    const astOptions: ASTTemplateOptions = {
-      database: database || "none",
-      authentication: Boolean(authentication),
-      websocketLib: websocketLib || "none",
-      viewEngine: viewEngine || "none",
-      databaseName: databaseName || "",
-      dialect: dialect || "",
-    };
-    
+  try {    
     // Process and write the AST template
-    await writeASTTemplate(getASTTemplatePath(PATHS.FILES.SERVER.FILE_TEMPLATE_LOC()), PATHS.FILES.SERVER.FILE_LOC(options.destination),astOptions);
+    await writeASTTemplate(getASTTemplatePath(PATHS.FILES.SERVER.FILE_TEMPLATE_LOC()), PATHS.FILES.SERVER.FILE_LOC(options.destination),options);
 
     // Generate server.d.ts with type declarations
     // await generateServerTypesFile(options);
@@ -64,7 +53,7 @@ async function generateServerTypesFile(
   };
 
   // Add additional imports based on options
-  if (options.database === DATABASE.TYPES.PRISMA) {
+  if (options.dialect === DATABASE.TYPES.PRISMA) {
     templateVars.imports += SERVER.IMPORTS.DATABASE.PRISMA;
     templateVars.interfaceProperties +=
       SERVER.TYPE_DECLARATIONS.INTERFACE_PROPERTIES.PRISMA;

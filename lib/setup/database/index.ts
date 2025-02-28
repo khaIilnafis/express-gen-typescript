@@ -1,20 +1,20 @@
 import { LOGS, DATABASE } from "../../constants/index.js";
 import { setupDatabaseWithHelper } from "./database-setup-helper.js";
 import { GeneratorOptions } from "../../utils/types.js";
-
+import { error } from "console";
 /**
  * Set up selected database type
  */
 export async function setupDatabase(
   options: GeneratorOptions
 ): Promise<void> {
-  const { database } = options;
-
+  const { database, dialect } = options; 
+  if(!dialect){ throw error }
   // Log setup message
-  console.log(LOGS.SETUP.DATABASE(database!));
+  console.log(LOGS.SETUP.DATABASE(dialect));
 
   // Skip if no database or none was selected
-  if (!database || database === DATABASE.TYPES.NONE) {
+  if (!database) {
     return;
   }
 
