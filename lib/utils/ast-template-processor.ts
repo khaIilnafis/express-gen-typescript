@@ -49,7 +49,6 @@ export async function processASTTemplate(
   options: TemplateOptions
 ): Promise<string> {
   try {
-	console.log(options);
     // Normalize the template path before importing
     const normalizedPath = normalizeTemplatePath(templatePath);
     
@@ -115,7 +114,6 @@ export function getASTTemplatePath(relativePath: string): string {
   if (process.env.NODE_ENV !== 'development') {
     relativePath = relativePath.replace(/\.ast\.ts$/, '.ast.js');
   }
-  console.log(`RelativePath: ${relativePath}`)
   let templatePath = path.join(__dirname, "..", "templates", relativePath);
   return templatePath
 }

@@ -1,29 +1,4 @@
 /**
- * Options for database setup
- */
-export interface DatabaseSetupOptions {
-	/**
-	 * Destination directory for project
-	 */
-	destination: string;
-  
-	/**
-	 * Database type to set up
-	 */
-	database: string;
-  
-	/**
-	 * Database name to use
-	 */
-	databaseName?: string;
-  
-	/**
-	 * Additional options for database setup
-	 */
-	[key: string]: any;
-  }
-
-/**
  * User configuration options for the project generator
  */
 export interface GeneratorOptions {

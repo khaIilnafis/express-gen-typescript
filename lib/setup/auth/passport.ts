@@ -2,20 +2,15 @@ import fs from "fs";
 import path from "path";
 import { PATHS, TEMPLATES } from "../../constants/index.js";
 import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-processor.js";
+import { GeneratorOptions } from "../../utils/types.js";
 
 /**
  * Setup Passport.js authentication
- * @param destination - Project destination directory
+ * @param options - Generator Options
  */
-async function setupPassport(destination: string): Promise<void> {
+async function setupPassport(options: GeneratorOptions): Promise<void> {
   console.log("Setting up Passport.js authentication...");
-
-  // Define paths for destination files
-//   const passportPath = path.join(
-//     destination, 
-//     PATHS.DIRECTORIES.ROOT.SRC,
-//     PATHS.DIRECTORIES.SRC.AUTH
-//   );
+  const { destination } = options;
   // Create auth directory if it doesn't exist
   const authDir = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.DIRECTORIES.SRC.AUTH);
   if (!fs.existsSync(authDir)) {
@@ -32,7 +27,7 @@ async function setupPassport(destination: string): Promise<void> {
   await writeASTTemplate(
     getASTTemplatePath(PATHS.FILES.AUTH.CONFIG_TEMPLATE(TEMPLATES.AUTH.TYPES.PASSPORT)),
     PATHS.FILES.AUTH.CONFIG(destination,TEMPLATES.AUTH.TYPES.PASSPORT),
-    {} // No specific options needed
+    options
   );
 }
 export default setupPassport;

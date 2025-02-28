@@ -19,7 +19,8 @@ import {
   getASTTemplatePath,
   writeASTTemplate,
 } from "../../utils/ast-template-processor.js";
-import { GeneratorOptions, TemplateOptions, TemplateVariables } from "../../utils/types.js";
+import { GeneratorOptions, TemplateOptions} from "../../utils/types.js";
+import { error } from "console";
 
 /**
  * Utility class for database setup operations
@@ -64,21 +65,15 @@ export class DatabaseSetupHelper {
   static async writeConfigFile(
     options: GeneratorOptions,
     templatePath: string,
-    outputPath: string,
-    templateVars: TemplateVariables = {}
+    outputPath: string
   ): Promise<void> {
-    // Combine options variables with template variables
-    const variables: TemplateOptions = {
-      ...options,
-      ...templateVars,
-    };
 
     // Write the template with variables
     // writeTemplate(absoluteTemplatePath, outputPath, variables);
 	await writeASTTemplate(
 		getASTTemplatePath(templatePath),
 		outputPath,
-		variables
+		options
 	  );
     console.log(`Created database config file: ${path.basename(outputPath)}`);
   }
@@ -96,7 +91,7 @@ export class DatabaseSetupHelper {
   ): Promise<void> {
     const { destination, databaseName, dialect } = options;
     const modelsDir = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, outputDirectory);
-
+	if(!databaseName || !dialect) throw error;
     // Ensure models directory exists
     ensureDirectoryExists(modelsDir);
 
@@ -106,19 +101,15 @@ export class DatabaseSetupHelper {
       const outputPath = path.join(modelsDir, `${modelName}.ts`);
 
       // Variables for the template
-      const variables: TemplateVariables = {
-        databaseName: options.databaseName!,
+      const variables: TemplateOptions = {
+        databaseName: databaseName,
         modelName,
-		dialect: dialect ? dialect : 'postgres',
+		dialect: dialect,
         ModelName: modelName.charAt(0).toUpperCase() + modelName.slice(1),
       };
 
     //   writeTemplate(absoluteTemplatePath, outputPath, variables);
-	  await writeASTTemplate(
-		getASTTemplatePath(templatePath),
-		outputPath,
-		variables
-	  );
+	  await writeASTTemplate(getASTTemplatePath(templatePath),outputPath,variables);
       console.log(`Created model: ${modelName}`);
     });
   }
@@ -128,10 +119,10 @@ export class DatabaseSetupHelper {
    * @param options - Database setup options
    * @param scripts - Map of script name to command
    */
-  static updatePackageJson(
+  static async updatePackageJson(
     options: GeneratorOptions,
     scripts: Record<string, string> = {}
-  ): void {
+  ): Promise<void> {
     const { destination } = options;
     const packageJsonPath = path.join(destination, PATHS.FILES.CONFIG.PCKGMGR);
 
@@ -148,7 +139,7 @@ export class DatabaseSetupHelper {
     }
 
     // Update package.json with scripts
-    updatePkgJson(destination, { scripts });
+    await updatePkgJson(destination, { scripts });
 
     console.log("Updated package.json with database scripts");
   }
@@ -172,7 +163,7 @@ export class DatabaseSetupHelper {
     }
 
     // Add database imports
-    switch (options.dialect) {
+    switch (options.databaseOrm) {
       case DATABASE.TYPES.SEQUELIZE:
         addImportIfNotExists(
           serverFilePath,
@@ -286,11 +277,11 @@ export class DatabaseSetupHelper {
     options: GeneratorOptions
   ): Record<string, string> {
     const { destination, databaseName, dialect } = options;
-    const dbDialect = options?.dialect || "";
+    const dbDialect = dialect || "";
 
     // Get database-specific environment variables
     const envVars = getDatabaseEnvVars(dbDialect, databaseName!);
-
+	console.log(envVars);
     // Create or update .env file
     const envFilePath = path.join(destination, ".env");
 
@@ -299,7 +290,7 @@ export class DatabaseSetupHelper {
 
       // Read existing content
       let envContent = fs.readFileSync(envFilePath, "utf8");
-      const dbSectionMarker =TEMPLATES.STRINGS.MARKERS.ENV.DATABASE;
+      const dbSectionMarker = TEMPLATES.STRINGS.MARKERS.ENV.DATABASE;
 
       // Determine if we need to update or append
       if (envContent.includes(dbSectionMarker)) {
@@ -377,17 +368,17 @@ export class DatabaseSetupHelper {
  */
 export function getDefaultDatabaseName(
 	projectName: string,
-	dialect: string
+	orm: string
   ): string {
 	// Return appropriate default name based on database type
-	if (dialect === DATABASE.TYPES.MONGOOSE) {
+	if (orm === DATABASE.TYPES.MONGOOSE) {
 	  return projectName || DATABASE.DEFAULTS.MONGODB.DEFAULT_DB_NAME;
 	} else if (
-		dialect === DATABASE.TYPES.PRISMA ||
-		dialect === DATABASE.TYPES.TYPEORM
+		orm === DATABASE.TYPES.PRISMA ||
+		orm === DATABASE.TYPES.TYPEORM
 	) {
 	  return projectName || DATABASE.DEFAULTS.POSTGRES.DEFAULT_DB_NAME;
-	} else if (dialect === DATABASE.TYPES.SEQUELIZE) {
+	} else if (orm === DATABASE.TYPES.SEQUELIZE) {
 	  return projectName || DATABASE.DEFAULTS.MYSQL.DEFAULT_DB_NAME;
 	}
   
@@ -400,16 +391,16 @@ export function getDefaultDatabaseName(
  * @returns Object containing environment variables
  */
 export function getDatabaseEnvVars(
-	dialect: string,
+	orm: string,
 	dbName: string
   ): Record<string, string> {
 	const envVars: Record<string, string> = {};
   
-	if (dialect === DATABASE.TYPES.MONGOOSE) {
+	if (orm === DATABASE.TYPES.MONGOOSE) {
 	  envVars.MONGODB_URI = DATABASE.DEFAULTS.MONGODB.URI(dbName);
-	} else if (dialect === DATABASE.TYPES.PRISMA) {
+	} else if (orm === DATABASE.TYPES.PRISMA) {
 	  envVars.DATABASE_URL = DATABASE.DEFAULTS.POSTGRES.URI(dbName);
-	} else if (dialect === DATABASE.TYPES.TYPEORM) {
+	} else if (orm === DATABASE.TYPES.TYPEORM) {
 	  const { HOST, PORT, USER, PASSWORD } = DATABASE.DEFAULTS.POSTGRES;
 	  envVars.DB_TYPE = DATABASE.DIALECTS.POSTGRES;
 	  envVars.DB_HOST = HOST;
@@ -417,7 +408,7 @@ export function getDatabaseEnvVars(
 	  envVars.DB_NAME = dbName;
 	  envVars.DB_USER = USER;
 	  envVars.DB_PASSWORD = PASSWORD;
-	} else if (dialect === DATABASE.TYPES.SEQUELIZE) {
+	} else if (orm === DATABASE.TYPES.SEQUELIZE) {
 	  const { HOST, PORT, USER, PASSWORD } = DATABASE.DEFAULTS.MYSQL;
 	  envVars.DB_HOST = HOST;
 	  envVars.DB_PORT = PORT;
@@ -430,15 +421,13 @@ export function getDatabaseEnvVars(
   }
 /**
  * Create database setup for the specified database type
- * @param destination - Project destination directory
- * @param database - Selected database type
  * @param options - Database setup options
  */
 export async function setupDatabaseWithHelper(
   options: GeneratorOptions
 ): Promise<void> {
   try {
-    switch (options.dialect) {
+    switch (options.databaseOrm) {
       case DATABASE.TYPES.SEQUELIZE:
         await setupSequelize(options);
         break;
@@ -452,7 +441,7 @@ export async function setupDatabaseWithHelper(
         await setupMongoose(options);
         break;
       default:
-        console.log(`Skipping database setup for database type: ${options.database}`);
+        console.log(`Skipping database setup for database type: ${options.dialect}`);
     }
   }catch(err){
 	throw(err);
@@ -476,24 +465,15 @@ async function setupSequelize(options: GeneratorOptions): Promise<void> {
     PATHS.DIRECTORIES.SRC.DATABASE,
     PATHS.FILES.DATABASE.CONNECTION
   );
-  DatabaseSetupHelper.writeConfigFile(
+  await DatabaseSetupHelper.writeConfigFile(
     options,
     PATHS.FILES.DATABASE.CONNECTION_TEMPLATE_LOC(DATABASE.TYPES.SEQUELIZE),
-    configPath,
-    { dialect: dialect || "mysql" }
-  );
-
-  // Create models index
-  const modelsIndexPath = path.join(
-    destination,
-    PATHS.DIRECTORIES.ROOT.SRC,
-    PATHS.DIRECTORIES.SRC.MODELS,
-    PATHS.FILES.MODELS.INDEX
+    configPath
   );
   await DatabaseSetupHelper.createModelIndexFile(
     options,
     PATHS.FILES.MODELS.INDEX_TEMPLATE_LOC(DATABASE.TYPES.SEQUELIZE),
-    modelsIndexPath
+    PATHS.FILES.MODELS.INDEX_LOC(destination)
   );
 
   // Create model files
@@ -516,7 +496,7 @@ async function setupSequelize(options: GeneratorOptions): Promise<void> {
   });
 
   // Setup environment variables
-  DatabaseSetupHelper.setupEnvironmentVariables(options);
+//   DatabaseSetupHelper.setupEnvironmentVariables(options);
 }
 
 /**
@@ -542,8 +522,7 @@ async function setupTypeORM(options: GeneratorOptions): Promise<void> {
   await DatabaseSetupHelper.writeConfigFile(
     options,
     PATHS.FILES.DATABASE.CONNECTION_TEMPLATE_LOC(DATABASE.TYPES.TYPEORM),
-    configPath,
-    { dialect: dialect || "postgres" }
+    configPath
   );
 
   // Create entity files
@@ -592,8 +571,7 @@ async function setupPrisma(options: GeneratorOptions): Promise<void> {
   await DatabaseSetupHelper.writeConfigFile(
     options,
     PATHS.FILES.MODELS.EXAMPLE_TEMPLATE_LOC(DATABASE.TYPES.PRISMA),
-    schemaPath,
-    { databaseName: databaseName! }
+    schemaPath
   );
 
   // Update server file

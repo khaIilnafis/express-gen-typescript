@@ -10,7 +10,6 @@ import {
 } from "../../constants/index.js";
 
 // Import interface from index.ts
-import { ServerGeneratorOptions } from "./index.js";
 import { GeneratorOptions } from "../../utils/types.js";
 
 /**
@@ -80,8 +79,7 @@ async function generateServerTypesFile(
  * @param options - User selected options
  */
 export function generateGlobalTypesFile(
-  destination: string,
-  options: ServerGeneratorOptions
+  options: GeneratorOptions
 ): void {
 
 	writeASTTemplate(getASTTemplatePath(PATHS.FILES.CONFIG.TYPES_TEMPLATE_LOC()),PATHS.FILES.CONFIG.TYPES_LOC(options.destination),{});

@@ -2,13 +2,14 @@ import fs from "fs";
 import path from "path";
 import passportSetup from "./passport.js";
 import { AUTH, PATHS } from "../../constants/index.js";
+import { GeneratorOptions } from "../../utils/types.js";
 
 /**
  * Setup authentication based on user selection
  * @param destination - Project destination directory
  * @param authLib - Selected authentication library
  */
-async function setupAuth(destination: string, authLib: string): Promise<void> {
+async function setupAuth(destination: string, authLib: string, options: GeneratorOptions): Promise<void> {
   console.log(`Setting up ${authLib} authentication...`);
 
   // Create necessary directories
@@ -25,7 +26,7 @@ async function setupAuth(destination: string, authLib: string): Promise<void> {
   // Setup based on selected auth lib
   switch (authLib) {
     case AUTH.TYPES.PASSPORT:
-      await setupPassport(destination);
+      await setupPassport(destination, options);
       break;
     case AUTH.TYPES.JWT:
       await setupJWT(destination);
@@ -40,9 +41,9 @@ async function setupAuth(destination: string, authLib: string): Promise<void> {
  * Setup Passport.js authentication
  * @param destination - Project destination directory
  */
-async function setupPassport(destination: string): Promise<void> {
+async function setupPassport(destination: string, options: GeneratorOptions): Promise<void> {
   // Implementation will be moved to a separate file
-  await passportSetup(destination);
+  await passportSetup(options);
 }
 
 /**

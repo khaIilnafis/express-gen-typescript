@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
-import serverGenerator from "./server.js";
-import setupPassport from "../auth/passport.js";
+
 import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
 import { writeASTTemplate, getASTTemplatePath } from "../../utils/ast-template-processor.js";
 import setupDatabase from "../database/index.js";
@@ -26,17 +25,6 @@ import { GeneratorOptions } from "../../utils/types.js";
 import { error } from "console";
 
 /**
- * Server generator parameters expected structure
- */
-export interface ServerGeneratorOptions {
-  database: string;
-  authentication: boolean;
-  websocketLib: string;
-  viewEngine: string;
-  [key: string]: any;
-}
-
-/**
  * Setup project structure based on user options
  * @param destination - Project destination directory
  * @param options - User selected options
@@ -47,80 +35,48 @@ async function setupProjectStructure(
   console.log(LOGS.SETUP.PROJECT_STRUCTURE);
 
   // Create core directories
-  createCoreDirectories(options.destination);
+  await createCoreDirectories(options);
 
   // Create .env file with appropriate environment variables
-  createEnvironmentFile(options);
-
-  // Create server.ts and type files
-  // Generate server files
-  await serverGenerator.generateServerFiles(options);
-//   await serverGenerator.generateGlobalTypesFile(destination, serverOptions);
+  await createEnvironmentFile(options);
 
   // Create bin directory with startup files
-  createBinFiles(options.destination, options);
-
-  // Setup authentication if enabled
-  if (options.authentication) {
-    await setupPassport(options.destination);
-  }
-
-  // Setup database config and models
-  if (options.database) {
-    await setupDatabaseConfig(options);
-  }
-
-  // Setup websockets if enabled
-  if (
-    options.websocketLib &&
-    options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
-  ) {
-    await setupWebsocketsConfig(options.destination, options.websocketLib);
-  }
-
-  // Setup views if enabled
-  if (options.viewEngine && options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
-    await setupViewsConfig(options.destination, options.viewEngine);
-  }
+  await createBinFiles(options);
 
   // Create basic routes structure
-  setupRoutesStructure(options);
+  await setupRoutesStructure(options);
 
-  // Create README.md file
-  createReadme(options);
 }
 
 /**
  * Create binary files for the project
  * @param destination - Project destination directory
  */
-function createBinFiles(destination: string, options: GeneratorOptions): void {
+async function createBinFiles(options: GeneratorOptions): Promise<void> {
+	const { destination }= options;
   const binDir = path.join(destination, PATHS.DIRECTORIES.ROOT.BIN);
 
-  // Create bin directory if it doesn't exist
-  if (!fs.existsSync(binDir)) {
-    fs.mkdirSync(binDir);
-  }
-  // Use AST template if available
-  try {
-    // Use the AST template processor
-    writeASTTemplate(
-      getASTTemplatePath(PATHS.FILES.BIN.SERVER_TEMPLATE_LOC()),
-      PATHS.FILES.BIN.SERVER_LOC(destination),
-      options
-    );
-  } catch (error) {
-    // Fallback to regular template if AST template fails
-    console.warn("AST template failed:", error);
-  }
+	// Create bin directory if it doesn't exist
+	if (!fs.existsSync(binDir)) {
+		fs.mkdirSync(binDir);
+	}
+  	// Use AST template if available
+	try {
+		// Use the AST template processor
+		writeASTTemplate(getASTTemplatePath(PATHS.FILES.BIN.SERVER_TEMPLATE_LOC()),PATHS.FILES.BIN.SERVER_LOC(destination),options);
+	} catch (error) {
+		// Fallback to regular template if AST template fails
+		console.warn("AST template failed:", error);
+	}
 }
 
 /**
  * Create core project directories
  * @param destination - Project destination directory
  */
-function createCoreDirectories(destination: string): void {
+async function createCoreDirectories(options: GeneratorOptions): Promise<void> {
   const { ROOT, SRC, PUBLIC } = PATHS.DIRECTORIES;
+  const {destination} = options;
 
   // Define all directories to create
   const directories = [
@@ -157,7 +113,7 @@ function createCoreDirectories(destination: string): void {
  * @param database - Selected database type
  * @param options - User selected options
  */
-async function setupDatabaseConfig(
+export async function setupDatabaseConfig(
   options: GeneratorOptions
 ): Promise<void> {
   // Skip if no database or none was selected
@@ -172,13 +128,12 @@ async function setupDatabaseConfig(
 
 /**
  * Setup websockets configuration
- * @param destination - Project destination directory
- * @param websocketLib - Selected websocket library
+ * @param options - Generator Options
  */
-async function setupWebsocketsConfig(
-  destination: string,
-  websocketLib: string
+export async function setupWebsocketsConfig(
+  options: GeneratorOptions
 ): Promise<void> {
+	const { websocketLib } = options;
   // Skip if no websocket library or none was selected
   if (!websocketLib || websocketLib === WEBSOCKETS.LIBRARIES.NONE) {
     return;
@@ -187,7 +142,7 @@ async function setupWebsocketsConfig(
   console.log(LOGS.SETUP.WEBSOCKETS(websocketLib));
   
   // Use the dedicated websockets setup
-  await setupWebsockets(destination, websocketLib);
+  await setupWebsockets(options);
 }
 
 /**
@@ -195,10 +150,10 @@ async function setupWebsocketsConfig(
  * @param destination - Project destination directory
  * @param viewEngine - Selected view engine
  */
-async function setupViewsConfig(
-  destination: string,
-  viewEngine: string
+export async function setupViewsConfig(
+  options: GeneratorOptions
 ): Promise<void> {
+	const { destination, viewEngine } = options;
   // Skip if no view engine or none was selected
   if (!viewEngine || viewEngine === VIEW_ENGINES.TYPES.NONE) {
     return;
@@ -216,85 +171,36 @@ async function setupViewsConfig(
  * @param destination - Project destination directory
  * @param options - Project setup options including websocketLib and viewEngine
  */
-function setupRoutesStructure(options: GeneratorOptions): void {
-  const { ROOT, SRC } = PATHS.DIRECTORIES;
+export async function setupRoutesStructure(options: GeneratorOptions): Promise<void> {
+  	const { ROOT, SRC } = PATHS.DIRECTORIES;
 
-  const routesDir = path.join(options.destination, ROOT.SRC, SRC.ROUTES);
-  const controllersDir = path.join(options.destination, ROOT.SRC, SRC.CONTROLLERS);
-  const exampleControllerDir = path.join(controllersDir, TEMPLATES.STRINGS.EXAMPLE_FILE.FILENAME);
+	// const routesDir = path.join(options.destination, ROOT.SRC, SRC.ROUTES);
+	const controllersDir = path.join(options.destination, ROOT.SRC, SRC.CONTROLLERS);
+	const exampleControllerDir = path.join(controllersDir, TEMPLATES.STRINGS.EXAMPLE_FILE.FILENAME);
 
-  // Create example controller directory if it doesn't exist
-  if (!fs.existsSync(exampleControllerDir)) {
-    fs.mkdirSync(exampleControllerDir, { recursive: true });
-  }
+	// Create example controller directory if it doesn't exist
+	if (!fs.existsSync(exampleControllerDir)) {
+		fs.mkdirSync(exampleControllerDir, { recursive: true });
+	}
 
-  // Create main controllers index file
-  const controllersIndexPath = path.join(controllersDir, PATHS.FILES.CONTROLLERS.INDEX);
-  // Process and write the AST template
-  writeASTTemplate(
-    getASTTemplatePath(PATHS.FILES.CONTROLLERS.INDEX_TEMPLATE_LOC(false)),
-    PATHS.FILES.CONTROLLERS.INDEX_LOC(options.destination, false),
-    {} // No specific options needed for the controllers index
-  );
+  	// Create main controllers index file
+	// Process and write the AST template
+	writeASTTemplate(getASTTemplatePath(PATHS.FILES.CONTROLLERS.INDEX_TEMPLATE_LOC(false)),PATHS.FILES.CONTROLLERS.INDEX_LOC(options.destination, false),options);
 
   	// Create index router if it doesn't exist
-    // Use AST template for index router
-    const astOptions = {
-      websocketLib: options.websocketLib || WEBSOCKETS.LIBRARIES.NONE,
-    //   viewEngine: options.viewEngine || VIEW_ENGINES.TYPES.NONE
-    };
-	console.log(astOptions);
     // Process and write the AST template
-    writeASTTemplate(
-      getASTTemplatePath(PATHS.FILES.ROUTES.INDEX_TEMPLATE_LOC()),
-      PATHS.FILES.ROUTES.INDEX_LOC(options.destination),
-      astOptions
-    );
+    writeASTTemplate(getASTTemplatePath(PATHS.FILES.ROUTES.INDEX_TEMPLATE_LOC()),PATHS.FILES.ROUTES.INDEX_LOC(options.destination),options);
 
-  // Create example routes using AST template
-  // Define AST options for example routes
-  const exampleRoutesAstOptions = {
-    websocketLib: options.websocketLib || WEBSOCKETS.LIBRARIES.NONE,
-    authentication: Boolean(options.authentication)
-  };
-  
-  // Process and write the AST template
-  writeASTTemplate(
-    getASTTemplatePath(PATHS.FILES.ROUTES.EXAMPLE_TEMPLATE_LOC()),
-    PATHS.FILES.ROUTES.EXAMPLE_LOC(options.destination),
-    exampleRoutesAstOptions
-  );
+	// Create example routes using AST template
+	writeASTTemplate(getASTTemplatePath(PATHS.FILES.ROUTES.EXAMPLE_TEMPLATE_LOC()),PATHS.FILES.ROUTES.EXAMPLE_LOC(options.destination),options);
 
-  // Create example controller files
-//   const exampleControllerIndexPath = path.join(
-//     exampleControllerDir,
-//     PROJECT.FILES.CONTROLLERS.INDEX
-//   );
-  
-//   // Use AST template for example controller index
-  const exampleControllerIndexAstOptions = {
-    websocketLib: options.websocketLib || WEBSOCKETS.LIBRARIES.NONE
-  };
-  
-  // Process and write the AST template
-  writeASTTemplate(
-    getASTTemplatePath(PATHS.FILES.CONTROLLERS.INDEX_TEMPLATE_LOC(true)),
-    PATHS.FILES.CONTROLLERS.INDEX_LOC(options.destination,true),
-    exampleControllerIndexAstOptions
-  );
+  	// Create example controller files  
+  	// Process and write the AST template
+	writeASTTemplate(getASTTemplatePath(PATHS.FILES.CONTROLLERS.INDEX_TEMPLATE_LOC(true)),PATHS.FILES.CONTROLLERS.INDEX_LOC(options.destination,true),options,);
 
-  // Create example controller using AST template
-//   const exampleControllerLogicPath = path.join(
-//     exampleControllerDir,
-//     PROJECT.FILES.CONTROLLERS.EXAMPLE
-//   );
-  
-  // Process and write the AST template
-  writeASTTemplate(
-    getASTTemplatePath(PATHS.FILES.CONTROLLERS.EXAMPLE_TEMPLATE_LOC()),
-    PATHS.FILES.CONTROLLERS.EXAMPLE_LOC(options.destination),
-    exampleControllerIndexAstOptions 
-  );
+	// Create example controller using AST template  
+  	// Process and write the AST template
+	writeASTTemplate(getASTTemplatePath(PATHS.FILES.CONTROLLERS.EXAMPLE_TEMPLATE_LOC()),PATHS.FILES.CONTROLLERS.EXAMPLE_LOC(options.destination),options);
 }
 
 /**
@@ -302,7 +208,7 @@ function setupRoutesStructure(options: GeneratorOptions): void {
  * @param destination - Project destination directory
  * @param options - User selected options
  */
-function createReadme(options: GeneratorOptions): void {
+export async function createReadme(options: GeneratorOptions): Promise<void> {
   const readmePath = path.join(options.destination, PATHS.FILES.CONFIG.README);
   // Default values
   const templateVars: Record<string, string> = {
@@ -368,7 +274,7 @@ function createReadme(options: GeneratorOptions): void {
   }
 
   // Create README using template
-  writeTemplate(
+  await writeTemplate(
     getTemplatePath(path.join(PATHS.DIRECTORIES.ROOT.STRUCTURE, PATHS.FILES.CONFIG.README)),
     readmePath,
     templateVars
@@ -381,24 +287,25 @@ function createReadme(options: GeneratorOptions): void {
  * @param destination - Project destination directory
  * @param options - Project setup options
  */
-function createEnvironmentFile(
+async function createEnvironmentFile(
   options: GeneratorOptions
-): void {
+): Promise<void> {
   console.log(LOGS.SETUP.ENV_FILE);
   // Start with default environment variables
   const envVars: Record<string, string | number> = {
     PORT: APP.DEFAULTS.PORT.toString(),
     NODE_ENV: APP.ENV.DEVELOPMENT,
   };
-
+  console.log(`Database: ${options.database}`);
   // Add database-specific environment variables
   if (options.database) {
-	if(!options.dialect){ throw error }
+	if(!options.dialect || !options.databaseOrm){ throw error }
     const dbName = options.databaseName ||
-      getDefaultDatabaseName(path.basename(options.destination), options.dialect);
+      getDefaultDatabaseName(path.basename(options.destination), options.databaseOrm);
     
     // Use the utility function to get standardized database env vars
-    const dbEnvVars = getDatabaseEnvVars(options.dialect, dbName);
+    const dbEnvVars = getDatabaseEnvVars(options.databaseOrm, dbName);
+	console.log(dbEnvVars)
     Object.assign(envVars, dbEnvVars);
   }
 

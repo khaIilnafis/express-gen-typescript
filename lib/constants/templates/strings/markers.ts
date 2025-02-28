@@ -37,7 +37,7 @@ export const MARKERS = Object.freeze({
 	  WEBSOCKET_IMPORT: "// Websocket imports",
 	  SERVER: {
 		IMPORTS: "// Imports",
-		DATABASE_CONNECTION: "// Database connection methods",
+		DATABASE_CONNECTION: " Database connection methods",
 		ROUTES: "// Configure routes",
 		MIDDLEWARE: "// Configure middleware",
   	  },

@@ -9,6 +9,7 @@ import {
   PATHS,
   WEBSOCKETS,
 } from "../../constants/index.js";
+import { GeneratorOptions } from "../../utils/types.js";
 
 /**
  * Setup websockets based on user selection
@@ -16,9 +17,9 @@ import {
  * @param {string} websocketLib - Selected websocket library
  */
 async function setupWebsockets(
-  destination: string,
-  websocketLib: string
+  options: GeneratorOptions
 ): Promise<void> {
+	const {destination, websocketLib} = options;
   // Skip if no websocket library or none was selected
   if (!websocketLib || websocketLib === WEBSOCKETS.LIBRARIES.NONE) {
     return;
@@ -40,22 +41,22 @@ async function setupWebsockets(
   // Setup based on selected websocket lib
   switch (websocketLib) {
     case WEBSOCKETS.LIBRARIES.SOCKETIO:
-      await setupSocketIO(destination);
+      await setupSocketIO(options);
       break;
     case WEBSOCKETS.LIBRARIES.WS:
-      await setupWS(destination);
+      await setupWS(options);
       break;
   }
 }
 
 /**
  * Setup Socket.io
- * @param {string} destination - Project destination directory
+ * @param {string} options - Generator Options
  */
-async function setupSocketIO(destination: string): Promise<void> {  
+async function setupSocketIO(options: GeneratorOptions): Promise<void> {  
   // Create index.ts file for Socket.io using AST template
-  await writeASTTemplate(getASTTemplatePath(PATHS.FILES.SOCKETS.INDEX_TEMPLATE_LOC(WEBSOCKETS.LIBRARIES.SOCKETIO)),PATHS.FILES.SOCKETS.INDEX_LOC(destination),
-    {} // No specific options needed
+  await writeASTTemplate(getASTTemplatePath(PATHS.FILES.SOCKETS.INDEX_TEMPLATE_LOC(WEBSOCKETS.LIBRARIES.SOCKETIO)),PATHS.FILES.SOCKETS.INDEX_LOC(options.destination),
+    options
   );
   
   console.log(LOGS.SOCKETS.CONFIG.SUCCESS(WEBSOCKETS.LIBRARIES.SOCKETIO));
@@ -63,14 +64,14 @@ async function setupSocketIO(destination: string): Promise<void> {
 
 /**
  * Setup WS (ws package)
- * @param {string} destination - Project destination directory
+ * @param {string} options - Generator Options
  */
-async function setupWS(destination: string): Promise<void> {
+async function setupWS(options: GeneratorOptions): Promise<void> {
     // Create index.ts file for WS using AST template
   await writeASTTemplate(
     getASTTemplatePath(PATHS.FILES.SOCKETS.INDEX_TEMPLATE_LOC(WEBSOCKETS.LIBRARIES.WS)), 
-    PATHS.FILES.SOCKETS.INDEX_LOC(destination),
-    {} // No specific options needed
+    PATHS.FILES.SOCKETS.INDEX_LOC(options.destination),
+    options
   );
   
   console.log(LOGS.SOCKETS.CONFIG.SUCCESS(WEBSOCKETS.LIBRARIES.WS));

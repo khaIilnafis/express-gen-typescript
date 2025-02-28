@@ -35,6 +35,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       choices: ["postgres", "mysql", "sqlite", "mariadb", "mssql", "mongodb"],
       default: "postgres",
       when: (answers: any) => answers.useDatabase,
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "list",
@@ -42,6 +43,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select a database ORM:",
       choices: ["Sequelize", "TypeORM", "Prisma"],
       when: (answers: any) => answers.dialect !== "mongodb",
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "list",
@@ -49,6 +51,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select a database ORM:",
       choices: ["Mongoose", "Prisma"],
       when: (answers: any) => answers.dialect == "mongodb",
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "confirm",
@@ -62,6 +65,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select an authentication library:",
       choices: ["Passport", "Express-session"],
       when: (answers: any) => answers.useAuth,
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "list",
@@ -69,6 +73,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select Passport Auth Strategy",
       choices: ["Local", "JWT"],
       when: (answers: any) => answers.authLib == "Passport",
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "confirm",
@@ -82,6 +87,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select a websocket library:",
       choices: ["Socket.io", "WS"],
       when: (answers: any) => answers.useWebsockets,
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
     {
       type: "confirm",
@@ -95,9 +101,10 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select a view engine:",
       choices: ["EJS", "Pug (Jade)", "Handlebars"],
       when: (answers: any) => answers.useViews,
+	  filter: (input: any, answers: any) => input.toLowerCase(),
     },
   ]);
-
+  console.log(answers);
   // Transform answers into the expected format
   const options: GeneratorOptions = {
 	destination: '',
@@ -111,24 +118,24 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
   // Add database options if selected
   if (options.database) {
     options.database = answers.useDatabase;
-    options.databaseOrm = answers.databaseOrm.toLowerCase();
-	options.databaseName = answers.databaseName ? answers.databaseName.toLowerCase() : answers.projectName.toLowerCase();
+    options.databaseOrm = answers.databaseOrm;
+	options.databaseName = answers.databaseName ? answers.databaseName : answers.projectName;
 	options.dialect = answers.dialect;
   }
 
   // Add authentication options if selected
   if (options.authentication) {
-    options.authLib = answers.authLib.toLowerCase();
+    options.authLib = answers.authLib;
   }
 
   // Add websocket options if selected
   if (options.webSockets) {
-    options.websocketLib = answers.websocketLib.toLowerCase();
+    options.websocketLib = answers.websocketLib;
   }
 
   // Add view engine options if selected
   if (options.view) {
-    options.viewEngine = answers.viewEngine.toLowerCase();
+    options.viewEngine = answers.viewEngine;
   }
 
   return options;

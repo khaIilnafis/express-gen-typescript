@@ -5,16 +5,17 @@ import { promisify } from "util";
 import { exec } from "child_process";
 import { fileURLToPath } from "url";
 import {
-  DATABASE,
   WEBSOCKETS,
   VIEW_ENGINES,
-  AUTH,
   LOGS,
   DEPENDENCIES,
 } from "./constants/index.js";
 // Import setup modules
 import setup from "./setup/index.js";
+import serverGenerator from "./setup/project-structure/server.js";
 import { GeneratorOptions } from "./utils/types.js";
+import setupPassport from "./setup/auth/passport.js";
+import { createReadme, setupDatabaseConfig, setupViewsConfig, setupWebsocketsConfig } from "./setup/project-structure/index.js";
 
 // Get dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -44,26 +45,46 @@ export async function generateExpressTypeScriptApp(
     if (!fs.existsSync(options.destination)) {
       await mkdir(options.destination, { recursive: true });
     }
-
     // Normalize options to ensure consistent casing and values
     options = normalizeOptions(options);
 
+	// Initialize git repository
+    await initializeGitRepository(options.destination);
+	// Copy Yarn configuration files before creating package.json
+    await copyYarnFiles(options.destination);
+	// Create package.json
+	await initPackageManager(options);
+	// Create tsconfig.json
+    await createTsConfig(options.destination);
     // Create basic .env file
     await createEnvFile(options.destination);
-
+	// Create README.md file
+	await createReadme(options);
+	// Establish project folder structure
     await setup.projectStructure(options);
-
-    // Copy Yarn configuration files before creating package.json
-    await copyYarnFiles(options.destination);
-
-    // Create package.json
-    await initPackageManager(options);
-
-    // Create tsconfig.json
-    await createTsConfig(options.destination);
-
-    // Initialize git repository
-    await initializeGitRepository(options.destination);
+	// Create server.ts and type files
+ 	// Generate server files
+ 	await serverGenerator.generateServerFiles(options);
+	// await serverGenerator.generateGlobalTypesFile(destination, serverOptions);
+	// Setup authentication if enabled
+	if (options.authentication) {
+		await setupPassport(options);
+	}
+	// Setup database config and models
+	if (options.database) {
+		await setupDatabaseConfig(options);
+	}
+	// Setup websockets if enabled
+	if (
+	options.websocketLib &&
+	options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
+	) {
+		await setupWebsocketsConfig(options);
+	}
+	// Setup views if enabled
+	if (options.viewEngine && options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
+		await setupViewsConfig(options);
+	}
 
     // Database setup is now handled within setup.projectStructure
     // Keeping the comment for clarity
@@ -87,7 +108,7 @@ const normalizeOptions = (options: GeneratorOptions): GeneratorOptions => {
 
 	if (options.database && options.databaseName
 	  ) {
-		normalizedOptions.databaseName = options.destination
+		normalizedOptions.databaseName = options.databaseName
 		.toLowerCase()
 		.replace(/[^a-z0-9]/g, "_")
 		.replace(/_+/g, "_")
@@ -100,7 +121,6 @@ const normalizeOptions = (options: GeneratorOptions): GeneratorOptions => {
 			normalizedOptions.websocketLib = WEBSOCKETS.LIBRARIES.SOCKETIO;
 		}
 	}
-
 	// Normalize viewEngine option
 	if (options.viewEngine) {
 		// Map "Pug (Jade)" to "pug" for consistency
@@ -243,7 +263,7 @@ function addFeatureDependencies(
   if (options.database) {
     const dbDeps =
       DEPENDENCIES.FEATURE_DEPENDENCIES.database[
-        options.dialect as keyof typeof DEPENDENCIES.FEATURE_DEPENDENCIES.database
+        options.databaseOrm as keyof typeof DEPENDENCIES.FEATURE_DEPENDENCIES.database
       ];
     if (dbDeps) {
       Object.assign(dependencies, dbDeps.deps);
