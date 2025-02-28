@@ -176,5 +176,5 @@ export default function generateRoutesIndexAST(options: TemplateOptions = {}) {
  * Export a print function to convert the AST to code
  */
 export function print(ast: any): string {
-  return recast.print(ast, { parser: tsParser }).code;
+  return recast.prettyPrint(ast, { parser: tsParser }).code;
 } 

@@ -2,17 +2,9 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { GeneratorOptions, TemplateOptions } from "./types.js";
-
 // Get the directory name equivalent for ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-/**
- * Options interface for AST template generation
- */
-export interface ASTTemplateOptions {
-  [key: string]: string | boolean | number | null | undefined;
-}
 
 /**
  * Ensures the template path is valid for import
@@ -21,7 +13,6 @@ export interface ASTTemplateOptions {
  * @returns A path that can be properly imported
  */
 function normalizeTemplatePath(templatePath: string): string {
-	console.log(`Template path: ${templatePath}`);
   // Check if the file exists (development mode)
   if (fs.existsSync(templatePath)) {
     return templatePath;
@@ -88,13 +79,12 @@ export async function writeASTTemplate(
   options: TemplateOptions = {}
 ): Promise<void> {
   try {
-    const generatedCode = await processASTTemplate(astTemplatePath, options);
+    let generatedCode = await processASTTemplate(astTemplatePath, options);
     // Ensure directory exists
     const dir = path.dirname(destinationPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    
     // Write generated code to destination
     fs.writeFileSync(destinationPath, generatedCode);
   } catch (error) {

@@ -5,6 +5,7 @@
 
 import * as recast from 'recast';
 import * as tsParser from 'recast/parsers/typescript.js';
+import { IMPORTS } from '../../../constants/templates/server/index.js';
 
 const b = recast.types.builders;
 
@@ -197,7 +198,7 @@ export default function generateTypeORMConfigAST(options: TemplateOptions = {}) 
   // Initialize database function
   const initializeFunction = b.exportNamedDeclaration(
     b.functionDeclaration(
-      b.identifier("initializeDatabase"),
+      b.identifier(IMPORTS.DATABASE.INITIALIZE),
       [],
       b.blockStatement([
         // try-catch block
@@ -281,5 +282,5 @@ export default function generateTypeORMConfigAST(options: TemplateOptions = {}) 
  * Export a print function to convert the AST to code
  */
 export function print(ast: any): string {
-  return recast.print(ast, { parser: tsParser }).code;
+  return recast.prettyPrint(ast, { parser: tsParser }).code;
 } 

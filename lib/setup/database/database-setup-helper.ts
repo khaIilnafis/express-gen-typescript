@@ -21,6 +21,7 @@ import {
 } from "../../utils/ast-template-processor.js";
 import { GeneratorOptions, TemplateOptions} from "../../utils/types.js";
 import { error } from "console";
+import { EXTENSIONS } from "../../constants/setup/paths/extensions.js";
 
 /**
  * Utility class for database setup operations
@@ -144,129 +145,6 @@ export class DatabaseSetupHelper {
     console.log("Updated package.json with database scripts");
   }
 
-  /**
-   * Update server file with database connection code
-   * @param options - Database setup options
-   * @param serverFilePath - Path to server file
-   */
-  static async updateServerFile(
-    options: GeneratorOptions,
-    serverFilePath: string
-  ): Promise<void> {
-    console.log(
-      `Updating server file for database connection (${options.dialect})`
-    );
-    
-    if (!fs.existsSync(serverFilePath)) {
-      console.error(`File not found: ${PATHS.FILES.SERVER.FILE}`);
-      return;
-    }
-
-    // Add database imports
-    switch (options.databaseOrm) {
-      case DATABASE.TYPES.SEQUELIZE:
-        addImportIfNotExists(
-          serverFilePath,
-          `import { initializeDatabase } from './${PATHS.DIRECTORIES.SRC.DATABASE}/${PATHS.FILES.COMMON.NAMES.CONNECTION}';`
-        );
-        
-        // Generate temp file with the AST template output
-        const tempFilePath = path.join(path.dirname(serverFilePath), 'db-init-temp.ts');
-        await writeASTTemplate(
-          getASTTemplatePath(PATHS.FILES.MODELS.INIT_TEMPLATE_LOC(DATABASE.TYPES.SEQUELIZE)),
-          tempFilePath,
-          options
-        );
-        
-        // Read the generated content and add it to the server file
-        const generatedContent = fs.readFileSync(tempFilePath, 'utf8');
-        insertContentAtMarker(
-          serverFilePath,
-          TEMPLATES.STRINGS.MARKERS.SERVER.DATABASE_CONNECTION,
-          generatedContent
-        );
-        
-        // Clean up temp file
-        fs.unlinkSync(tempFilePath);
-        break;
-      case DATABASE.TYPES.TYPEORM:
-        addImportIfNotExists(
-          serverFilePath,
-          `import { initializeDatabase } from './${PATHS.DIRECTORIES.SRC.DATABASE}/${PATHS.FILES.COMMON.NAMES.CONNECTION}';`
-        );
-        
-        // Generate temp file with the AST template output
-        const typeormTempFilePath = path.join(path.dirname(serverFilePath), 'db-init-temp.ts');
-        await writeASTTemplate(
-          getASTTemplatePath(PATHS.FILES.MODELS.INDEX_TEMPLATE_LOC(DATABASE.TYPES.TYPEORM)),
-          typeormTempFilePath,
-          options
-        );
-        
-        // Read the generated content and add it to the server file
-        const typeormGeneratedContent = fs.readFileSync(typeormTempFilePath, 'utf8');
-        insertContentAtMarker(
-          serverFilePath,
-          TEMPLATES.STRINGS.MARKERS.SERVER.DATABASE_CONNECTION,
-          typeormGeneratedContent
-        );
-        
-        // Clean up temp file
-        fs.unlinkSync(typeormTempFilePath);
-        break;
-      case DATABASE.TYPES.PRISMA:
-        addImportIfNotExists(
-          serverFilePath,
-          `import { initializeDatabase } from './${PATHS.DIRECTORIES.SRC.DATABASE}/${PATHS.FILES.COMMON.NAMES.CONNECTION}';`
-        );
-        
-        // Generate temp file with the AST template output
-        const prismaTempFilePath = path.join(path.dirname(serverFilePath), 'db-init-temp.ts');
-        await writeASTTemplate(
-          getASTTemplatePath(PATHS.FILES.MODELS.INDEX_TEMPLATE_LOC(DATABASE.TYPES.PRISMA)),
-          prismaTempFilePath,
-        options
-        );
-        
-        // Read the generated content and add it to the server file
-        const prismaGeneratedContent = fs.readFileSync(prismaTempFilePath, 'utf8');
-        insertContentAtMarker(
-          serverFilePath,
-          TEMPLATES.STRINGS.MARKERS.SERVER.DATABASE_CONNECTION,
-          prismaGeneratedContent
-        );
-        
-        // Clean up temp file
-        fs.unlinkSync(prismaTempFilePath);
-        break;
-      case DATABASE.TYPES.MONGOOSE:
-        addImportIfNotExists(
-          serverFilePath,
-          `import { initializeDatabase } from './${PATHS.DIRECTORIES.SRC.DATABASE}/${PATHS.FILES.COMMON.NAMES.CONNECTION}';`
-        );
-        
-        // Generate temp file with the AST template output
-        const mongooseTempFilePath = path.join(path.dirname(serverFilePath), 'db-init-temp.ts');
-        await writeASTTemplate(
-          getASTTemplatePath(PATHS.FILES.MODELS.INDEX_TEMPLATE_LOC(DATABASE.TYPES.MONGOOSE)),
-          mongooseTempFilePath,
-          options
-        );
-        
-        // Read the generated content and add it to the server file
-        const mongooseGeneratedContent = fs.readFileSync(mongooseTempFilePath, 'utf8');
-        insertContentAtMarker(
-          serverFilePath,
-          TEMPLATES.STRINGS.MARKERS.SERVER.DATABASE_CONNECTION,
-          mongooseGeneratedContent
-        );
-        
-        // Clean up temp file
-        fs.unlinkSync(mongooseTempFilePath);
-        break;
-    }
-    console.log(`Updated ${PATHS.FILES.SERVER.FILE} with database connection`);
-  }
 
   /**
    * Setup environment variables for database
@@ -463,7 +341,7 @@ async function setupSequelize(options: GeneratorOptions): Promise<void> {
     destination,
     PATHS.DIRECTORIES.ROOT.SRC,
     PATHS.DIRECTORIES.SRC.DATABASE,
-    PATHS.FILES.DATABASE.CONNECTION
+    PATHS.FILES.DATABASE.CONNECTION + EXTENSIONS.TS
   );
   await DatabaseSetupHelper.writeConfigFile(
     options,
@@ -484,10 +362,6 @@ async function setupSequelize(options: GeneratorOptions): Promise<void> {
     },
     PATHS.DIRECTORIES.SRC.MODELS
   );
-
-  // Update server file
-  const serverFilePath = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.FILES.SERVER.FILE);
-  await DatabaseSetupHelper.updateServerFile(options, serverFilePath);
 
   // Update package.json with scripts
   DatabaseSetupHelper.updatePackageJson(options, {
@@ -517,7 +391,7 @@ async function setupTypeORM(options: GeneratorOptions): Promise<void> {
     destination,
     PATHS.DIRECTORIES.ROOT.SRC,
     PATHS.DIRECTORIES.SRC.DATABASE,
-    PATHS.FILES.DATABASE.CONNECTION
+    PATHS.FILES.DATABASE.CONNECTION + EXTENSIONS.TS
   );
   await DatabaseSetupHelper.writeConfigFile(
     options,
@@ -536,7 +410,6 @@ async function setupTypeORM(options: GeneratorOptions): Promise<void> {
 
   // Update server file
   const serverFilePath = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.FILES.SERVER.FILE);
-  await DatabaseSetupHelper.updateServerFile(options, serverFilePath);
 
   // Update package.json with scripts
   DatabaseSetupHelper.updatePackageJson(options, {
@@ -565,7 +438,7 @@ async function setupPrisma(options: GeneratorOptions): Promise<void> {
     destination,
     PATHS.DIRECTORIES.ROOT.SRC,
     PATHS.DIRECTORIES.SRC.DATABASE,
-    PATHS.FILES.DATABASE.CONNECTION
+    PATHS.FILES.DATABASE.CONNECTION + EXTENSIONS.TS
   );
 
   await DatabaseSetupHelper.writeConfigFile(
@@ -573,10 +446,6 @@ async function setupPrisma(options: GeneratorOptions): Promise<void> {
     PATHS.FILES.MODELS.EXAMPLE_TEMPLATE_LOC(DATABASE.TYPES.PRISMA),
     schemaPath
   );
-
-  // Update server file
-  const serverFilePath = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.FILES.SERVER.FILE);
-  await DatabaseSetupHelper.updateServerFile(options, serverFilePath);
 
   // Update package.json with scripts
   DatabaseSetupHelper.updatePackageJson(options, {
@@ -605,7 +474,7 @@ async function setupMongoose(options: GeneratorOptions): Promise<void> {
     destination,
     PATHS.DIRECTORIES.ROOT.SRC,
     PATHS.DIRECTORIES.SRC.DATABASE,
-    PATHS.FILES.DATABASE.CONNECTION
+    PATHS.FILES.DATABASE.CONNECTION + EXTENSIONS.TS
   );
   
   // Use AST template processor instead of the regular template
@@ -632,10 +501,6 @@ async function setupMongoose(options: GeneratorOptions): Promise<void> {
     options
   );
 
-  // Update server file
-  const serverFilePath = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.FILES.SERVER.FILE);
-  await DatabaseSetupHelper.updateServerFile(options, serverFilePath);
-
   // Setup environment variables
   DatabaseSetupHelper.setupEnvironmentVariables(options);
 }
@@ -660,46 +525,6 @@ function findNextSectionMarker(content: string, startPosition: number): number {
 
   return nextPosition;
 }
-/**
- * Update server.ts file to include database initialization
- */
-export function updateServerWithDatabaseInit(destination: string): boolean {
-	const serverFilePath = path.join(
-	  destination,
-	  PATHS.DIRECTORIES.ROOT.SRC,
-	  PATHS.FILES.SERVER.FILE
-	);
-  
-	if (!fs.existsSync(serverFilePath)) {
-	  console.log(
-		`Warning: ${PATHS.FILES.SERVER.FILE} not found at: ${serverFilePath}`
-	  );
-	  return false;
-	}
-  
-	try {
-	  let serverFileContent = fs.readFileSync(serverFilePath, "utf8");
-  
-	  // Add import for database initialization if it doesn't already exist
-	  if (!serverFileContent.includes("import { initializeDatabase }")) {
-		const lastImportIndex = serverFileContent.lastIndexOf("import");
-		const lastImportLineEnd = serverFileContent.indexOf(
-		  "\n",
-		  lastImportIndex
-		);
-		serverFileContent =
-		  serverFileContent.substring(0, lastImportLineEnd + 1) +
-		  `import { initializeDatabase } from './${PATHS.DIRECTORIES.SRC.DATABASE}/${PATHS.FILES.DATABASE.CONNECTION}';\n` +
-		  serverFileContent.substring(lastImportLineEnd + 1);
-	  }
-  
-	  fs.writeFileSync(serverFilePath, serverFileContent);
-	  return true;
-	} catch (error) {
-	  console.error("Error updating server.ts:", error);
-	  return false;
-	}
-  }
   
   /**
    * Creates a models index.ts file based on database type

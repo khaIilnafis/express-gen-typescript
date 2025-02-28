@@ -4,7 +4,8 @@
  */
 
 import * as recast from 'recast';
-import * as tsParser from 'recast/parsers/typescript.js';
+import { COMMENTS } from '../../../constants/templates/index.js';
+import { IMPORTS } from '../../../constants/templates/server/index.js';
 
 const b = recast.types.builders;
 
@@ -30,7 +31,7 @@ export default function generateSequelizeMethodAST(options: TemplateOptions = {}
         b.expressionStatement(
           b.awaitExpression(
             b.callExpression(
-              b.identifier("initializeDatabase"),
+              b.identifier(IMPORTS.DATABASE.INITIALIZE),
               []
             )
           )
@@ -80,7 +81,9 @@ export default function generateSequelizeMethodAST(options: TemplateOptions = {}
     false,  // not computed
     true,    // is private
   );
-
+  connectToDatabaseMethod.comments = [
+	b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true)
+  ];
   // Add async modifier
   connectToDatabaseMethod.async = true;
 
@@ -93,7 +96,7 @@ export default function generateSequelizeMethodAST(options: TemplateOptions = {}
   );
 
   // Return just the method body as a string
-  return recast.print(connectToDatabaseMethod, { tabWidth: 6 }).code;
+  return recast.prettyPrint(connectToDatabaseMethod, { tabWidth: 6 }).code;
 }
 
 /**
