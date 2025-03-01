@@ -7,6 +7,7 @@ import { COMMENTS, Comments } from './comments/index.js';
 import { AUTH, AuthStructure } from './auth/index.js';
 import { SERVER, ServerStructure } from './server/index.js';
 import { ERRORS, Errors } from './errors.js';
+import { IMPORTS } from './imports/index.js';
 /**
  * Type definition for template structure
  */
@@ -16,6 +17,7 @@ export interface TemplateStructure {
   COMMENTS: Comments;
   SERVER: ServerStructure;
   ERRORS: Errors;
+  IMPORTS: typeof IMPORTS
 }
 
 // Re-export individual template constants
@@ -29,5 +31,6 @@ export const TEMPLATES = Object.freeze({
 	STRINGS: TEMPLATE_STRINGS,
 	COMMENTS,
 	SERVER,
-	ERRORS
+	ERRORS,
+	IMPORTS
 } as const) satisfies TemplateStructure; 
