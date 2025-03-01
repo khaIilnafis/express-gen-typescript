@@ -5,48 +5,21 @@
 
 import * as recast from 'recast';
 import * as tsParser from 'recast/parsers/typescript.js';
-
+import { TEMPLATES } from '../../../constants/index.js';
+import { IMPORTS } from '../../../constants/templates/imports/index.js';
+import { GeneratorOptions } from '../../../utils/types.js';
+import { buildImports } from '../../../utils/template-helper.js';
 const b = recast.types.builders;
-
-/**
- * Template options interface
- */
-export interface TemplateOptions {
-  [key: string]: any;
-}
 
 /**
  * Generates the Passport.js configuration AST with provided options
  * @param options Template options
  * @returns AST for auth/passport/passport.ts file
  */
-export default function generatePassportConfigAST(options: TemplateOptions = {}) {
+export default function generatePassportConfigAST(options: GeneratorOptions) {
+	//Options = authenticationStrat, might be the 
   // Build the imports section
-  const imports = [
-    b.importDeclaration(
-      [b.importDefaultSpecifier(b.identifier("passport"))],
-      b.stringLiteral("passport")
-    ),
-    b.importDeclaration(
-      [
-        b.importSpecifier(b.identifier("Strategy")),
-        b.importSpecifier(b.identifier("ExtractJwt"))
-      ],
-      b.stringLiteral("passport-jwt")
-    ),
-    b.importDeclaration(
-      [b.importDefaultSpecifier(b.identifier("Example"))],
-      b.stringLiteral("../models/example")
-    ),
-    b.importDeclaration(
-      [
-        b.importSpecifier(b.identifier("Request")),
-        b.importSpecifier(b.identifier("Response")),
-        b.importSpecifier(b.identifier("NextFunction"))
-      ],
-      b.stringLiteral("express")
-    )
-  ];
+  const imports = buildImports(b, IMPORTS);
 
   // JWT Options const declaration
   const jwtOptionsDeclaration = b.variableDeclaration("const", [
@@ -159,7 +132,7 @@ export default function generatePassportConfigAST(options: TemplateOptions = {})
   // Passport strategy setup
   const passportUseStatement = b.expressionStatement(
     b.callExpression(
-      b.memberExpression(b.identifier("passport"), b.identifier("use")),
+      b.memberExpression(b.identifier(TEMPLATES.AUTH.TYPES.PASSPORT), b.identifier("use")),
       [
         b.newExpression(b.identifier("Strategy"), [
           b.identifier("opts"), 
@@ -172,7 +145,7 @@ export default function generatePassportConfigAST(options: TemplateOptions = {})
   // Passport serializeUser
   const serializeUserStatement = b.expressionStatement(
     b.callExpression(
-      b.memberExpression(b.identifier("passport"), b.identifier("serializeUser")),
+      b.memberExpression(b.identifier(TEMPLATES.AUTH.TYPES.PASSPORT), b.identifier("serializeUser")),
       [
         b.functionExpression(
           null,
@@ -233,7 +206,7 @@ export default function generatePassportConfigAST(options: TemplateOptions = {})
   // Passport deserializeUser
   const deserializeUserStatement = b.expressionStatement(
     b.callExpression(
-      b.memberExpression(b.identifier("passport"), b.identifier("deserializeUser")),
+      b.memberExpression(b.identifier(TEMPLATES.AUTH.TYPES.PASSPORT), b.identifier("deserializeUser")),
       [
         deserializeCallback
       ]
@@ -271,7 +244,7 @@ export default function generatePassportConfigAST(options: TemplateOptions = {})
             b.expressionStatement(
               b.callExpression(
                 b.callExpression(
-                  b.memberExpression(b.identifier("passport"), b.identifier("authenticate")),
+                  b.memberExpression(b.identifier(TEMPLATES.AUTH.TYPES.PASSPORT), b.identifier("authenticate")),
                   [
                     b.stringLiteral("jwt"),
                     b.objectExpression([
@@ -509,7 +482,7 @@ export default function generatePassportConfigAST(options: TemplateOptions = {})
 
   // Default export
   const defaultExport = b.exportDefaultDeclaration(
-    b.identifier("passport")
+    b.identifier(TEMPLATES.AUTH.TYPES.PASSPORT)
   );
 
   // Build the AST program
