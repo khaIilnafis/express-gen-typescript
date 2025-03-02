@@ -1,15 +1,15 @@
-import { LOGS, DATABASE } from "../../constants/index.js";
+import { LOGS } from "../constants/index.js";
 import { setupDatabaseWithHelper } from "./database-setup-helper.js";
-import { GeneratorOptions } from "../../utils/types.js";
+import { GeneratorOptions } from "../../types/index.js";
 import { error } from "console";
 /**
  * Set up selected database type
  */
-export async function setupDatabase(
-  options: GeneratorOptions
-): Promise<void> {
-  const { database, dialect } = options; 
-  if(!dialect){ throw error }
+export async function setupDatabase(options: GeneratorOptions): Promise<void> {
+  const { database, dialect } = options;
+  if (!dialect) {
+    throw error;
+  }
   // Log setup message
   console.log(LOGS.SETUP.DATABASE(dialect));
 
