@@ -1,12 +1,12 @@
-import inquirer from "inquirer";
-import { GeneratorOptions } from "./utils/types.js";
+import inquirer, { Answers } from "inquirer";
+import { GeneratorOptions } from "./types/index.js";
 
 /**
  * Prompts the user for project configuration options
  * @returns The user's configuration choices
  */
 export async function promptForOptions(): Promise<GeneratorOptions> {
-  const answers = await inquirer.prompt([
+  const answers = (await inquirer.prompt([
     {
       type: "input",
       name: "projectName",
@@ -26,7 +26,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       name: "databaseName",
       message: "Database name (leave empty for project name):",
       default: "",
-      when: (answers: any) => answers.useDatabase,
+      when: (answers: Answers) => answers.useDatabase,
     },
     {
       type: "list",
@@ -34,24 +34,24 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select database dialect:",
       choices: ["postgres", "mysql", "sqlite", "mariadb", "mssql", "mongodb"],
       default: "postgres",
-      when: (answers: any) => answers.useDatabase,
-	  filter: (input: any, answers: any) => input.toLowerCase(),
+      when: (answers: Answers) => answers.useDatabase,
+      filter: (input: string) => input.toLowerCase(),
     },
     {
       type: "list",
       name: "databaseOrm",
       message: "Select a database ORM:",
       choices: ["Sequelize", "TypeORM", "Prisma"],
-      when: (answers: any) => answers.dialect !== "mongodb",
-	  filter: (input: any, answers: any) => input.toLowerCase(),
+      when: (answers) => answers.dialect !== "mongodb",
+      filter: (input: string) => input.toLowerCase(),
     },
     {
       type: "list",
       name: "databaseOrm",
       message: "Select a database ORM:",
       choices: ["Mongoose", "Prisma"],
-      when: (answers: any) => answers.dialect == "mongodb",
-	  filter: (input: any, answers: any) => input.toLowerCase(),
+      when: (answers) => answers.dialect == "mongodb",
+      filter: (input: string) => input.toLowerCase(),
     },
     {
       type: "confirm",
@@ -64,16 +64,16 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       name: "authLib",
       message: "Select an authentication library:",
       choices: ["Passport", "Express-session"],
-      when: (answers: any) => answers.useAuth,
-	  filter: (input: any, answers: any) => input.toLowerCase(),
+      when: (answers) => answers.useAuth,
+      filter: (input: string) => input.toLowerCase(),
     },
     {
       type: "list",
       name: "authStrategy",
       message: "Select Passport Auth Strategy",
       choices: ["Local", "JWT"],
-      when: (answers: any) => answers.authLib == "Passport",
-	  filter: (input: any, answers: any) => input.toLowerCase(),
+      when: (answers) => answers.authLib == "Passport",
+      filter: (input: string) => input.toLowerCase(),
     },
     {
       type: "confirm",
@@ -86,8 +86,8 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       name: "websocketLib",
       message: "Select a websocket library:",
       choices: ["Socket.io", "WS"],
-      when: (answers: any) => answers.useWebsockets,
-	  filter: (input: any, answers: any) => input.toLowerCase(),
+      when: (answers) => answers.useWebsockets,
+      filter: (input: string) => input.toLowerCase(),
     },
     {
       type: "confirm",
@@ -100,26 +100,27 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       name: "viewEngine",
       message: "Select a view engine:",
       choices: ["EJS", "Pug (Jade)", "Handlebars"],
-      when: (answers: any) => answers.useViews,
-	  filter: (input: any, answers: any) => input.toLowerCase(),
+      when: (answers) => answers.useViews,
+      filter: (input: string) => input.toLowerCase(),
     },
-  ]);
+  ])) as unknown as GeneratorOptions;
   // Transform answers into the expected format
   const options: GeneratorOptions = {
-	destination: '',
+    destination: "",
     projectName: answers.projectName,
-	authentication: answers.useAuth,
-	database: answers.useDatabase,
-	webSockets: answers.useWebsockets,
-	view: answers.useViews
+    authentication: answers.useAuth as boolean,
+    database: answers.useDatabase as boolean,
+    webSockets: answers.useWebsockets as boolean,
+    view: answers.useViews as boolean,
   };
 
   // Add database options if selected
   if (options.database) {
-    options.database = answers.useDatabase;
     options.databaseOrm = answers.databaseOrm;
-	options.databaseName = answers.databaseName ? answers.databaseName : answers.projectName;
-	options.dialect = answers.dialect;
+    options.databaseName = answers.databaseName
+      ? answers.databaseName
+      : answers.projectName;
+    options.dialect = answers.dialect;
   }
 
   // Add authentication options if selected
