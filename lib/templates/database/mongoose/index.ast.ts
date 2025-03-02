@@ -3,38 +3,31 @@
  * This file is processed by the AST template processor and generates the mongoose database configuration
  */
 
-import * as recast from 'recast';
-import * as tsParser from 'recast/parsers/typescript.js';
-import { IMPORTS } from '../../../constants/templates/server/index.js';
+import * as recast from "recast";
+import * as tsParser from "recast/parsers/typescript.js";
+import { IMPORTS } from "../../constants/server/index.js";
+import { GeneratorOptions } from "../../../types/setup.js";
 
 const b = recast.types.builders;
-
-/**
- * Template options interface
- */
-export interface TemplateOptions {
-  databaseName?: string;
-  [key: string]: any;
-}
 
 /**
  * Generates the mongoose database index AST with provided options
  * @param options Template options
  * @returns AST for database/mongoose/index.ts file
  */
-export default function generateMongooseIndexAST(options: TemplateOptions = {}) {
+export default function generateMongooseIndexAST(options: GeneratorOptions) {
   // Provide defaults for options
   const opts = {
     databaseName: options.databaseName || "express_typescript_db",
-    ...options
+    ...options,
   };
 
   // Build the imports section
   const imports = [
     b.importDeclaration(
       [b.importDefaultSpecifier(b.identifier("mongoose"))],
-      b.stringLiteral("mongoose")
-    )
+      b.stringLiteral("mongoose"),
+    ),
   ];
 
   // Create connection URI variable
@@ -45,11 +38,11 @@ export default function generateMongooseIndexAST(options: TemplateOptions = {}) 
         "||",
         b.memberExpression(
           b.memberExpression(b.identifier("process"), b.identifier("env")),
-          b.identifier("MONGODB_URI")
+          b.identifier("MONGODB_URI"),
         ),
-        b.stringLiteral(`mongodb://localhost:27017/${opts.databaseName}`)
-      )
-    )
+        b.stringLiteral(`mongodb://localhost:27017/${opts.databaseName}`),
+      ),
+    ),
   ]);
 
   // Create connection options
@@ -59,14 +52,14 @@ export default function generateMongooseIndexAST(options: TemplateOptions = {}) 
       b.objectExpression([
         b.objectProperty(
           b.identifier("useNewUrlParser"),
-          b.booleanLiteral(true)
+          b.booleanLiteral(true),
         ),
         b.objectProperty(
           b.identifier("useUnifiedTopology"),
-          b.booleanLiteral(true)
-        )
-      ])
-    )
+          b.booleanLiteral(true),
+        ),
+      ]),
+    ),
   ]);
 
   // Create SIGINT handler for closing MongoDB connection
@@ -84,25 +77,38 @@ export default function generateMongooseIndexAST(options: TemplateOptions = {}) 
                   b.awaitExpression(
                     b.callExpression(
                       b.memberExpression(
-                        b.memberExpression(b.identifier("mongoose"), b.identifier("connection")),
-                        b.identifier("close")
+                        b.memberExpression(
+                          b.identifier("mongoose"),
+                          b.identifier("connection"),
+                        ),
+                        b.identifier("close"),
                       ),
-                      []
-                    )
-                  )
+                      [],
+                    ),
+                  ),
                 ),
                 b.expressionStatement(
                   b.callExpression(
-                    b.memberExpression(b.identifier("console"), b.identifier("log")),
-                    [b.stringLiteral("Mongoose connection closed due to application termination")]
-                  )
+                    b.memberExpression(
+                      b.identifier("console"),
+                      b.identifier("log"),
+                    ),
+                    [
+                      b.stringLiteral(
+                        "Mongoose connection closed due to application termination",
+                      ),
+                    ],
+                  ),
                 ),
                 b.expressionStatement(
                   b.callExpression(
-                    b.memberExpression(b.identifier("process"), b.identifier("exit")),
-                    [b.numericLiteral(0)]
-                  )
-                )
+                    b.memberExpression(
+                      b.identifier("process"),
+                      b.identifier("exit"),
+                    ),
+                    [b.numericLiteral(0)],
+                  ),
+                ),
               ]),
               b.catchClause(
                 b.identifier("err"),
@@ -110,27 +116,33 @@ export default function generateMongooseIndexAST(options: TemplateOptions = {}) 
                 b.blockStatement([
                   b.expressionStatement(
                     b.callExpression(
-                      b.memberExpression(b.identifier("console"), b.identifier("error")),
+                      b.memberExpression(
+                        b.identifier("console"),
+                        b.identifier("error"),
+                      ),
                       [
                         b.stringLiteral("Error closing Mongoose connection:"),
-                        b.identifier("err")
-                      ]
-                    )
+                        b.identifier("err"),
+                      ],
+                    ),
                   ),
                   b.expressionStatement(
                     b.callExpression(
-                      b.memberExpression(b.identifier("process"), b.identifier("exit")),
-                      [b.numericLiteral(1)]
-                    )
+                      b.memberExpression(
+                        b.identifier("process"),
+                        b.identifier("exit"),
+                      ),
+                      [b.numericLiteral(1)],
+                    ),
                   ),
-                ])
-              )
-            )
+                ]),
+              ),
+            ),
           ]),
-          true // async
-        )
-      ]
-    )
+          true, // async
+        ),
+      ],
+    ),
   );
 
   // Create initializeDatabase function
@@ -143,45 +155,44 @@ export default function generateMongooseIndexAST(options: TemplateOptions = {}) 
           b.expressionStatement(
             b.awaitExpression(
               b.callExpression(
-                b.memberExpression(b.identifier("mongoose"), b.identifier("connect")),
-                [
-                  b.identifier("mongoUri"),
-                  b.identifier("options")
-                ]
-              )
-            )
-          )
+                b.memberExpression(
+                  b.identifier("mongoose"),
+                  b.identifier("connect"),
+                ),
+                [b.identifier("mongoUri"), b.identifier("options")],
+              ),
+            ),
+          ),
         ]),
         b.catchClause(
           b.identifier("error"),
           null,
-          b.blockStatement([
-            b.throwStatement(b.identifier("error"))
-          ])
-        )
-      )
+          b.blockStatement([b.throwStatement(b.identifier("error"))]),
+        ),
+      ),
     ]),
     true, // async
-    false // not generator
+    false, // not generator
   );
 
   // Add return type annotation to initializeDatabase function
   initializeDatabaseFunction.returnType = b.tsTypeAnnotation(
     b.tsTypeReference(
-      b.tsQualifiedName(b.identifier("Promise"), b.identifier("typeof mongoose"))
-    )
+      b.tsQualifiedName(
+        b.identifier("Promise"),
+        b.identifier("typeof mongoose"),
+      ),
+    ),
   );
 
   // Create export for initializeDatabase function
   const initializeDatabaseExport = b.exportNamedDeclaration(
     initializeDatabaseFunction,
-    []
+    [],
   );
 
   // Create default export for mongoose
-  const defaultExport = b.exportDefaultDeclaration(
-    b.identifier("mongoose")
-  );
+  const defaultExport = b.exportDefaultDeclaration(b.identifier("mongoose"));
 
   // Build the AST program
   const program = b.program([
@@ -190,7 +201,7 @@ export default function generateMongooseIndexAST(options: TemplateOptions = {}) 
     optionsDeclaration,
     sigintHandler,
     initializeDatabaseExport,
-    defaultExport
+    defaultExport,
   ]);
 
   // Return the AST program
@@ -200,6 +211,6 @@ export default function generateMongooseIndexAST(options: TemplateOptions = {}) 
 /**
  * Export a print function to convert the AST to code
  */
-export function print(ast: any): string {
+export function print(ast: recast.types.ASTNode): string {
   return recast.prettyPrint(ast, { parser: tsParser }).code;
-} 
+}

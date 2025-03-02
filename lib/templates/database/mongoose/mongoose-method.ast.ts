@@ -3,25 +3,18 @@
  * This file is processed by the AST template processor and generates the method for initializing Mongoose database
  */
 
-import * as recast from 'recast';
-import * as tsParser from 'recast/parsers/typescript.js';
+import * as recast from "recast";
+import * as tsParser from "recast/parsers/typescript.js";
+import { GeneratorOptions } from "../../../types/setup.js";
 
 const b = recast.types.builders;
-
-/**
- * Template options interface
- */
-export interface TemplateOptions {
-  databaseName?: string;
-  [key: string]: any;
-}
 
 /**
  * Generates the Mongoose database method AST
  * @param options Template options
  * @returns AST for Mongoose database method
  */
-export default function generateMongooseMethodAST(options: TemplateOptions = {}) {
+export default function generateMongooseMethodAST(options: GeneratorOptions) {
   const dbName = options.databaseName || "express_typescript_db";
 
   // Create the connectToDatabase method
@@ -35,7 +28,7 @@ export default function generateMongooseMethodAST(options: TemplateOptions = {})
             b.callExpression(
               b.memberExpression(
                 b.identifier("mongoose"),
-                b.identifier("connect")
+                b.identifier("connect"),
               ),
               [
                 b.logicalExpression(
@@ -43,26 +36,23 @@ export default function generateMongooseMethodAST(options: TemplateOptions = {})
                   b.memberExpression(
                     b.memberExpression(
                       b.identifier("process"),
-                      b.identifier("env")
+                      b.identifier("env"),
                     ),
-                    b.identifier("MONGODB_URI")
+                    b.identifier("MONGODB_URI"),
                   ),
-                  b.stringLiteral(`mongodb://localhost:27017/${dbName}`)
-                )
-              ]
-            )
-          )
+                  b.stringLiteral(`mongodb://localhost:27017/${dbName}`),
+                ),
+              ],
+            ),
+          ),
         ),
         // console.log('MongoDB connected successfully.');
         b.expressionStatement(
           b.callExpression(
-            b.memberExpression(
-              b.identifier("console"),
-              b.identifier("log")
-            ),
-            [b.stringLiteral("MongoDB connected successfully.")]
-          )
-        )
+            b.memberExpression(b.identifier("console"), b.identifier("log")),
+            [b.stringLiteral("MongoDB connected successfully.")],
+          ),
+        ),
       ]),
       // catch (error) {
       b.catchClause(
@@ -74,19 +64,19 @@ export default function generateMongooseMethodAST(options: TemplateOptions = {})
             b.callExpression(
               b.memberExpression(
                 b.identifier("console"),
-                b.identifier("error")
+                b.identifier("error"),
               ),
               [
                 b.stringLiteral("Database connection error:"),
-                b.identifier("error")
-              ]
-            )
+                b.identifier("error"),
+              ],
+            ),
           ),
           // Comment: // process.exit(1);
-          b.emptyStatement()
-        ])
-      )
-    )
+          b.emptyStatement(),
+        ]),
+      ),
+    ),
   ]);
 
   // Add method node with async and private modifiers
@@ -95,8 +85,8 @@ export default function generateMongooseMethodAST(options: TemplateOptions = {})
     b.identifier("connectToDatabase"),
     [],
     methodBody,
-    false,  // not computed
-    true    // is private
+    false, // not computed
+    true, // is private
   );
 
   // Add async modifier
@@ -105,8 +95,8 @@ export default function generateMongooseMethodAST(options: TemplateOptions = {})
   // Add return type annotation
   connectToDatabaseMethod.returnType = b.tsTypeAnnotation(
     b.tsTypeReference(
-      b.tsQualifiedName(b.identifier("Promise"), b.identifier("void"))
-    )
+      b.tsQualifiedName(b.identifier("Promise"), b.identifier("void")),
+    ),
   );
 
   // Return just the method body as a string
@@ -116,6 +106,6 @@ export default function generateMongooseMethodAST(options: TemplateOptions = {})
 /**
  * Export a print function to convert the AST to code
  */
-export function print(ast: string): string {
-  return ast;
-} 
+export function print(ast: recast.types.ASTNode): string {
+  return recast.prettyPrint(ast, { parser: tsParser }).code;
+}

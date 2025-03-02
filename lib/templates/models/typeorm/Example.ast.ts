@@ -1,219 +1,212 @@
 import * as recast from "recast";
-import * as typescript from "typescript";
+import * as tsParser from "recast/parsers/typescript.js";
+import { GeneratorOptions } from "../../../types/setup.js";
+const b = recast.types.builders;
 
-export interface TemplateOptions {
-  // No options needed for this template
-}
-
-export function generateTypeORMExampleEntityAST(options: TemplateOptions): typeof recast.types.namedTypes.Program {
-  const builders = recast.types.builders;
-  const n = builders;
-  
+export function generateTypeORMExampleEntityAST(
+  _options: GeneratorOptions,
+): recast.types.namedTypes.Program {
   // Imports section
   const imports = [
-    n.importDeclaration(
+    b.importDeclaration(
       [
-        n.importSpecifier(n.identifier("Entity")),
-        n.importSpecifier(n.identifier("PrimaryGeneratedColumn")),
-        n.importSpecifier(n.identifier("Column")),
-        n.importSpecifier(n.identifier("CreateDateColumn")),
-        n.importSpecifier(n.identifier("UpdateDateColumn")),
+        b.importSpecifier(b.identifier("Entity")),
+        b.importSpecifier(b.identifier("PrimaryGeneratedColumn")),
+        b.importSpecifier(b.identifier("Column")),
+        b.importSpecifier(b.identifier("CreateDateColumn")),
+        b.importSpecifier(b.identifier("UpdateDateColumn")),
       ],
-      n.stringLiteral("typeorm")
+      b.stringLiteral("typeorm"),
     ),
   ];
-  
+
   // Class properties with decorators directly added
   const classProperties = [
     // id property with PrimaryGeneratedColumn decorator
-    n.classProperty(
-      n.identifier("id"),
+    b.classProperty(
+      b.identifier("id"),
       null,
-      n.tsTypeAnnotation(
-        n.tsNumberKeyword()
-      ),
-      false
+      b.tsTypeAnnotation(b.tsNumberKeyword()),
+      false,
     ),
-    
+
     // title property with Column decorator
-    n.classProperty(
-      n.identifier("title"),
+    b.classProperty(
+      b.identifier("title"),
       null,
-      n.tsTypeAnnotation(
-        n.tsStringKeyword()
-      ),
-      false
+      b.tsTypeAnnotation(b.tsStringKeyword()),
+      false,
     ),
-    
+
     // description property with Column({ nullable: true, type: "text" }) decorator
-    n.classProperty(
-      n.identifier("description"),
+    b.classProperty(
+      b.identifier("description"),
       null,
-      n.tsTypeAnnotation(
-        n.tsStringKeyword()
-      ),
-      false
+      b.tsTypeAnnotation(b.tsStringKeyword()),
+      false,
     ),
-    
+
     // status property with Column enum decorator
-    n.classProperty(
-      n.identifier("status"),
+    b.classProperty(
+      b.identifier("status"),
       null,
-      n.tsTypeAnnotation(
-        n.tsUnionType([
-          n.tsLiteralType(n.stringLiteral("pending")),
-          n.tsLiteralType(n.stringLiteral("in-progress")),
-          n.tsLiteralType(n.stringLiteral("completed"))
-        ])
+      b.tsTypeAnnotation(
+        b.tsUnionType([
+          b.tsLiteralType(b.stringLiteral("pending")),
+          b.tsLiteralType(b.stringLiteral("in-progress")),
+          b.tsLiteralType(b.stringLiteral("completed")),
+        ]),
       ),
-      false
+      false,
     ),
-    
+
     // priority property with Column({ default: 1 }) decorator
-    n.classProperty(
-      n.identifier("priority"),
+    b.classProperty(
+      b.identifier("priority"),
       null,
-      n.tsTypeAnnotation(
-        n.tsNumberKeyword()
-      ),
-      false
+      b.tsTypeAnnotation(b.tsNumberKeyword()),
+      false,
     ),
-    
+
     // isActive property with Column({ default: true }) decorator
-    n.classProperty(
-      n.identifier("isActive"),
+    b.classProperty(
+      b.identifier("isActive"),
       null,
-      n.tsTypeAnnotation(
-        n.tsBooleanKeyword()
-      ),
-      false
+      b.tsTypeAnnotation(b.tsBooleanKeyword()),
+      false,
     ),
-    
+
     // createdAt property with CreateDateColumn decorator
-    n.classProperty(
-      n.identifier("createdAt"),
+    b.classProperty(
+      b.identifier("createdAt"),
       null,
-      n.tsTypeAnnotation(
-        n.tsTypeReference(
-          n.identifier("Date")
-        )
-      ),
-      false
+      b.tsTypeAnnotation(b.tsTypeReference(b.identifier("Date"))),
+      false,
     ),
-    
+
     // updatedAt property with UpdateDateColumn decorator
-    n.classProperty(
-      n.identifier("updatedAt"),
+    b.classProperty(
+      b.identifier("updatedAt"),
       null,
-      n.tsTypeAnnotation(
-        n.tsTypeReference(
-          n.identifier("Date")
-        )
-      ),
-      false
+      b.tsTypeAnnotation(b.tsTypeReference(b.identifier("Date"))),
+      false,
     ),
   ];
-  
+
   // Manually add decorators to each property
   // id property
-  (classProperties[0] as any).decorators = [
-    n.decorator(n.callExpression(n.identifier("PrimaryGeneratedColumn"), []))
+  //@ts-expect-error: recast issues, will resolve
+  (classProperties[0] as unknown).decorators = [
+    b.decorator(b.callExpression(b.identifier("PrimaryGeneratedColumn"), [])),
   ];
-  
+
   // title property
-  (classProperties[1] as any).decorators = [
-    n.decorator(n.callExpression(n.identifier("Column"), []))
+  //@ts-expect-error: recast issues, will resolve
+  (classProperties[1] as unknown).decorators = [
+    b.decorator(b.callExpression(b.identifier("Column"), [])),
   ];
-  
+
   // description property
-  (classProperties[2] as any).decorators = [
-    n.decorator(n.callExpression(n.identifier("Column"), [
-      n.objectExpression([
-        n.objectProperty(n.identifier("nullable"), n.booleanLiteral(true)),
-        n.objectProperty(n.identifier("type"), n.stringLiteral("text"))
-      ])
-    ]))
+  //@ts-expect-error: recast issues, will resolve
+  (classProperties[2] as unknown).decorators = [
+    b.decorator(
+      b.callExpression(b.identifier("Column"), [
+        b.objectExpression([
+          b.objectProperty(b.identifier("nullable"), b.booleanLiteral(true)),
+          b.objectProperty(b.identifier("type"), b.stringLiteral("text")),
+        ]),
+      ]),
+    ),
   ];
-  
+
   // status property
-  (classProperties[3] as any).decorators = [
-    n.decorator(n.callExpression(n.identifier("Column"), [
-      n.objectExpression([
-        n.objectProperty(n.identifier("type"), n.stringLiteral("enum")),
-        n.objectProperty(
-          n.identifier("enum"), 
-          n.arrayExpression([
-            n.stringLiteral("pending"),
-            n.stringLiteral("in-progress"),
-            n.stringLiteral("completed")
-          ])
-        ),
-        n.objectProperty(n.identifier("default"), n.stringLiteral("pending"))
-      ])
-    ]))
+  //@ts-expect-error: recast issues, will resolve
+  (classProperties[3] as unknown).decorators = [
+    b.decorator(
+      b.callExpression(b.identifier("Column"), [
+        b.objectExpression([
+          b.objectProperty(b.identifier("type"), b.stringLiteral("enum")),
+          b.objectProperty(
+            b.identifier("enum"),
+            b.arrayExpression([
+              b.stringLiteral("pending"),
+              b.stringLiteral("in-progress"),
+              b.stringLiteral("completed"),
+            ]),
+          ),
+          b.objectProperty(b.identifier("default"), b.stringLiteral("pending")),
+        ]),
+      ]),
+    ),
   ];
-  
+
   // priority property
-  (classProperties[4] as any).decorators = [
-    n.decorator(n.callExpression(n.identifier("Column"), [
-      n.objectExpression([
-        n.objectProperty(n.identifier("default"), n.numericLiteral(1))
-      ])
-    ]))
+  //@ts-expect-error: recast issues, will resolve
+  (classProperties[4] as unknown).decorators = [
+    b.decorator(
+      b.callExpression(b.identifier("Column"), [
+        b.objectExpression([
+          b.objectProperty(b.identifier("default"), b.numericLiteral(1)),
+        ]),
+      ]),
+    ),
   ];
-  
+
   // isActive property
-  (classProperties[5] as any).decorators = [
-    n.decorator(n.callExpression(n.identifier("Column"), [
-      n.objectExpression([
-        n.objectProperty(n.identifier("default"), n.booleanLiteral(true))
-      ])
-    ]))
+  //@ts-expect-error: recast issues, will resolve
+  (classProperties[5] as unknown).decorators = [
+    b.decorator(
+      b.callExpression(b.identifier("Column"), [
+        b.objectExpression([
+          b.objectProperty(b.identifier("default"), b.booleanLiteral(true)),
+        ]),
+      ]),
+    ),
   ];
-  
+
   // createdAt property
-  (classProperties[6] as any).decorators = [
-    n.decorator(n.callExpression(n.identifier("CreateDateColumn"), []))
+  //@ts-expect-error: recast issues, will resolve
+  (classProperties[6] as unknown).decorators = [
+    b.decorator(b.callExpression(b.identifier("CreateDateColumn"), [])),
   ];
-  
+
   // updatedAt property
-  (classProperties[7] as any).decorators = [
-    n.decorator(n.callExpression(n.identifier("UpdateDateColumn"), []))
+  //@ts-expect-error: recast issues, will resolve
+  (classProperties[7] as unknown).decorators = [
+    b.decorator(b.callExpression(b.identifier("UpdateDateColumn"), [])),
   ];
-  
+
   // Entity decorator
-  const entityDecorator = n.decorator(
-    n.callExpression(
-      n.identifier("Entity"),
-      [n.stringLiteral("examples")]
-    )
+  const entityDecorator = b.decorator(
+    b.callExpression(b.identifier("Entity"), [b.stringLiteral("examples")]),
   );
-  
+
   // Example class definition
-  const exampleClass = n.classDeclaration(
-    n.identifier("Example"),
-    n.classBody(classProperties)
+  const exampleClass = b.classDeclaration(
+    b.identifier("Example"),
+    b.classBody(classProperties),
   );
-  
+
   // Add decorator to class
-  (exampleClass as any).decorators = [entityDecorator];
-  
+  //@ts-expect-error: recast issues, will resolve
+  (exampleClass as unknown).decorators = [entityDecorator];
+
   // Add JSDoc comment for the class
-  const classComment = n.commentBlock(" Example entity ", true, false);
+  const classComment = b.commentBlock(" Example entity ", true, false);
   exampleClass.comments = [classComment];
-  
+
   // Build the program
-  const program = n.program([
+  const program = b.program([
     ...imports,
-    n.exportNamedDeclaration(exampleClass, [])
+    b.exportNamedDeclaration(exampleClass, []),
   ]);
-  
+
   // Cast to the appropriate type for TypeScript compatibility
-  return program as any;
+  return program;
 }
 
 export const print = (ast: recast.types.namedTypes.Program): string => {
-  return recast.prettyPrint(ast, { tabWidth: 2 }).code;
+  return recast.prettyPrint(ast, { parser: tsParser, tabWidth: 2 }).code;
 };
 
-export default generateTypeORMExampleEntityAST; 
+export default generateTypeORMExampleEntityAST;

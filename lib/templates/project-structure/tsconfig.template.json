@@ -13,6 +13,13 @@
     "forceConsistentCasingInFileNames": true,
     "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["./src/**/*", "./bin/**/*", "./src/views/**/*.ejs", "./src/views/**/*.pug", "./src/views/**/*.handlebars", "./src/public/**/*"],
+  "include": [
+    "./src/**/*",
+    "./bin/**/*",
+    "./src/views/**/*.ejs",
+    "./src/views/**/*.pug",
+    "./src/views/**/*.handlebars",
+    "./src/public/**/*"
+  ],
   "exclude": ["node_modules", "./src/migrations/**/*", "dist"]
 }

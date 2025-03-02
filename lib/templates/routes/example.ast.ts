@@ -3,83 +3,71 @@
  * This file is processed by the AST template processor and generates the example routes file
  */
 
-import * as recast from 'recast';
-import * as tsParser from 'recast/parsers/typescript.js';
+import * as recast from "recast";
+import * as tsParser from "recast/parsers/typescript.js";
+import { GeneratorOptions } from "../../types/setup.js";
 
 const b = recast.types.builders;
-
-/**
- * Template options interface
- */
-export interface TemplateOptions {
-  websocketLib?: string;
-  authentication?: boolean;
-  [key: string]: any;
-}
 
 /**
  * Generates the example routes AST with provided options
  * @param options Template options
  * @returns AST for routes/example.ts file
  */
-export default function generateExampleRoutesAST(options: TemplateOptions = {}) {
-  // Provide defaults for options
-  const opts = {
-    websocketLib: options.websocketLib || "none",
-    authentication: Boolean(options.authentication),
-    ...options
-  };
-
+export default function generateExampleRoutesAST(options: GeneratorOptions) {
   // Build the imports section based on options
   const routeImports = [
     // Base import for Express Router
     b.importDeclaration(
       [b.importSpecifier(b.identifier("Router"))],
-      b.stringLiteral("express")
+      b.stringLiteral("express"),
     ),
     // Import the example controller
     b.importDeclaration(
       [b.importSpecifier(b.identifier("ExampleController"))],
-      b.stringLiteral("../controllers/example")
-    )
+      b.stringLiteral("../controllers/example"),
+    ),
   ];
 
   // Add WebSocket imports if needed
-  if (opts.websocketLib === "socketio") {
+  if (options.webSockets) {
     routeImports.push(
       b.importDeclaration(
-        [b.importSpecifier(b.identifier("Server"), b.identifier("SocketIOServer"))],
-        b.stringLiteral("socket.io")
-      )
+        [
+          b.importSpecifier(
+            b.identifier("Server"),
+            b.identifier("SocketIOServer"),
+          ),
+        ],
+        b.stringLiteral("socket.io"),
+      ),
     );
   }
 
   // Add authentication imports if needed
-  if (opts.authentication) {
+  if (options.authentication) {
     routeImports.push(
       b.importDeclaration(
         [b.importDefaultSpecifier(b.identifier("passport"))],
-        b.stringLiteral("../auth/passport")
-      )
+        b.stringLiteral("../auth/passport"),
+      ),
     );
   }
 
   // Create the create method parameters
-  const createMethodParams = [
-    b.identifier("router")
-  ];
-  
+  const createMethodParams = [b.identifier("router")];
+
   // Add type annotation to router parameter
   createMethodParams[0].typeAnnotation = b.tsTypeAnnotation(
-    b.tsTypeReference(b.identifier("Router"))
+    b.tsTypeReference(b.identifier("Router")),
   );
-  
+
   // Add WebSocket parameter if needed
-  if (opts.websocketLib === "socketio") {
+  if (options.webSockets) {
     const ioParam = b.identifier("io");
     ioParam.optional = true; // Mark the parameter as optional
     ioParam.typeAnnotation = b.tsTypeAnnotation(
-      b.tsTypeReference(b.identifier("SocketIOServer"))
+      b.tsTypeReference(b.identifier("SocketIOServer")),
     );
     createMethodParams.push(ioParam);
   }
@@ -98,80 +86,98 @@ export default function generateExampleRoutesAST(options: TemplateOptions = {}) 
             b.identifier("controller"),
             b.newExpression(
               b.identifier("ExampleController"),
-              opts.websocketLib === "socketio" ? [b.identifier("io")] : []
-            )
-          )
+              options.webSockets ? [b.identifier("io")] : [],
+            ),
+          ),
         ]),
-        
+
         // Get all examples
         b.expressionStatement(
           b.callExpression(
             b.memberExpression(b.identifier("router"), b.identifier("get")),
             [
               b.stringLiteral("/examples"),
-              b.memberExpression(b.identifier("controller"), b.identifier("getAll"))
-            ]
-          )
+              b.memberExpression(
+                b.identifier("controller"),
+                b.identifier("getAll"),
+              ),
+            ],
+          ),
         ),
-        
+
         // Get example by ID
         b.expressionStatement(
           b.callExpression(
             b.memberExpression(b.identifier("router"), b.identifier("get")),
             [
               b.stringLiteral("/examples/:id"),
-              b.memberExpression(b.identifier("controller"), b.identifier("getById"))
-            ]
-          )
+              b.memberExpression(
+                b.identifier("controller"),
+                b.identifier("getById"),
+              ),
+            ],
+          ),
         ),
-        
+
         // Create new example, with authentication if enabled
         b.expressionStatement(
           b.callExpression(
             b.memberExpression(b.identifier("router"), b.identifier("post")),
-            opts.authentication 
+            options.authentication
               ? [
-                  b.stringLiteral("/examples"), 
+                  b.stringLiteral("/examples"),
                   b.callExpression(
                     b.memberExpression(
                       b.identifier("passport"),
-                      b.identifier("authenticate")
+                      b.identifier("authenticate"),
                     ),
-                    [b.stringLiteral("jwt")]
+                    [b.stringLiteral("jwt")],
                   ),
-                  b.memberExpression(b.identifier("controller"), b.identifier("create"))
+                  b.memberExpression(
+                    b.identifier("controller"),
+                    b.identifier("create"),
+                  ),
                 ]
               : [
                   b.stringLiteral("/examples"),
-                  b.memberExpression(b.identifier("controller"), b.identifier("create"))
-                ]
-          )
+                  b.memberExpression(
+                    b.identifier("controller"),
+                    b.identifier("create"),
+                  ),
+                ],
+          ),
         ),
-        
+
         // Update example
         b.expressionStatement(
           b.callExpression(
             b.memberExpression(b.identifier("router"), b.identifier("put")),
             [
               b.stringLiteral("/examples/:id"),
-              b.memberExpression(b.identifier("controller"), b.identifier("update"))
-            ]
-          )
+              b.memberExpression(
+                b.identifier("controller"),
+                b.identifier("update"),
+              ),
+            ],
+          ),
         ),
-        
+
         // Delete example
         b.expressionStatement(
           b.callExpression(
             b.memberExpression(b.identifier("router"), b.identifier("delete")),
             [
               b.stringLiteral("/examples/:id"),
-              b.memberExpression(b.identifier("controller"), b.identifier("delete"))
-            ]
-          )
-        )
-      ])
+              b.memberExpression(
+                b.identifier("controller"),
+                b.identifier("delete"),
+              ),
+            ],
+          ),
+        ),
+      ]),
     ),
-    true // static method
+    true, // static method
   );
 
   // Create the class body
@@ -181,30 +187,23 @@ export default function generateExampleRoutesAST(options: TemplateOptions = {}) 
   const exampleRoutesClass = b.classDeclaration(
     b.identifier("ExampleRoutes"),
     classBody,
-    null // no superclass
+    null, // no superclass
   );
-  
+
   // Create exports
-  const namedExport = b.exportNamedDeclaration(
-    exampleRoutesClass,
-    []
-  );
-  
+  const namedExport = b.exportNamedDeclaration(exampleRoutesClass, []);
+
   const defaultExport = b.exportDefaultDeclaration(
-    b.identifier("ExampleRoutes")
+    b.identifier("ExampleRoutes"),
   );
 
   // Build the AST program
-  return b.program([
-    ...routeImports,
-    namedExport,
-    defaultExport
-  ]);
+  return b.program([...routeImports, namedExport, defaultExport]);
 }
 
 /**
  * Export a print function to convert the AST to code
  */
-export function print(ast: any): string {
+export function print(ast: recast.types.ASTNode): string {
   return recast.prettyPrint(ast, { parser: tsParser }).code;
-} 
+}

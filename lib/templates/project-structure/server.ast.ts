@@ -3,14 +3,13 @@
  * This file is processed by the AST template processor and generates the main server file
  */
 
-import * as recast from 'recast';
-import * as tsParser from 'recast/parsers/typescript.js';
-import { COMMENTS, TEMPLATES } from '../../constants/templates/index.js';
-import { GeneratorOptions } from '../../utils/types.js';
-import path from 'path';
-import { PATHS } from '../../constants/index.js';
-import { EXTENSIONS } from '../../constants/setup/paths/extensions.js';
-import { IMPORTS } from '../../constants/templates/server/imports.js';
+import * as recast from "recast";
+import * as tsParser from "recast/parsers/typescript.js";
+import { COMMENTS, TEMPLATES } from "../constants/index.js";
+import { GeneratorOptions } from "../../types/index.js";
+import { PATHS } from "../../setup/constants/index.js";
+import { EXTENSIONS } from "../../setup/constants/paths/extensions.js";
+import { IMPORTS } from "../constants/server/imports.js";
 const b = recast.types.builders;
 
 /**
@@ -22,20 +21,17 @@ function getImports(options: GeneratorOptions) {
     // Base imports that are always included
     b.importDeclaration(
       [b.importDefaultSpecifier(b.identifier("dotenv"))],
-      b.stringLiteral("dotenv")
+      b.stringLiteral("dotenv"),
     ),
     b.expressionStatement(
       b.callExpression(
         b.memberExpression(b.identifier("dotenv"), b.identifier("config")),
         [
           b.objectExpression([
-            b.objectProperty(
-              b.identifier("path"),
-              b.stringLiteral(".env")
-            )
-          ])
-        ]
-      )
+            b.objectProperty(b.identifier("path"), b.stringLiteral(".env")),
+          ]),
+        ],
+      ),
     ),
     b.importDeclaration(
       [
@@ -43,29 +39,29 @@ function getImports(options: GeneratorOptions) {
         b.importSpecifier(b.identifier("Application")),
         b.importSpecifier(b.identifier("Request")),
         b.importSpecifier(b.identifier("Response")),
-        b.importSpecifier(b.identifier("NextFunction"))
+        b.importSpecifier(b.identifier("NextFunction")),
       ],
-      b.stringLiteral("express")
+      b.stringLiteral("express"),
     ),
     b.importDeclaration(
       [b.importDefaultSpecifier(b.identifier("helmet"))],
-      b.stringLiteral("helmet")
+      b.stringLiteral("helmet"),
     ),
     b.importDeclaration(
       [b.importDefaultSpecifier(b.identifier("cors"))],
-      b.stringLiteral("cors")
+      b.stringLiteral("cors"),
     ),
     b.importDeclaration(
       [b.importDefaultSpecifier(b.identifier("morgan"))],
-      b.stringLiteral("morgan")
+      b.stringLiteral("morgan"),
     ),
     b.importDeclaration(
       [b.importDefaultSpecifier(b.identifier("path"))],
-      b.stringLiteral("path")
+      b.stringLiteral("path"),
     ),
     b.importDeclaration(
       [b.importDefaultSpecifier(b.identifier("http"))],
-      b.stringLiteral("http")
+      b.stringLiteral("http"),
     ),
   ];
 
@@ -75,47 +71,51 @@ function getImports(options: GeneratorOptions) {
       imports.push(
         b.importDeclaration(
           [b.importDefaultSpecifier(b.identifier("mongoose"))],
-          b.stringLiteral("mongoose")
-        )
+          b.stringLiteral("mongoose"),
+        ),
       );
     } else if (options.databaseOrm === "typeorm") {
       imports.push(
         b.importDeclaration(
           [b.importDefaultSpecifier(b.identifier("typeorm"))],
-          b.stringLiteral("typeorm")
-        )
+          b.stringLiteral("typeorm"),
+        ),
       );
     } else if (options.databaseOrm === "sequelize") {
       imports.push(
         b.importDeclaration(
-          [b.importDefaultSpecifier(b.identifier("sequelize")),],
-          b.stringLiteral("sequelize")
-        )
+          [b.importDefaultSpecifier(b.identifier("sequelize"))],
+          b.stringLiteral("sequelize"),
+        ),
       );
-	  imports.push(
-		b.importDeclaration(
-			[b.importSpecifier(b.identifier(IMPORTS.DATABASE.INITIALIZE)),],
-			b.stringLiteral(EXTENSIONS.REL_PATH + PATHS.DIRECTORIES.SRC.DATABASE)
-		)
-	  )
+      imports.push(
+        b.importDeclaration(
+          [b.importSpecifier(b.identifier(IMPORTS.DATABASE.INITIALIZE))],
+          b.stringLiteral(EXTENSIONS.REL_PATH + PATHS.DIRECTORIES.SRC.DATABASE),
+        ),
+      );
     } else if (options.databaseOrm === "sequelize-typescript") {
       imports.push(
         b.importDeclaration(
-          [b.importSpecifier(b.identifier("Sequelize")),],
-          b.stringLiteral("sequelize-typescript")
-        )
+          [b.importSpecifier(b.identifier("Sequelize"))],
+          b.stringLiteral("sequelize-typescript"),
+        ),
       );
     } else if (options.databaseOrm === "prisma") {
       imports.push(
         b.importDeclaration(
           [b.importDefaultSpecifier(b.identifier("prisma"))],
-          b.stringLiteral("@prisma/client")
-        )
+          b.stringLiteral("@prisma/client"),
+        ),
       );
     }
   } else {
     // Add placeholder comment for database imports
-    imports.push(b.expressionStatement(b.identifier(TEMPLATES.STRINGS.MARKERS.DATABASE_IMPORT)));
+    imports.push(
+      b.expressionStatement(
+        b.identifier(TEMPLATES.STRINGS.MARKERS.DATABASE_IMPORT),
+      ),
+    );
   }
 
   // Authentication imports
@@ -123,12 +123,16 @@ function getImports(options: GeneratorOptions) {
     imports.push(
       b.importDeclaration(
         [b.importDefaultSpecifier(b.identifier("passport"))],
-        b.stringLiteral("passport")
-      )
+        b.stringLiteral("passport"),
+      ),
     );
   } else {
     // Add placeholder comment for auth imports
-    imports.push(b.expressionStatement(b.identifier(TEMPLATES.STRINGS.MARKERS.AUTH_IMPORT)));
+    imports.push(
+      b.expressionStatement(
+        b.identifier(TEMPLATES.STRINGS.MARKERS.AUTH_IMPORT),
+      ),
+    );
   }
 
   // WebSocket imports
@@ -136,21 +140,28 @@ function getImports(options: GeneratorOptions) {
     if (options.websocketLib === "socketio") {
       imports.push(
         b.importDeclaration(
-          [b.importSpecifier(b.identifier("Server as SocketIOServer")),b.importSpecifier(b.identifier("Socket"))],
-          b.stringLiteral("socket.io")
-        )
+          [
+            b.importSpecifier(b.identifier("Server as SocketIOServer")),
+            b.importSpecifier(b.identifier("Socket")),
+          ],
+          b.stringLiteral("socket.io"),
+        ),
       );
     } else if (options.websocketLib === "ws") {
       imports.push(
         b.importDeclaration(
           [b.importDefaultSpecifier(b.identifier("WebSocket"))],
-          b.stringLiteral("ws")
-        )
+          b.stringLiteral("ws"),
+        ),
       );
     }
   } else {
     // Add placeholder comment for websocket imports
-    imports.push(b.expressionStatement(b.identifier(TEMPLATES.STRINGS.MARKERS.WEBSOCKET_IMPORT)));
+    imports.push(
+      b.expressionStatement(
+        b.identifier(TEMPLATES.STRINGS.MARKERS.WEBSOCKET_IMPORT),
+      ),
+    );
   }
 
   // View engine imports
@@ -160,35 +171,37 @@ function getImports(options: GeneratorOptions) {
       imports.push(
         b.importDeclaration(
           [b.importDefaultSpecifier(b.identifier("ejs"))],
-          b.stringLiteral("ejs")
-        )
+          b.stringLiteral("ejs"),
+        ),
       );
     } else if (options.viewEngine === "pug") {
       imports.push(
         b.importDeclaration(
           [b.importDefaultSpecifier(b.identifier("pug"))],
-          b.stringLiteral("pug")
-        )
+          b.stringLiteral("pug"),
+        ),
       );
     } else if (options.viewEngine === "handlebars") {
       imports.push(
         b.importDeclaration(
           [b.importDefaultSpecifier(b.identifier("exphbs"))],
-          b.stringLiteral("express-handlebars")
-        )
+          b.stringLiteral("express-handlebars"),
+        ),
       );
     }
   } else {
     // Add placeholder comment for view imports
-    imports.push(b.expressionStatement(b.identifier("/* PLACEHOLDER: viewImports */")));
+    imports.push(
+      b.expressionStatement(b.identifier("/* PLACEHOLDER: viewImports */")),
+    );
   }
 
   // Routes import
   imports.push(
     b.importDeclaration(
       [b.importSpecifier(b.identifier("initializeRoutes"))],
-      b.stringLiteral("./routes")
-    )
+      b.stringLiteral("./routes"),
+    ),
   );
 
   return imports;
@@ -198,28 +211,27 @@ function getImports(options: GeneratorOptions) {
  * Function to get class properties based on options
  */
 function getClassProperties(options: GeneratorOptions) {
-  const properties: any[] = [];
+  const properties: unknown[] = [];
   const appProp = b.classProperty(
-	b.identifier("app"),
-	null,
-	b.tsTypeAnnotation(b.tsTypeReference(b.identifier("Application")))
+    b.identifier("app"),
+    null,
+    b.tsTypeAnnotation(b.tsTypeReference(b.identifier("Application"))),
   );
   appProp.access = "public";
-properties.push(appProp);
+  properties.push(appProp);
   const serverProp = b.classProperty(
-	b.identifier("server"),
-	null,
-	b.tsTypeAnnotation(b.tsTypeReference(b.identifier("http.Server")))
+    b.identifier("server"),
+    null,
+    b.tsTypeAnnotation(b.tsTypeReference(b.identifier("http.Server"))),
   );
   serverProp.access = "public";
-properties.push(serverProp);
+  properties.push(serverProp);
   const portProp = b.classProperty(
-	b.identifier("port"),
-	null,
-	b.tsTypeAnnotation(
-		b.tsUnionType([b.tsNumberKeyword(),b.tsStringKeyword()])
-		
-	)
+    b.identifier("port"),
+    null,
+    b.tsTypeAnnotation(
+      b.tsUnionType([b.tsNumberKeyword(), b.tsStringKeyword()]),
+    ),
   );
   portProp.access = "public";
   properties.push(portProp);
@@ -228,19 +240,17 @@ properties.push(serverProp);
     const ioProperty = b.classProperty(
       b.identifier("io!"),
       null,
-      b.tsTypeAnnotation(b.tsTypeReference(b.identifier("SocketIOServer")))
+      b.tsTypeAnnotation(b.tsTypeReference(b.identifier("SocketIOServer"))),
     );
-	ioProperty.access = "public";
+    ioProperty.access = "public";
     properties.push(ioProperty);
   } else if (options.websocketLib === "ws") {
     const wssProperty = b.classProperty(
       b.identifier("wss"),
       null,
-      b.tsTypeAnnotation(b.tsTypeReference(
-        b.identifier("WebSocket.Server")
-      ))
+      b.tsTypeAnnotation(b.tsTypeReference(b.identifier("WebSocket.Server"))),
     );
-	wssProperty.access = "public";
+    wssProperty.access = "public";
     properties.push(wssProperty);
   }
 
@@ -249,11 +259,9 @@ properties.push(serverProp);
     const prismaProperty = b.classProperty(
       b.identifier("prisma"),
       null,
-      b.tsTypeAnnotation(b.tsTypeReference(
-        b.identifier("PrismaClient")
-      ))
+      b.tsTypeAnnotation(b.tsTypeReference(b.identifier("PrismaClient"))),
     );
-	prismaProperty.access = "public";
+    prismaProperty.access = "public";
     properties.push(prismaProperty);
   }
 
@@ -271,18 +279,21 @@ function getConstructorMethod(options: GeneratorOptions) {
       b.assignmentExpression(
         "=",
         b.memberExpression(b.thisExpression(), b.identifier("app")),
-        b.callExpression(b.identifier("express"), [])
-      )
+        b.callExpression(b.identifier("express"), []),
+      ),
     ),
     b.expressionStatement(
       b.assignmentExpression(
         "=",
         b.memberExpression(b.thisExpression(), b.identifier("server")),
         b.callExpression(
-          b.memberExpression(b.identifier("http"), b.identifier("createServer")),
-          [b.memberExpression(b.thisExpression(), b.identifier("app"))]
-        )
-      )
+          b.memberExpression(
+            b.identifier("http"),
+            b.identifier("createServer"),
+          ),
+          [b.memberExpression(b.thisExpression(), b.identifier("app"))],
+        ),
+      ),
     ),
     b.expressionStatement(
       b.assignmentExpression(
@@ -292,19 +303,22 @@ function getConstructorMethod(options: GeneratorOptions) {
           "||",
           b.memberExpression(
             b.memberExpression(b.identifier("process"), b.identifier("env")),
-            b.identifier("PORT")
+            b.identifier("PORT"),
           ),
-          b.numericLiteral(3000)
-        )
-      )
+          b.numericLiteral(3000),
+        ),
+      ),
     ),
     // Initialize middlewares
     b.expressionStatement(
       b.callExpression(
-        b.memberExpression(b.thisExpression(), b.identifier("initializeMiddlewares")),
-        []
-      )
-    )
+        b.memberExpression(
+          b.thisExpression(),
+          b.identifier("initializeMiddlewares"),
+        ),
+        [],
+      ),
+    ),
   ];
 
   // Add database initialization if needed
@@ -312,10 +326,13 @@ function getConstructorMethod(options: GeneratorOptions) {
     constructorStatements.push(
       b.expressionStatement(
         b.callExpression(
-          b.memberExpression(b.identifier("Server"), b.identifier("connectToDatabase")),
-          []
-        )
-      )
+          b.memberExpression(
+            b.identifier("Server"),
+            b.identifier("connectToDatabase"),
+          ),
+          [],
+        ),
+      ),
     );
   }
 
@@ -324,10 +341,13 @@ function getConstructorMethod(options: GeneratorOptions) {
     constructorStatements.push(
       b.expressionStatement(
         b.callExpression(
-          b.memberExpression(b.thisExpression(), b.identifier("initializeWebSockets")),
-          []
-        )
-      )
+          b.memberExpression(
+            b.thisExpression(),
+            b.identifier("initializeWebSockets"),
+          ),
+          [],
+        ),
+      ),
     );
   }
 
@@ -335,30 +355,32 @@ function getConstructorMethod(options: GeneratorOptions) {
   constructorStatements.push(
     b.expressionStatement(
       b.callExpression(
-        b.memberExpression(b.thisExpression(), b.identifier("initializeRoutes")),
-        []
-      )
-    )
+        b.memberExpression(
+          b.thisExpression(),
+          b.identifier("initializeRoutes"),
+        ),
+        [],
+      ),
+    ),
   );
 
   // Initialize error handling
   constructorStatements.push(
     b.expressionStatement(
       b.callExpression(
-        b.memberExpression(b.thisExpression(), b.identifier("initializeErrorHandling")),
-        []
-      )
-    )
+        b.memberExpression(
+          b.thisExpression(),
+          b.identifier("initializeErrorHandling"),
+        ),
+        [],
+      ),
+    ),
   );
 
   return b.methodDefinition(
     "constructor",
     b.identifier("constructor"),
-    b.functionExpression(
-      null,
-      [],
-      b.blockStatement(constructorStatements)
-    )
+    b.functionExpression(null, [], b.blockStatement(constructorStatements)),
   );
 }
 
@@ -367,63 +389,60 @@ function getConstructorMethod(options: GeneratorOptions) {
  * @returns Method definition for database connection or null if no database selected
  */
 function getDatabaseMethod(options: GeneratorOptions) {
-	if (!options.database) {
-    	return null;
-  	}
+  if (!options.database) {
+    return null;
+  }
 
   let methodBody: recast.types.namedTypes.BlockStatement;
-  
-  if(options.databaseOrm === "sequelize"){
-	methodBody = b.blockStatement([
-		// try {
-		b.tryStatement(
-		  b.blockStatement([
-			// await initializeDatabase();
-			b.expressionStatement(
-			  b.awaitExpression(
-				b.callExpression(
-				  b.identifier(IMPORTS.DATABASE.INITIALIZE),
-				  []
-				)
-			  )
-			),
-			// console.log('Database connection established successfully.');
-			b.expressionStatement(
-			  b.callExpression(
-				b.memberExpression(
-				  b.identifier("console"),
-				  b.identifier("log")
-				),
-				[b.stringLiteral("Database connection established successfully.")]
-			  )
-			)
-		  ]),
-		  // catch (error) {
-		  b.catchClause(
-			b.identifier("error"),
-			null, // No guard expression
-			b.blockStatement([
-			  // console.error('Database connection error:', error);
-			  b.expressionStatement(
-				b.callExpression(
-				  b.memberExpression(
-					b.identifier("console"),
-					b.identifier("error")
-				  ),
-				  [
-					b.stringLiteral("Database connection error:"),
-					b.identifier("error")
-				  ]
-				)
-			  ),
-			  // Comment: // process.exit(1);
-			  b.emptyStatement()
-			])
-		  )
-		)
-	  ]);
-  }else
-  if (options.databaseOrm === "mongoose") {
+
+  if (options.databaseOrm === "sequelize") {
+    methodBody = b.blockStatement([
+      // try {
+      b.tryStatement(
+        b.blockStatement([
+          // await initializeDatabase();
+          b.expressionStatement(
+            b.awaitExpression(
+              b.callExpression(b.identifier(IMPORTS.DATABASE.INITIALIZE), []),
+            ),
+          ),
+          // console.log('Database connection established successfully.');
+          b.expressionStatement(
+            b.callExpression(
+              b.memberExpression(b.identifier("console"), b.identifier("log")),
+              [
+                b.stringLiteral(
+                  "Database connection established successfully.",
+                ),
+              ],
+            ),
+          ),
+        ]),
+        // catch (error) {
+        b.catchClause(
+          b.identifier("error"),
+          null, // No guard expression
+          b.blockStatement([
+            // console.error('Database connection error:', error);
+            b.expressionStatement(
+              b.callExpression(
+                b.memberExpression(
+                  b.identifier("console"),
+                  b.identifier("error"),
+                ),
+                [
+                  b.stringLiteral("Database connection error:"),
+                  b.identifier("error"),
+                ],
+              ),
+            ),
+            // Comment: // process.exit(1);
+            b.emptyStatement(),
+          ]),
+        ),
+      ),
+    ]);
+  } else if (options.databaseOrm === "mongoose") {
     methodBody = b.blockStatement([
       b.tryStatement(
         b.blockStatement([
@@ -433,31 +452,37 @@ function getDatabaseMethod(options: GeneratorOptions) {
               b.templateLiteral(
                 [
                   b.templateElement({ raw: "", cooked: "" }, false),
-                  b.templateElement({ raw: "", cooked: "" }, true)
+                  b.templateElement({ raw: "", cooked: "" }, true),
                 ],
                 [
                   b.memberExpression(
-                    b.memberExpression(b.identifier("process"), b.identifier("env")),
-                    b.identifier("MONGODB_URI")
-                  )
-                ]
-              )
-            )
+                    b.memberExpression(
+                      b.identifier("process"),
+                      b.identifier("env"),
+                    ),
+                    b.identifier("MONGODB_URI"),
+                  ),
+                ],
+              ),
+            ),
           ]),
           b.expressionStatement(
             b.awaitExpression(
               b.callExpression(
-                b.memberExpression(b.identifier("mongoose"), b.identifier("connect")),
-                [b.identifier("uri")]
-              )
-            )
+                b.memberExpression(
+                  b.identifier("mongoose"),
+                  b.identifier("connect"),
+                ),
+                [b.identifier("uri")],
+              ),
+            ),
           ),
           b.expressionStatement(
             b.callExpression(
               b.memberExpression(b.identifier("console"), b.identifier("log")),
-              [b.stringLiteral("Connected to MongoDB")]
-            )
-          )
+              [b.stringLiteral("Connected to MongoDB")],
+            ),
+          ),
         ]),
         b.catchClause(
           b.identifier("error"),
@@ -465,17 +490,20 @@ function getDatabaseMethod(options: GeneratorOptions) {
           b.blockStatement([
             b.expressionStatement(
               b.callExpression(
-                b.memberExpression(b.identifier("console"), b.identifier("error")),
+                b.memberExpression(
+                  b.identifier("console"),
+                  b.identifier("error"),
+                ),
                 [
                   b.stringLiteral("Error connecting to MongoDB:"),
-                  b.identifier("error")
-                ]
-              )
+                  b.identifier("error"),
+                ],
+              ),
             ),
-            b.throwStatement(b.identifier("error"))
-          ])
-        )
-      )
+            b.throwStatement(b.identifier("error")),
+          ]),
+        ),
+      ),
     ]);
   } else if (options.databaseOrm === "prisma") {
     methodBody = b.blockStatement([
@@ -485,26 +513,29 @@ function getDatabaseMethod(options: GeneratorOptions) {
             b.assignmentExpression(
               "=",
               b.memberExpression(b.thisExpression(), b.identifier("prisma")),
-              b.newExpression(b.identifier("PrismaClient"), [])
-            )
+              b.newExpression(b.identifier("PrismaClient"), []),
+            ),
           ),
           b.expressionStatement(
             b.awaitExpression(
               b.callExpression(
                 b.memberExpression(
-                  b.memberExpression(b.thisExpression(), b.identifier("prisma")),
-                  b.identifier("$connect")
+                  b.memberExpression(
+                    b.thisExpression(),
+                    b.identifier("prisma"),
+                  ),
+                  b.identifier("$connect"),
                 ),
-                []
-              )
-            )
+                [],
+              ),
+            ),
           ),
           b.expressionStatement(
             b.callExpression(
               b.memberExpression(b.identifier("console"), b.identifier("log")),
-              [b.stringLiteral("Connected to database via Prisma")]
-            )
-          )
+              [b.stringLiteral("Connected to database via Prisma")],
+            ),
+          ),
         ]),
         b.catchClause(
           b.identifier("error"),
@@ -512,17 +543,20 @@ function getDatabaseMethod(options: GeneratorOptions) {
           b.blockStatement([
             b.expressionStatement(
               b.callExpression(
-                b.memberExpression(b.identifier("console"), b.identifier("error")),
+                b.memberExpression(
+                  b.identifier("console"),
+                  b.identifier("error"),
+                ),
                 [
                   b.stringLiteral("Error connecting to database:"),
-                  b.identifier("error")
-                ]
-              )
+                  b.identifier("error"),
+                ],
+              ),
             ),
-            b.throwStatement(b.identifier("error"))
-          ])
-        )
-      )
+            b.throwStatement(b.identifier("error")),
+          ]),
+        ),
+      ),
     ]);
   } else {
     // Generic database method for other types
@@ -530,35 +564,37 @@ function getDatabaseMethod(options: GeneratorOptions) {
       b.expressionStatement(
         b.callExpression(
           b.memberExpression(b.identifier("console"), b.identifier("log")),
-          [b.stringLiteral(`Connecting to ${options.database} database...`)]
-        )
+          [b.stringLiteral(`Connecting to ${options.database} database...`)],
+        ),
       ),
-      b.expressionStatement(b.identifier(TEMPLATES.STRINGS.MARKERS.SERVER.DATABASE_CONNECTION))
+      b.expressionStatement(
+        b.identifier(TEMPLATES.STRINGS.MARKERS.SERVER.DATABASE_CONNECTION),
+      ),
     ]);
   }
-	  // Add method node with async and private modifiers
-	  const connectToDatabaseMethod = b.classMethod(
-		"method",
-		b.identifier("connectToDatabase"),
-		[],
-		methodBody,
-		false,  // not computed
-		true,    // is private
-	  );
-	  connectToDatabaseMethod.comments = [
-		b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true)
-	  ];
-	  // Add async modifier
-	  connectToDatabaseMethod.async = true;
-	
-	  // Add return type annotation
-	  connectToDatabaseMethod.returnType = b.tsTypeAnnotation(
-		b.tsTypeReference(
-		  b.identifier("Promise"),
-		  b.tsTypeParameterInstantiation([b.tsVoidKeyword()])
-		)
-	  );
-  return connectToDatabaseMethod
+  // Add method node with async and private modifiers
+  const connectToDatabaseMethod = b.classMethod(
+    "method",
+    b.identifier("connectToDatabase"),
+    [],
+    methodBody,
+    false, // not computed
+    true, // is private
+  );
+  connectToDatabaseMethod.comments = [
+    b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true),
+  ];
+  // Add async modifier
+  connectToDatabaseMethod.async = true;
+
+  // Add return type annotation
+  connectToDatabaseMethod.returnType = b.tsTypeAnnotation(
+    b.tsTypeReference(
+      b.identifier("Promise"),
+      b.tsTypeParameterInstantiation([b.tsVoidKeyword()]),
+    ),
+  );
+  return connectToDatabaseMethod;
 }
 
 /**
@@ -572,7 +608,7 @@ function getWebSocketMethod(options: GeneratorOptions) {
 
   // Create a default empty method body to handle the undefined case
   let methodBody: recast.types.namedTypes.BlockStatement;
-  
+
   if (options.websocketLib === "socketio") {
     methodBody = b.blockStatement([
       b.expressionStatement(
@@ -589,53 +625,65 @@ function getWebSocketMethod(options: GeneratorOptions) {
                   b.objectExpression([
                     b.objectProperty(
                       b.identifier("origin"),
-                      b.stringLiteral("*")
-                    )
-                  ])
-                )
-              ])
-            ]
-          )
-        )
+                      b.stringLiteral("*"),
+                    ),
+                  ]),
+                ),
+              ]),
+            ],
+          ),
+        ),
       ),
       b.expressionStatement(
         b.callExpression(
           b.memberExpression(
             b.memberExpression(b.thisExpression(), b.identifier("io")),
-            b.identifier("on")
+            b.identifier("on"),
           ),
           [
             b.stringLiteral("connection"),
             b.arrowFunctionExpression(
-				[
-					Object.assign(b.identifier("socket"), {
-					  typeAnnotation: b.tsTypeAnnotation(
-						b.tsTypeReference(b.identifier("Socket"))
-					  )
-					})
-				  ],
+              [
+                Object.assign(b.identifier("socket"), {
+                  typeAnnotation: b.tsTypeAnnotation(
+                    b.tsTypeReference(b.identifier("Socket")),
+                  ),
+                }),
+              ],
               b.blockStatement([
                 b.expressionStatement(
                   b.callExpression(
-                    b.memberExpression(b.identifier("console"), b.identifier("log")),
+                    b.memberExpression(
+                      b.identifier("console"),
+                      b.identifier("log"),
+                    ),
                     [
                       b.templateLiteral(
                         [
-                          b.templateElement({ raw: "Socket connected: ", cooked: "Socket connected: " }, false),
-                          b.templateElement({ raw: "", cooked: "" }, true)
+                          b.templateElement(
+                            {
+                              raw: "Socket connected: ",
+                              cooked: "Socket connected: ",
+                            },
+                            false,
+                          ),
+                          b.templateElement({ raw: "", cooked: "" }, true),
                         ],
                         [
-                          b.memberExpression(b.identifier("socket"), b.identifier("id"))
-                        ]
-                      )
-                    ]
-                  )
-                )
-              ])
-            )
-          ]
-        )
-      )
+                          b.memberExpression(
+                            b.identifier("socket"),
+                            b.identifier("id"),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ]),
+            ),
+          ],
+        ),
+      ),
     ]);
   } else if (options.websocketLib === "ws") {
     methodBody = b.blockStatement([
@@ -644,23 +692,29 @@ function getWebSocketMethod(options: GeneratorOptions) {
           "=",
           b.memberExpression(b.thisExpression(), b.identifier("wss")),
           b.newExpression(
-            b.memberExpression(b.identifier("WebSocket"), b.identifier("Server")),
+            b.memberExpression(
+              b.identifier("WebSocket"),
+              b.identifier("Server"),
+            ),
             [
               b.objectExpression([
                 b.objectProperty(
                   b.identifier("server"),
-                  b.memberExpression(b.thisExpression(), b.identifier("server"))
-                )
-              ])
-            ]
-          )
-        )
+                  b.memberExpression(
+                    b.thisExpression(),
+                    b.identifier("server"),
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        ),
       ),
       b.expressionStatement(
         b.callExpression(
           b.memberExpression(
             b.memberExpression(b.thisExpression(), b.identifier("wss")),
-            b.identifier("on")
+            b.identifier("on"),
           ),
           [
             b.stringLiteral("connection"),
@@ -669,15 +723,18 @@ function getWebSocketMethod(options: GeneratorOptions) {
               b.blockStatement([
                 b.expressionStatement(
                   b.callExpression(
-                    b.memberExpression(b.identifier("console"), b.identifier("log")),
-                    [b.stringLiteral("WebSocket client connected")]
-                  )
-                )
-              ])
-            )
-          ]
-        )
-      )
+                    b.memberExpression(
+                      b.identifier("console"),
+                      b.identifier("log"),
+                    ),
+                    [b.stringLiteral("WebSocket client connected")],
+                  ),
+                ),
+              ]),
+            ),
+          ],
+        ),
+      ),
     ]);
   } else {
     // Default case: empty block statement when no websocket lib is selected
@@ -685,20 +742,16 @@ function getWebSocketMethod(options: GeneratorOptions) {
       b.expressionStatement(
         b.callExpression(
           b.memberExpression(b.identifier("console"), b.identifier("log")),
-          [b.stringLiteral("WebSockets not configured")]
-        )
-      )
+          [b.stringLiteral("WebSockets not configured")],
+        ),
+      ),
     ]);
   }
 
   return b.methodDefinition(
     "method",
     b.identifier("initializeWebSockets"),
-    b.functionExpression(
-      null,
-      [],
-      methodBody
-    )
+    b.functionExpression(null, [], methodBody),
   );
 }
 
@@ -711,7 +764,7 @@ function getViewEngineSetup(options: GeneratorOptions) {
     return null;
   }
 
-  const viewStatements: any[] = [];
+  const viewStatements: unknown[] = [];
 
   // Set views directory
   viewStatements.push(
@@ -719,20 +772,17 @@ function getViewEngineSetup(options: GeneratorOptions) {
       b.callExpression(
         b.memberExpression(
           b.memberExpression(b.thisExpression(), b.identifier("app")),
-          b.identifier("set")
+          b.identifier("set"),
         ),
         [
           b.stringLiteral("views"),
           b.callExpression(
             b.memberExpression(b.identifier("path"), b.identifier("join")),
-            [
-              b.identifier("__dirname"),
-              b.stringLiteral("views")
-            ]
-          )
-        ]
-      )
-    )
+            [b.identifier("__dirname"), b.stringLiteral("views")],
+          ),
+        ],
+      ),
+    ),
   );
 
   // Set view engine
@@ -741,14 +791,14 @@ function getViewEngineSetup(options: GeneratorOptions) {
       b.callExpression(
         b.memberExpression(
           b.memberExpression(b.thisExpression(), b.identifier("app")),
-          b.identifier("set")
+          b.identifier("set"),
         ),
         [
           b.stringLiteral("view engine"),
-          b.stringLiteral(options.viewEngine || "")
-        ]
-      )
-    )
+          b.stringLiteral(options.viewEngine || ""),
+        ],
+      ),
+    ),
   );
 
   // Additional engine-specific setup
@@ -758,28 +808,25 @@ function getViewEngineSetup(options: GeneratorOptions) {
         b.callExpression(
           b.memberExpression(
             b.memberExpression(b.thisExpression(), b.identifier("app")),
-            b.identifier("engine")
+            b.identifier("engine"),
           ),
           [
             b.stringLiteral("handlebars"),
-            b.callExpression(
-              b.identifier("exphbs"),
-              [
-                b.objectExpression([
-                  b.objectProperty(
-                    b.identifier("defaultLayout"),
-                    b.stringLiteral("main")
-                  ),
-                  b.objectProperty(
-                    b.identifier("extname"),
-                    b.stringLiteral(".handlebars")
-                  )
-                ])
-              ]
-            )
-          ]
-        )
-      )
+            b.callExpression(b.identifier("exphbs"), [
+              b.objectExpression([
+                b.objectProperty(
+                  b.identifier("defaultLayout"),
+                  b.stringLiteral("main"),
+                ),
+                b.objectProperty(
+                  b.identifier("extname"),
+                  b.stringLiteral(".handlebars"),
+                ),
+              ]),
+            ]),
+          ],
+        ),
+      ),
     );
   }
 
@@ -795,35 +842,26 @@ function getRouterInit(options: GeneratorOptions) {
     return b.variableDeclaration("const", [
       b.variableDeclarator(
         b.identifier("router"),
-        b.callExpression(
-          b.identifier("initializeRoutes"),
-          [
-            b.memberExpression(b.thisExpression(), b.identifier("io"))
-          ]
-        )
-      )
+        b.callExpression(b.identifier("initializeRoutes"), [
+          b.memberExpression(b.thisExpression(), b.identifier("io")),
+        ]),
+      ),
     ]);
   } else if (options.websocketLib === "ws") {
     return b.variableDeclaration("const", [
       b.variableDeclarator(
         b.identifier("router"),
-        b.callExpression(
-          b.identifier("initializeRoutes"),
-          [
-            b.memberExpression(b.thisExpression(), b.identifier("wss"))
-          ]
-        )
-      )
+        b.callExpression(b.identifier("initializeRoutes"), [
+          b.memberExpression(b.thisExpression(), b.identifier("wss")),
+        ]),
+      ),
     ]);
   } else {
     return b.variableDeclaration("const", [
       b.variableDeclarator(
         b.identifier("router"),
-        b.callExpression(
-          b.identifier("initializeRoutes"),
-          []
-        )
-      )
+        b.callExpression(b.identifier("initializeRoutes"), []),
+      ),
     ]);
   }
 }
@@ -838,7 +876,7 @@ function getViewRouteHandler(options: GeneratorOptions) {
       b.callExpression(
         b.memberExpression(
           b.memberExpression(b.thisExpression(), b.identifier("app")),
-          b.identifier("get")
+          b.identifier("get"),
         ),
         [
           b.stringLiteral("/"),
@@ -847,22 +885,25 @@ function getViewRouteHandler(options: GeneratorOptions) {
             b.blockStatement([
               b.expressionStatement(
                 b.callExpression(
-                  b.memberExpression(b.identifier("res"), b.identifier("render")),
+                  b.memberExpression(
+                    b.identifier("res"),
+                    b.identifier("render"),
+                  ),
                   [
                     b.stringLiteral("index"),
                     b.objectExpression([
                       b.objectProperty(
                         b.identifier("title"),
-                        b.stringLiteral("Express TypeScript App")
-                      )
-                    ])
-                  ]
-                )
-              )
-            ])
-          )
-        ]
-      )
+                        b.stringLiteral("Express TypeScript App"),
+                      ),
+                    ]),
+                  ],
+                ),
+              ),
+            ]),
+          ),
+        ],
+      ),
     );
   }
   // Return an empty statement as a fallback to prevent null return
@@ -876,24 +917,26 @@ function getTypedViewRouteHandler(options: GeneratorOptions) {
     if (exprStatement.type === "EmptyStatement") {
       return exprStatement;
     }
-    
+
     // Get the call expression
-    const callExpr = exprStatement.expression as any;
-    
+    const callExpr = exprStatement.expression as unknown;
+
     // Get the arrow function (second argument of the call)
-    const arrowFunc = callExpr.arguments[1] as any;
-    
+    //@ts-expect-error: recast type issues
+    const arrowFunc = callExpr.arguments[1] as unknown;
+
     // Add type annotations to req and res parameters
+    //@ts-expect-error: recast type issues
     const reqParam = arrowFunc.params[0];
     reqParam.typeAnnotation = b.tsTypeAnnotation(
-      b.tsTypeReference(b.identifier("Request"))
+      b.tsTypeReference(b.identifier("Request")),
     );
-    
+    //@ts-expect-error: recast type issues
     const resParam = arrowFunc.params[1];
     resParam.typeAnnotation = b.tsTypeAnnotation(
-      b.tsTypeReference(b.identifier("Response"))
+      b.tsTypeReference(b.identifier("Response")),
     );
-    
+
     return exprStatement;
   }
   // Return an empty statement as a fallback to prevent null return
@@ -904,53 +947,61 @@ function getTypedViewRouteHandler(options: GeneratorOptions) {
  * Helper function to add type annotations to route handler parameters
  * @param arrowFunc Arrow function expression to modify
  */
-function addTypeAnnotationsToRouteHandler(arrowFunc: any) {
+function addTypeAnnotationsToRouteHandler(arrowFunc: unknown) {
   // Add type annotations to route handler parameters if they exist
+  //@ts-expect-error: recast type issues
   if (arrowFunc.params.length >= 2) {
     // Check if this is an error handler (4 parameters with first one named 'error')
+    //@ts-expect-error: recast type issues
     if (arrowFunc.params.length >= 4 && arrowFunc.params[0].name === "error") {
       // error: any
+      //@ts-expect-error: recast type issues
       const errorParam = arrowFunc.params[0];
-      errorParam.typeAnnotation = b.tsTypeAnnotation(
-        b.tsAnyKeyword()
-      );
-      
+      errorParam.typeAnnotation = b.tsTypeAnnotation(b.tsAnyKeyword());
+
       // req: Request (2nd parameter in error handler)
+      //@ts-expect-error: recast type issues
       const reqParam = arrowFunc.params[1];
       reqParam.typeAnnotation = b.tsTypeAnnotation(
-        b.tsTypeReference(b.identifier("Request"))
+        b.tsTypeReference(b.identifier("Request")),
       );
-      
+
       // res: Response (3rd parameter in error handler)
+      //@ts-expect-error: recast type issues
       const resParam = arrowFunc.params[2];
       resParam.typeAnnotation = b.tsTypeAnnotation(
-        b.tsTypeReference(b.identifier("Response"))
+        b.tsTypeReference(b.identifier("Response")),
       );
-      
+
       // next: NextFunction (4th parameter in error handler)
+      //@ts-expect-error: recast type issues
       const nextParam = arrowFunc.params[3];
       nextParam.typeAnnotation = b.tsTypeAnnotation(
-        b.tsTypeReference(b.identifier("NextFunction"))
+        b.tsTypeReference(b.identifier("NextFunction")),
       );
     } else {
       // Regular route handler
       // req: Request
+      //@ts-expect-error: recast type issues
       const reqParam = arrowFunc.params[0];
       reqParam.typeAnnotation = b.tsTypeAnnotation(
-        b.tsTypeReference(b.identifier("Request"))
+        b.tsTypeReference(b.identifier("Request")),
       );
-      
+
       // res: Response
+      //@ts-expect-error: recast type issues
       const resParam = arrowFunc.params[1];
       resParam.typeAnnotation = b.tsTypeAnnotation(
-        b.tsTypeReference(b.identifier("Response"))
+        b.tsTypeReference(b.identifier("Response")),
       );
-      
+
       // next: NextFunction (if present)
+      //@ts-expect-error: recast type issues
       if (arrowFunc.params.length >= 3) {
+        //@ts-expect-error: recast type issues
         const nextParam = arrowFunc.params[2];
         nextParam.typeAnnotation = b.tsTypeAnnotation(
-          b.tsTypeReference(b.identifier("NextFunction"))
+          b.tsTypeReference(b.identifier("NextFunction")),
         );
       }
     }
@@ -959,7 +1010,7 @@ function addTypeAnnotationsToRouteHandler(arrowFunc: any) {
 
 /**
  * Generates the server AST with provided options
- * @param options Template options 
+ * @param options Template options
  * @returns AST for server.ts file
  */
 export default function generateServerAST(opts: GeneratorOptions) {
@@ -974,8 +1025,10 @@ export default function generateServerAST(opts: GeneratorOptions) {
           b.identifier("Server"),
           b.classBody([
             // Class properties from options
+            //@ts-expect-error: recast type issues
             ...getClassProperties(opts),
             // static bootstrap(): Server { return new Server(); }
+            //@ts-expect-error: recast type issues
             (() => {
               const bootstrapMethod = b.methodDefinition(
                 "method",
@@ -985,26 +1038,28 @@ export default function generateServerAST(opts: GeneratorOptions) {
                   [],
                   b.blockStatement([
                     b.returnStatement(
-                      b.newExpression(b.identifier("Server"), [])
-                    )
-                  ])
+                      b.newExpression(b.identifier("Server"), []),
+                    ),
+                  ]),
                 ),
-                true // static method
+                true, // static method
               );
               bootstrapMethod.comments = [
-                b.commentBlock(COMMENTS.SERVER.BOOTSTRAP_METHOD, true)
+                b.commentBlock(COMMENTS.SERVER.BOOTSTRAP_METHOD, true),
               ];
               return bootstrapMethod;
             })(),
             // constructor() { ... }
+            //@ts-expect-error: recast type issues
             (() => {
               const constructorMethod = getConstructorMethod(opts);
               constructorMethod.comments = [
-                b.commentBlock(COMMENTS.SERVER.CONSTRUCTOR_METHOD, true)
+                b.commentBlock(COMMENTS.SERVER.CONSTRUCTOR_METHOD, true),
               ];
               return constructorMethod;
             })(),
             // private initializeMiddlewares(): void { ... }
+            //@ts-expect-error: recast type issues
             (() => {
               const initMiddlewaresMethod = b.methodDefinition(
                 "method",
@@ -1017,94 +1072,140 @@ export default function generateServerAST(opts: GeneratorOptions) {
                     b.expressionStatement(
                       b.callExpression(
                         b.memberExpression(
-                          b.memberExpression(b.thisExpression(), b.identifier("app")),
-                          b.identifier("use")
+                          b.memberExpression(
+                            b.thisExpression(),
+                            b.identifier("app"),
+                          ),
+                          b.identifier("use"),
                         ),
-                        [b.callExpression(b.identifier("helmet"), [])]
-                      )
+                        [b.callExpression(b.identifier("helmet"), [])],
+                      ),
                     ),
                     // this.app.use(cors());
                     b.expressionStatement(
                       b.callExpression(
                         b.memberExpression(
-                          b.memberExpression(b.thisExpression(), b.identifier("app")),
-                          b.identifier("use")
+                          b.memberExpression(
+                            b.thisExpression(),
+                            b.identifier("app"),
+                          ),
+                          b.identifier("use"),
                         ),
-                        [b.callExpression(b.identifier("cors"), [])]
-                      )
+                        [b.callExpression(b.identifier("cors"), [])],
+                      ),
                     ),
                     // this.app.use(morgan('dev'));
                     b.expressionStatement(
                       b.callExpression(
                         b.memberExpression(
-                          b.memberExpression(b.thisExpression(), b.identifier("app")),
-                          b.identifier("use")
+                          b.memberExpression(
+                            b.thisExpression(),
+                            b.identifier("app"),
+                          ),
+                          b.identifier("use"),
                         ),
-                        [b.callExpression(b.identifier("morgan"), [b.stringLiteral("dev")])]
-                      )
+                        [
+                          b.callExpression(b.identifier("morgan"), [
+                            b.stringLiteral("dev"),
+                          ]),
+                        ],
+                      ),
                     ),
                     // this.app.use(express.json());
                     b.expressionStatement(
                       b.callExpression(
                         b.memberExpression(
-                          b.memberExpression(b.thisExpression(), b.identifier("app")),
-                          b.identifier("use")
+                          b.memberExpression(
+                            b.thisExpression(),
+                            b.identifier("app"),
+                          ),
+                          b.identifier("use"),
                         ),
-                        [b.callExpression(
-                          b.memberExpression(b.identifier("express"), b.identifier("json")),
-                          []
-                        )]
-                      )
+                        [
+                          b.callExpression(
+                            b.memberExpression(
+                              b.identifier("express"),
+                              b.identifier("json"),
+                            ),
+                            [],
+                          ),
+                        ],
+                      ),
                     ),
                     // this.app.use(express.urlencoded({ extended: true }));
                     b.expressionStatement(
                       b.callExpression(
                         b.memberExpression(
-                          b.memberExpression(b.thisExpression(), b.identifier("app")),
-                          b.identifier("use")
+                          b.memberExpression(
+                            b.thisExpression(),
+                            b.identifier("app"),
+                          ),
+                          b.identifier("use"),
                         ),
-                        [b.callExpression(
-                          b.memberExpression(b.identifier("express"), b.identifier("urlencoded")),
-                          [b.objectExpression([
-                            b.objectProperty(
-                              b.identifier("extended"),
-                              b.booleanLiteral(true)
-                            )
-                          ])]
-                        )]
-                      )
+                        [
+                          b.callExpression(
+                            b.memberExpression(
+                              b.identifier("express"),
+                              b.identifier("urlencoded"),
+                            ),
+                            [
+                              b.objectExpression([
+                                b.objectProperty(
+                                  b.identifier("extended"),
+                                  b.booleanLiteral(true),
+                                ),
+                              ]),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                     // View engine setup if needed
-                    ...(getViewEngineSetup(opts) || [])
-                  ])
-                )
+                    //@ts-expect-error: recast type issues
+                    ...(getViewEngineSetup(opts) || []),
+                  ]),
+                ),
               );
               initMiddlewaresMethod.comments = [
-                b.commentBlock(COMMENTS.SERVER.INITIALIZE_MIDDLEWARES, true)
+                b.commentBlock(COMMENTS.SERVER.INITIALIZE_MIDDLEWARES, true),
               ];
               return initMiddlewaresMethod;
             })(),
             // Database method if needed
-			...((getDatabaseMethod(opts)? [(()=>{
-				const dbMethod = getDatabaseMethod(opts);
-				if (dbMethod) {
-					dbMethod.comments = [
-					  b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true)
-					];
-				  }
-              	return dbMethod;
-			})()]: [])),
+            //@ts-expect-error: recast type issues
+            ...(getDatabaseMethod(opts)
+              ? [
+                  (() => {
+                    const dbMethod = getDatabaseMethod(opts);
+                    if (dbMethod) {
+                      dbMethod.comments = [
+                        b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true),
+                      ];
+                    }
+                    return dbMethod;
+                  })(),
+                ]
+              : []),
             // WebSocket method if needed
-            ...((getWebSocketMethod(opts) ? [(() => {
-              const wsMethod = getWebSocketMethod(opts);
-              if (wsMethod) {
-                wsMethod.comments = [
-                  b.commentBlock(COMMENTS.SERVER.INITIALIZE_WEBSOCKETS, true)
-                ];
-              }
-              return wsMethod;
-            })()] : [])),
+            //@ts-expect-error: recast type issues
+            ...(getWebSocketMethod(opts)
+              ? [
+                  (() => {
+                    const wsMethod = getWebSocketMethod(opts);
+                    if (wsMethod) {
+                      wsMethod.comments = [
+                        b.commentBlock(
+                          COMMENTS.SERVER.INITIALIZE_WEBSOCKETS,
+                          true,
+                        ),
+                      ];
+                    }
+                    return wsMethod;
+                  })(),
+                ]
+              : []),
             // private initializeRoutes(): void { ... }
+            //@ts-expect-error: recast type issues
             (() => {
               const initRoutesMethod = b.methodDefinition(
                 "method",
@@ -1119,19 +1220,25 @@ export default function generateServerAST(opts: GeneratorOptions) {
                     b.expressionStatement(
                       b.callExpression(
                         b.memberExpression(
-                          b.memberExpression(b.thisExpression(), b.identifier("app")),
-                          b.identifier("use")
+                          b.memberExpression(
+                            b.thisExpression(),
+                            b.identifier("app"),
+                          ),
+                          b.identifier("use"),
                         ),
-                        [b.stringLiteral("/api"), b.identifier("router")]
-                      )
+                        [b.stringLiteral("/api"), b.identifier("router")],
+                      ),
                     ),
                     // this.app.use("/api/*", (req, res) => { ... });
                     (() => {
                       const notFoundHandler = b.expressionStatement(
                         b.callExpression(
                           b.memberExpression(
-                            b.memberExpression(b.thisExpression(), b.identifier("app")),
-                            b.identifier("use")
+                            b.memberExpression(
+                              b.thisExpression(),
+                              b.identifier("app"),
+                            ),
+                            b.identifier("use"),
                           ),
                           [
                             b.stringLiteral("/api/*"),
@@ -1142,43 +1249,52 @@ export default function generateServerAST(opts: GeneratorOptions) {
                                   b.callExpression(
                                     b.memberExpression(
                                       b.callExpression(
-                                        b.memberExpression(b.identifier("res"), b.identifier("status")),
-                                        [b.numericLiteral(404)]
+                                        b.memberExpression(
+                                          b.identifier("res"),
+                                          b.identifier("status"),
+                                        ),
+                                        [b.numericLiteral(404)],
                                       ),
-                                      b.identifier("json")
+                                      b.identifier("json"),
                                     ),
-                                    [b.objectExpression([
-                                      b.objectProperty(
-                                        b.identifier("error"), 
-                                        b.stringLiteral("Not Found")
-                                      )
-                                    ])]
-                                  )
-                                )
-                              ])
-                            )
-                          ]
-                        )
+                                    [
+                                      b.objectExpression([
+                                        b.objectProperty(
+                                          b.identifier("error"),
+                                          b.stringLiteral("Not Found"),
+                                        ),
+                                      ]),
+                                    ],
+                                  ),
+                                ),
+                              ]),
+                            ),
+                          ],
+                        ),
                       );
-                      
+
                       // Add type annotations to route handler parameters
-                      const callExpr = notFoundHandler.expression as any;
+                      const callExpr = notFoundHandler.expression as unknown;
+                      //@ts-expect-error: recast type issues
                       const arrowFunc = callExpr.arguments[1];
                       addTypeAnnotationsToRouteHandler(arrowFunc);
-                      
+
                       return notFoundHandler;
                     })(),
                     // Add view route handler if needed
-                    ...(getTypedViewRouteHandler(opts) ? [getTypedViewRouteHandler(opts)] : [])
-                  ])
-                )
+                    ...(getTypedViewRouteHandler(opts)
+                      ? [getTypedViewRouteHandler(opts)]
+                      : []),
+                  ]),
+                ),
               );
               initRoutesMethod.comments = [
-                b.commentBlock(COMMENTS.SERVER.INITIALIZE_ROUTES, true)
+                b.commentBlock(COMMENTS.SERVER.INITIALIZE_ROUTES, true),
               ];
               return initRoutesMethod;
             })(),
             // private initializeErrorHandling(): void { ... }
+            //@ts-expect-error: recast type issues
             (() => {
               const errorHandlingMethod = b.methodDefinition(
                 "method",
@@ -1192,8 +1308,11 @@ export default function generateServerAST(opts: GeneratorOptions) {
                       const notFoundHandler = b.expressionStatement(
                         b.callExpression(
                           b.memberExpression(
-                            b.memberExpression(b.thisExpression(), b.identifier("app")),
-                            b.identifier("use")
+                            b.memberExpression(
+                              b.thisExpression(),
+                              b.identifier("app"),
+                            ),
+                            b.identifier("use"),
                           ),
                           [
                             b.arrowFunctionExpression(
@@ -1203,30 +1322,36 @@ export default function generateServerAST(opts: GeneratorOptions) {
                                   b.callExpression(
                                     b.memberExpression(
                                       b.callExpression(
-                                        b.memberExpression(b.identifier("res"), b.identifier("status")),
-                                        [b.numericLiteral(404)]
+                                        b.memberExpression(
+                                          b.identifier("res"),
+                                          b.identifier("status"),
+                                        ),
+                                        [b.numericLiteral(404)],
                                       ),
-                                      b.identifier("json")
+                                      b.identifier("json"),
                                     ),
-                                    [b.objectExpression([
-                                      b.objectProperty(
-                                        b.identifier("message"), 
-                                        b.stringLiteral("Not Found")
-                                      )
-                                    ])]
-                                  )
-                                )
-                              ])
-                            )
-                          ]
-                        )
+                                    [
+                                      b.objectExpression([
+                                        b.objectProperty(
+                                          b.identifier("message"),
+                                          b.stringLiteral("Not Found"),
+                                        ),
+                                      ]),
+                                    ],
+                                  ),
+                                ),
+                              ]),
+                            ),
+                          ],
+                        ),
                       );
-                      
+
                       // Add type annotations to route handler parameters
-                      const callExpr = notFoundHandler.expression as any;
+                      const callExpr = notFoundHandler.expression as unknown;
+                      //@ts-expect-error: recast type issues
                       const arrowFunc = callExpr.arguments[0];
                       addTypeAnnotationsToRouteHandler(arrowFunc);
-                      
+
                       return notFoundHandler;
                     })(),
                     // Global error handler
@@ -1234,8 +1359,11 @@ export default function generateServerAST(opts: GeneratorOptions) {
                       const errorHandler = b.expressionStatement(
                         b.callExpression(
                           b.memberExpression(
-                            b.memberExpression(b.thisExpression(), b.identifier("app")),
-                            b.identifier("use")
+                            b.memberExpression(
+                              b.thisExpression(),
+                              b.identifier("app"),
+                            ),
+                            b.identifier("use"),
                           ),
                           [
                             b.arrowFunctionExpression(
@@ -1243,136 +1371,157 @@ export default function generateServerAST(opts: GeneratorOptions) {
                                 b.identifier("error"),
                                 b.identifier("req"),
                                 b.identifier("res"),
-                                b.identifier("next")
+                                b.identifier("next"),
                               ],
                               b.blockStatement([
                                 b.expressionStatement(
                                   b.callExpression(
-                                    b.memberExpression(b.identifier("console"), b.identifier("error")),
-                                    [b.identifier("error")]
-                                  )
+                                    b.memberExpression(
+                                      b.identifier("console"),
+                                      b.identifier("error"),
+                                    ),
+                                    [b.identifier("error")],
+                                  ),
                                 ),
                                 b.expressionStatement(
                                   b.callExpression(
                                     b.memberExpression(
                                       b.callExpression(
-                                        b.memberExpression(b.identifier("res"), b.identifier("status")),
-                                        [b.numericLiteral(500)]
+                                        b.memberExpression(
+                                          b.identifier("res"),
+                                          b.identifier("status"),
+                                        ),
+                                        [b.numericLiteral(500)],
                                       ),
-                                      b.identifier("json")
+                                      b.identifier("json"),
                                     ),
-                                    [b.objectExpression([
-                                      b.objectProperty(
-                                        b.identifier("message"), 
-                                        b.stringLiteral("Internal Server Error")
-                                      )
-                                    ])]
-                                  )
-                                )
-                              ])
-                            )
-                          ]
-                        )
+                                    [
+                                      b.objectExpression([
+                                        b.objectProperty(
+                                          b.identifier("message"),
+                                          b.stringLiteral(
+                                            "Internal Server Error",
+                                          ),
+                                        ),
+                                      ]),
+                                    ],
+                                  ),
+                                ),
+                              ]),
+                            ),
+                          ],
+                        ),
                       );
-                      
+
                       // Add type annotations to route handler parameters
-                      const callExpr = errorHandler.expression as any;
+                      const callExpr = errorHandler.expression as unknown;
+                      //@ts-expect-error: recast type issues
                       const arrowFunc = callExpr.arguments[0];
                       addTypeAnnotationsToRouteHandler(arrowFunc);
-                      
+
                       return errorHandler;
-                    })()
-                  ])
-                )
+                    })(),
+                  ]),
+                ),
               );
               errorHandlingMethod.comments = [
-                b.commentBlock(COMMENTS.SERVER.INITIALIZE_ERROR_HANDLING, true)
+                b.commentBlock(COMMENTS.SERVER.INITIALIZE_ERROR_HANDLING, true),
               ];
               return errorHandlingMethod;
             })(),
             // public listen(port: number): void { ... }
+            //@ts-expect-error: recast type issues
             (() => {
-				const errorHandlingBlock = b.blockStatement([
-					// const bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
-					b.variableDeclaration("const", [
-					  b.variableDeclarator(
-						b.identifier("bind"),
-						b.conditionalExpression(
-						  b.binaryExpression(
-							"===",
-							b.unaryExpression("typeof", b.identifier("port"), true),
-							b.stringLiteral("string")
-						  ),
-						  b.binaryExpression("+", b.stringLiteral("Pipe "), b.identifier("port")),
-						  b.binaryExpression("+", b.stringLiteral("Port "), b.identifier("port"))
-						)
-					  )
-					]),
-					// switch (error.code) { ... }
-					b.switchStatement(
-					  b.memberExpression(b.identifier("err"), b.identifier("name")),
-					  [
-						// case "EACCES":
-						b.switchCase(
-						  b.stringLiteral("EACCES"),
-						  [
-							b.expressionStatement(
-							  b.callExpression(
-								b.memberExpression(b.identifier("console"), b.identifier("error")),
-								[
-								  b.binaryExpression(
-									"+",
-									b.identifier("bind"),
-									b.identifier("err.message"),
-								  )
-								]
-							  )
-							),
-							b.expressionStatement(
-							  b.callExpression(
-								b.memberExpression(b.identifier("process"), b.identifier("exit")),
-								[b.numericLiteral(1)]
-							  )
-							),
-							b.breakStatement()
-						  ]
-						),
-						// case "EADDRINUSE":
-						b.switchCase(
-						  b.stringLiteral("EADDRINUSE"),
-						  [
-							b.expressionStatement(
-							  b.callExpression(
-								b.memberExpression(b.identifier("console"), b.identifier("error")),
-								[
-								  b.binaryExpression(
-									"+",
-									b.identifier("bind"),
-									b.identifier("err.message"),
-								  )
-								]
-							  )
-							),
-							b.expressionStatement(
-							  b.callExpression(
-								b.memberExpression(b.identifier("process"), b.identifier("exit")),
-								[b.numericLiteral(1)]
-							  )
-							),
-							b.breakStatement()
-						  ]
-						),
-						// default:
-						b.switchCase(
-						  null,
-						  [
-							b.throwStatement(b.identifier("err"))
-						  ]
-						)
-					  ]
-					)
-				  ]);
-				  
+              const errorHandlingBlock = b.blockStatement([
+                // const bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
+                b.variableDeclaration("const", [
+                  b.variableDeclarator(
+                    b.identifier("bind"),
+                    b.conditionalExpression(
+                      b.binaryExpression(
+                        "===",
+                        b.unaryExpression("typeof", b.identifier("port"), true),
+                        b.stringLiteral("string"),
+                      ),
+                      b.binaryExpression(
+                        "+",
+                        b.stringLiteral("Pipe "),
+                        b.identifier("port"),
+                      ),
+                      b.binaryExpression(
+                        "+",
+                        b.stringLiteral("Port "),
+                        b.identifier("port"),
+                      ),
+                    ),
+                  ),
+                ]),
+                // switch (error.code) { ... }
+                b.switchStatement(
+                  b.memberExpression(b.identifier("err"), b.identifier("name")),
+                  [
+                    // case "EACCES":
+                    b.switchCase(b.stringLiteral("EACCES"), [
+                      b.expressionStatement(
+                        b.callExpression(
+                          b.memberExpression(
+                            b.identifier("console"),
+                            b.identifier("error"),
+                          ),
+                          [
+                            b.binaryExpression(
+                              "+",
+                              b.identifier("bind"),
+                              b.identifier("err.message"),
+                            ),
+                          ],
+                        ),
+                      ),
+                      b.expressionStatement(
+                        b.callExpression(
+                          b.memberExpression(
+                            b.identifier("process"),
+                            b.identifier("exit"),
+                          ),
+                          [b.numericLiteral(1)],
+                        ),
+                      ),
+                      b.breakStatement(),
+                    ]),
+                    // case "EADDRINUSE":
+                    b.switchCase(b.stringLiteral("EADDRINUSE"), [
+                      b.expressionStatement(
+                        b.callExpression(
+                          b.memberExpression(
+                            b.identifier("console"),
+                            b.identifier("error"),
+                          ),
+                          [
+                            b.binaryExpression(
+                              "+",
+                              b.identifier("bind"),
+                              b.identifier("err.message"),
+                            ),
+                          ],
+                        ),
+                      ),
+                      b.expressionStatement(
+                        b.callExpression(
+                          b.memberExpression(
+                            b.identifier("process"),
+                            b.identifier("exit"),
+                          ),
+                          [b.numericLiteral(1)],
+                        ),
+                      ),
+                      b.breakStatement(),
+                    ]),
+                    // default:
+                    b.switchCase(null, [b.throwStatement(b.identifier("err"))]),
+                  ],
+                ),
+              ]);
+
               const listenMethod = b.methodDefinition(
                 "method",
                 b.identifier("listen"),
@@ -1383,8 +1532,11 @@ export default function generateServerAST(opts: GeneratorOptions) {
                     b.expressionStatement(
                       b.callExpression(
                         b.memberExpression(
-                          b.memberExpression(b.thisExpression(), b.identifier("server")),
-                          b.identifier("listen")
+                          b.memberExpression(
+                            b.thisExpression(),
+                            b.identifier("server"),
+                          ),
+                          b.identifier("listen"),
                         ),
                         [
                           b.identifier("port"),
@@ -1393,77 +1545,93 @@ export default function generateServerAST(opts: GeneratorOptions) {
                             b.blockStatement([
                               b.expressionStatement(
                                 b.callExpression(
-                                  b.memberExpression(b.identifier("console"), b.identifier("log")),
+                                  b.memberExpression(
+                                    b.identifier("console"),
+                                    b.identifier("log"),
+                                  ),
                                   [
                                     b.templateLiteral(
                                       [
-                                        b.templateElement({ raw: "Server running on port ", cooked: "Server running on port " }, false),
-                                        b.templateElement({ raw: "", cooked: "" }, true)
+                                        b.templateElement(
+                                          {
+                                            raw: "Server running on port ",
+                                            cooked: "Server running on port ",
+                                          },
+                                          false,
+                                        ),
+                                        b.templateElement(
+                                          { raw: "", cooked: "" },
+                                          true,
+                                        ),
                                       ],
-                                      [b.identifier("port")]
-                                    )
-                                  ]
-                                )
-                              )
-                            ])
-                          )
-                        ]
-                      )
+                                      [b.identifier("port")],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ]),
+                          ),
+                        ],
+                      ),
                     ),
-					b.expressionStatement(
-						b.callExpression(
-						  b.memberExpression(
-							b.memberExpression(b.thisExpression(), b.identifier("server")),
-							b.identifier("on")
-						  ),
-						  [
-							b.stringLiteral("error"),
-							b.arrowFunctionExpression(
-							  [b.identifier("err")],
-							  errorHandlingBlock
-							)
-						  ]
-						)
-					)
-                  ])
-                )
+                    b.expressionStatement(
+                      b.callExpression(
+                        b.memberExpression(
+                          b.memberExpression(
+                            b.thisExpression(),
+                            b.identifier("server"),
+                          ),
+                          b.identifier("on"),
+                        ),
+                        [
+                          b.stringLiteral("error"),
+                          b.arrowFunctionExpression(
+                            [b.identifier("err")],
+                            errorHandlingBlock,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
               );
-              
+
               // Add type annotation to port parameter
-              const portParam = listenMethod.value.params[0] as any;
+              const portParam = listenMethod.value.params[0] as unknown;
+              //@ts-expect-error: recast type issues
               portParam.typeAnnotation = b.tsTypeAnnotation(
-                b.tsNumberKeyword()
+                b.tsNumberKeyword(),
               );
-              
+
               // Add return type annotation to the method
               listenMethod.value.returnType = b.tsTypeAnnotation(
-                b.tsVoidKeyword()
+                b.tsVoidKeyword(),
               );
-              
+
               listenMethod.comments = [
-                b.commentBlock(COMMENTS.SERVER.LISTEN_METHOD, true)
+                b.commentBlock(COMMENTS.SERVER.LISTEN_METHOD, true),
               ];
               return listenMethod;
-            })()
+            })(),
           ]),
-          null // no superclass
+          null, // no superclass
         ),
-        []
+        [],
       );
-      
+
       // Add the server class comment to the export declaration, not the class
       exportDecl.comments = [
-        b.commentBlock(COMMENTS.SERVER.SERVER_CLASS, true)
+        b.commentBlock(COMMENTS.SERVER.SERVER_CLASS, true),
       ];
-      
+
       return exportDecl;
-    })()
+    })(),
   ]);
 }
 
 /**
  * Export a print function to convert the AST to code
  */
-export function print(ast: any): string {
+export function print(ast: recast.types.ASTNode): string {
   return recast.prettyPrint(ast, { parser: tsParser }).code;
-} 
+}
