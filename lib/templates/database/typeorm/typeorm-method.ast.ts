@@ -3,25 +3,19 @@
  * This file is processed by the AST template processor and generates the method for initializing TypeORM database
  */
 
-import * as recast from 'recast';
-import * as tsParser from 'recast/parsers/typescript.js';
-import { IMPORTS } from '../../../constants/templates/server/index.js';
+import * as recast from "recast";
+import * as tsParser from "recast/parsers/typescript.js";
+import { IMPORTS } from "../../constants/server/index.js";
+import { GeneratorOptions } from "../../../types/setup.js";
 
 const b = recast.types.builders;
-
-/**
- * Template options interface
- */
-export interface TemplateOptions {
-  [key: string]: any;
-}
 
 /**
  * Generates the TypeORM database method AST
  * @param options Template options
  * @returns AST for TypeORM database method
  */
-export default function generateTypeORMMethodAST(options: TemplateOptions = {}) {
+export default function generateTypeORMMethodAST(_options: GeneratorOptions) {
   // Create the connectToDatabase method
   const methodBody = b.blockStatement([
     // try {
@@ -30,22 +24,16 @@ export default function generateTypeORMMethodAST(options: TemplateOptions = {}) 
         // await initializeDatabase();
         b.expressionStatement(
           b.awaitExpression(
-            b.callExpression(
-              b.identifier(IMPORTS.DATABASE.INITIALIZE),
-              []
-            )
-          )
+            b.callExpression(b.identifier(IMPORTS.DATABASE.INITIALIZE), []),
+          ),
         ),
         // console.log('Database connection established successfully.');
         b.expressionStatement(
           b.callExpression(
-            b.memberExpression(
-              b.identifier("console"),
-              b.identifier("log")
-            ),
-            [b.stringLiteral("TypeORM connection established successfully.")]
-          )
-        )
+            b.memberExpression(b.identifier("console"), b.identifier("log")),
+            [b.stringLiteral("TypeORM connection established successfully.")],
+          ),
+        ),
       ]),
       // catch (error) {
       b.catchClause(
@@ -57,19 +45,19 @@ export default function generateTypeORMMethodAST(options: TemplateOptions = {}) 
             b.callExpression(
               b.memberExpression(
                 b.identifier("console"),
-                b.identifier("error")
+                b.identifier("error"),
               ),
               [
                 b.stringLiteral("Database connection error:"),
-                b.identifier("error")
-              ]
-            )
+                b.identifier("error"),
+              ],
+            ),
           ),
           // Comment: // process.exit(1);
-          b.emptyStatement()
-        ])
-      )
-    )
+          b.emptyStatement(),
+        ]),
+      ),
+    ),
   ]);
 
   // Add method node with async and private modifiers
@@ -78,8 +66,8 @@ export default function generateTypeORMMethodAST(options: TemplateOptions = {}) 
     b.identifier("connectToDatabase"),
     [],
     methodBody,
-    false,  // not computed
-    true    // is private
+    false, // not computed
+    true, // is private
   );
 
   // Add async modifier
@@ -88,8 +76,8 @@ export default function generateTypeORMMethodAST(options: TemplateOptions = {}) 
   // Add return type annotation
   connectToDatabaseMethod.returnType = b.tsTypeAnnotation(
     b.tsTypeReference(
-      b.tsQualifiedName(b.identifier("Promise"), b.identifier("void"))
-    )
+      b.tsQualifiedName(b.identifier("Promise"), b.identifier("void")),
+    ),
   );
 
   // Return just the method body as a string
@@ -99,6 +87,6 @@ export default function generateTypeORMMethodAST(options: TemplateOptions = {}) 
 /**
  * Export a print function to convert the AST to code
  */
-export function print(ast: string): string {
-  return ast;
-} 
+export function print(ast: recast.types.ASTNode): string {
+  return recast.prettyPrint(ast, { parser: tsParser }).code;
+}

@@ -8,8 +8,11 @@
     "copy-templates": "rsync -a --exclude='*.ts' lib/templates dist/lib",
     "start": "node dist/bin/cli.js",
     "dev": "ts-node bin/cli.ts",
-    "prepare": "yarn build",
+    "prepare": "husky",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
   },
   "main": "dist/lib/express-generator-typescript.js",
   "types": "dist/lib/express-generator-typescript.d.ts",
@@ -62,11 +65,18 @@
     "recast": "^0.23.10"
   },
   "devDependencies": {
+    "@eslint/js": "^9.21.0",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^20.11.30",
+    "eslint": "^9.21.0",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
+    "prettier": "3.5.2",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3",
+    "typescript-eslint": "^8.25.0"
   },
   "engines": {
     "node": ">=14.0.0"

@@ -15,12 +15,15 @@
     "noImplicitAny": true,
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
-    "typeRoots": [
-      "./node_modules/@types",
-    ]
+    "typeRoots": ["./node_modules/@types"]
   },
   "include": ["bin/**/*", "lib/**/*"],
-  "exclude": ["node_modules", "dist", "lib/templates/views/**"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "lib/templates/views/**",
+    "express-typescript-app"
+  ],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"

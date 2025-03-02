@@ -3,30 +3,29 @@
  * This file is processed by the AST template processor and generates the Socket.IO handler file
  */
 
-import * as recast from 'recast';
-import * as tsParser from 'recast/parsers/typescript.js';
+import * as recast from "recast";
+import * as tsParser from "recast/parsers/typescript.js";
+import { GeneratorOptions } from "../../../types/setup.js";
 
 const b = recast.types.builders;
-
-/**
- * Template options interface
- */
-export interface TemplateOptions {
-  [key: string]: any;
-}
 
 /**
  * Generates the Socket.IO handler AST with provided options
  * @param options Template options
  * @returns AST for websockets/socketio/index.ts file
  */
-export default function generateSocketIOHandlerAST(options: TemplateOptions = {}) {
+export default function generateSocketIOHandlerAST(_options: GeneratorOptions) {
   // Build the imports section
   const imports = [
     b.importDeclaration(
-      [b.importSpecifier(b.identifier("Server"), b.identifier("SocketIOServer"))],
-      b.stringLiteral("socket.io")
-    )
+      [
+        b.importSpecifier(
+          b.identifier("Server"),
+          b.identifier("SocketIOServer"),
+        ),
+      ],
+      b.stringLiteral("socket.io"),
+    ),
   ];
 
   // Create setupSocketHandlers function
@@ -36,7 +35,7 @@ export default function generateSocketIOHandlerAST(options: TemplateOptions = {}
       b.arrowFunctionExpression(
         [
           // io parameter with type annotation
-          b.identifier("io")
+          b.identifier("io"),
         ],
         b.blockStatement([
           // io.on("connection", (socket) => { ... });
@@ -51,18 +50,27 @@ export default function generateSocketIOHandlerAST(options: TemplateOptions = {}
                     // console.log("New client connected:", socket.id);
                     b.expressionStatement(
                       b.callExpression(
-                        b.memberExpression(b.identifier("console"), b.identifier("log")),
+                        b.memberExpression(
+                          b.identifier("console"),
+                          b.identifier("log"),
+                        ),
                         [
                           b.stringLiteral("New client connected:"),
-                          b.memberExpression(b.identifier("socket"), b.identifier("id"))
-                        ]
-                      )
+                          b.memberExpression(
+                            b.identifier("socket"),
+                            b.identifier("id"),
+                          ),
+                        ],
+                      ),
                     ),
-                    
+
                     // socket.on("message", (data) => { ... });
                     b.expressionStatement(
                       b.callExpression(
-                        b.memberExpression(b.identifier("socket"), b.identifier("on")),
+                        b.memberExpression(
+                          b.identifier("socket"),
+                          b.identifier("on"),
+                        ),
                         [
                           b.stringLiteral("message"),
                           b.arrowFunctionExpression(
@@ -71,50 +79,68 @@ export default function generateSocketIOHandlerAST(options: TemplateOptions = {}
                               // console.log("Message received:", data);
                               b.expressionStatement(
                                 b.callExpression(
-                                  b.memberExpression(b.identifier("console"), b.identifier("log")),
+                                  b.memberExpression(
+                                    b.identifier("console"),
+                                    b.identifier("log"),
+                                  ),
                                   [
                                     b.stringLiteral("Message received:"),
-                                    b.identifier("data")
-                                  ]
-                                )
+                                    b.identifier("data"),
+                                  ],
+                                ),
                               ),
-                              
+
                               // socket.broadcast.emit("message", { ... });
                               b.expressionStatement(
                                 b.callExpression(
                                   b.memberExpression(
-                                    b.memberExpression(b.identifier("socket"), b.identifier("broadcast")),
-                                    b.identifier("emit")
+                                    b.memberExpression(
+                                      b.identifier("socket"),
+                                      b.identifier("broadcast"),
+                                    ),
+                                    b.identifier("emit"),
                                   ),
                                   [
                                     b.stringLiteral("message"),
                                     b.objectExpression([
                                       b.objectProperty(
                                         b.identifier("user"),
-                                        b.memberExpression(b.identifier("socket"), b.identifier("id"))
+                                        b.memberExpression(
+                                          b.identifier("socket"),
+                                          b.identifier("id"),
+                                        ),
                                       ),
                                       b.objectProperty(
                                         b.identifier("text"),
-                                        b.memberExpression(b.identifier("data"), b.identifier("text"))
+                                        b.memberExpression(
+                                          b.identifier("data"),
+                                          b.identifier("text"),
+                                        ),
                                       ),
                                       b.objectProperty(
                                         b.identifier("timestamp"),
-                                        b.newExpression(b.identifier("Date"), [])
-                                      )
-                                    ])
-                                  ]
-                                )
-                              )
-                            ])
-                          )
-                        ]
-                      )
+                                        b.newExpression(
+                                          b.identifier("Date"),
+                                          [],
+                                        ),
+                                      ),
+                                    ]),
+                                  ],
+                                ),
+                              ),
+                            ]),
+                          ),
+                        ],
+                      ),
                     ),
-                    
+
                     // socket.on("disconnect", () => { ... });
                     b.expressionStatement(
                       b.callExpression(
-                        b.memberExpression(b.identifier("socket"), b.identifier("on")),
+                        b.memberExpression(
+                          b.identifier("socket"),
+                          b.identifier("on"),
+                        ),
                         [
                           b.stringLiteral("disconnect"),
                           b.arrowFunctionExpression(
@@ -123,60 +149,60 @@ export default function generateSocketIOHandlerAST(options: TemplateOptions = {}
                               // console.log("Client disconnected:", socket.id);
                               b.expressionStatement(
                                 b.callExpression(
-                                  b.memberExpression(b.identifier("console"), b.identifier("log")),
+                                  b.memberExpression(
+                                    b.identifier("console"),
+                                    b.identifier("log"),
+                                  ),
                                   [
                                     b.stringLiteral("Client disconnected:"),
-                                    b.memberExpression(b.identifier("socket"), b.identifier("id"))
-                                  ]
-                                )
-                              )
-                            ])
-                          )
-                        ]
-                      )
-                    )
-                  ])
-                )
-              ]
-            )
-          )
-        ])
-      )
-    )
+                                    b.memberExpression(
+                                      b.identifier("socket"),
+                                      b.identifier("id"),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ]),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
+              ],
+            ),
+          ),
+        ]),
+      ),
+    ),
   ]);
 
   // Add type annotation to io parameter
-  const declarator = setupFunction.declarations[0] as recast.types.namedTypes.VariableDeclarator;
-  const arrowFunction = declarator.init as recast.types.namedTypes.ArrowFunctionExpression;
+  const declarator = setupFunction
+    .declarations[0] as recast.types.namedTypes.VariableDeclarator;
+  const arrowFunction =
+    declarator.init as recast.types.namedTypes.ArrowFunctionExpression;
   const ioParam = arrowFunction.params[0] as recast.types.namedTypes.Identifier;
-  
+
   ioParam.typeAnnotation = b.tsTypeAnnotation(
-    b.tsTypeReference(b.identifier("SocketIOServer"))
+    b.tsTypeReference(b.identifier("SocketIOServer")),
   );
 
   // Add return type annotation to the arrow function
-  arrowFunction.returnType = b.tsTypeAnnotation(
-    b.tsVoidKeyword()
-  );
+  arrowFunction.returnType = b.tsTypeAnnotation(b.tsVoidKeyword());
 
   // Create export declaration
-  const exportDeclaration = b.exportNamedDeclaration(
-    setupFunction,
-    []
-  );
+  const exportDeclaration = b.exportNamedDeclaration(setupFunction, []);
 
   // Add JSDoc comment for the function
-  const functionComment = b.commentBlock(
-    "*\n * Setup Socket.io event handlers\n * @param io - Socket.io server instance\n ",
-    true,
-    false
-  );
+  //   const functionComment = b.commentBlock(
+  //     "*\n * Setup Socket.io event handlers\n * @param io - Socket.io server instance\n ",
+  //     true,
+  //     false,
+  //   );
 
   // Build the AST program
-  const program = b.program([
-    ...imports,
-    exportDeclaration
-  ]);
+  const program = b.program([...imports, exportDeclaration]);
 
   // Return the AST program
   return program;
@@ -185,6 +211,6 @@ export default function generateSocketIOHandlerAST(options: TemplateOptions = {}
 /**
  * Export a print function to convert the AST to code
  */
-export function print(ast: any): string {
+export function print(ast: recast.types.ASTNode): string {
   return recast.prettyPrint(ast, { parser: tsParser }).code;
-} 
+}

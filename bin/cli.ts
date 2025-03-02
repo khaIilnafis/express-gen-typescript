@@ -3,7 +3,7 @@
 import path from "path";
 import { promptForOptions } from "../lib/prompt.js";
 import { generateExpressTypeScriptApp } from "../lib/index.js";
-import { GeneratorOptions } from "../lib/utils/types.js";
+import { GeneratorOptions } from "../lib/types/index.js";
 
 /**
  * Parse command line arguments
@@ -12,23 +12,23 @@ import { GeneratorOptions } from "../lib/utils/types.js";
 function parseArgs(): Partial<GeneratorOptions> {
   const args = process.argv.slice(2);
   const options: Partial<GeneratorOptions> = {};
-  
+
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    
-    if (arg === '--projectName' && i + 1 < args.length) {
+
+    if (arg === "--projectName" && i + 1 < args.length) {
       options.projectName = args[++i];
-    } else if (arg === '--database' && i + 1 < args.length) {
+    } else if (arg === "--database" && i + 1 < args.length) {
       options.database = Boolean(args[++i]);
-    } else if (arg === '--dialect' && i + 1 < args.length) {
-	  options.dialect = args[++i];
-	} else if (arg === '--databaseOrm' && i + 1 < args.length) {
+    } else if (arg === "--dialect" && i + 1 < args.length) {
+      options.dialect = args[++i];
+    } else if (arg === "--databaseOrm" && i + 1 < args.length) {
       options.databaseOrm = args[++i];
-    } else if (arg === '--databaseName' && i + 1 < args.length) {
+    } else if (arg === "--databaseName" && i + 1 < args.length) {
       options.databaseName = args[++i];
-    } else if (arg === '--skipPrompt') {
+    } else if (arg === "--skipPrompt") {
       options.skipPrompt = true;
-    } else if (arg === '--help') {
+    } else if (arg === "--help") {
       console.log(`
 Express TypeScript Generator CLI Options:
   --skipPrompt             Skip interactive prompts and use provided options
@@ -44,7 +44,7 @@ Example for testing Sequelize:
       process.exit(0);
     }
   }
-  
+
   return options;
 }
 
@@ -57,23 +57,29 @@ async function run(): Promise<void> {
 
     // Parse command line args
     const cliOptions = parseArgs();
-    
+
     // Get user options via interactive prompts or use CLI options
     let options: GeneratorOptions;
     if (cliOptions.skipPrompt) {
       options = {
         projectName: cliOptions.projectName || "express-typescript-app",
-		destination: path.join(process.cwd(), cliOptions.projectName || "express-typescript-app"),
-		database: cliOptions.database ? true : false,
-		authentication: cliOptions.authentication ? true : false,
-		webSockets: cliOptions.webSockets ? true : false,
-		view: cliOptions.view ? true: false,
-        ...cliOptions
+        destination: path.join(
+          process.cwd(),
+          cliOptions.projectName || "express-typescript-app",
+        ),
+        database: cliOptions.database ? true : false,
+        authentication: cliOptions.authentication ? true : false,
+        webSockets: cliOptions.webSockets ? true : false,
+        view: cliOptions.view ? true : false,
+        ...cliOptions,
       };
       console.log("Using options:", options);
     } else {
       options = await promptForOptions();
-	  options.destination =  path.join(process.cwd(), cliOptions.projectName || "express-typescript-app");
+      options.destination = path.join(
+        process.cwd(),
+        cliOptions.projectName || "express-typescript-app",
+      );
     }
     // Create new project with the provided options
     await generateExpressTypeScriptApp(options);

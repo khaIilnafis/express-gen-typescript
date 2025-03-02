@@ -11,34 +11,35 @@ A powerful and customizable Express application generator with full TypeScript s
 ## Table of Contents
 
 - [Express Generator TypeScript](#express-generator-typescript)
-	- [Table of Contents](#table-of-contents)
-	- [Overview](#overview)
-	- [Key Features](#key-features)
-	- [Installation](#installation)
-		- [Using npx (recommended)](#using-npx-recommended)
-		- [Global Installation](#global-installation)
-	- [Quick Start](#quick-start)
-		- [Generate a New Project](#generate-a-new-project)
-		- [Interactive Configuration](#interactive-configuration)
-		- [Start Development](#start-development)
-	- [Project Structure](#project-structure)
-	- [Customization Options](#customization-options)
-		- [Database Integration](#database-integration)
-		- [Authentication](#authentication)
-		- [WebSockets](#websockets)
-		- [View Engines](#view-engines)
-	- [Available Commands](#available-commands)
-	- [Development](#development)
-	- [IDE Setup](#ide-setup)
-		- [VSCode Configuration](#vscode-configuration)
-	- [Contributing](#contributing)
-	- [License](#license)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Key Features](#key-features)
+  - [Installation](#installation)
+    - [Using npx (recommended)](#using-npx-recommended)
+    - [Global Installation](#global-installation)
+  - [Quick Start](#quick-start)
+    - [Generate a New Project](#generate-a-new-project)
+    - [Interactive Configuration](#interactive-configuration)
+    - [Start Development](#start-development)
+  - [Project Structure](#project-structure)
+  - [Customization Options](#customization-options)
+    - [Database Integration](#database-integration)
+    - [Authentication](#authentication)
+    - [WebSockets](#websockets)
+    - [View Engines](#view-engines)
+  - [Available Commands](#available-commands)
+  - [Development](#development)
+  - [IDE Setup](#ide-setup)
+    - [VSCode Configuration](#vscode-configuration)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Overview
 
 Express Generator TypeScript creates new Express applications configured with TypeScript, similar to the official express-generator but with modern best practices, TypeScript integration, and additional features.
 
 The generated application includes:
+
 - Complete TypeScript configuration
 - Modern project structure with proper separation of concerns
 - ESLint with TypeScript support
@@ -81,11 +82,13 @@ npm install -g express-generator-typescript
 ### Generate a New Project
 
 With default options:
+
 ```bash
 npx express-generator-typescript
 ```
 
 With a custom project name:
+
 ```bash
 npx express-generator-typescript "my-express-app"
 ```
@@ -156,6 +159,7 @@ Additional directories may be generated based on your selected options:
 ### Database Integration
 
 Choose from:
+
 - **Sequelize**: SQL ORM with support for PostgreSQL, MySQL, SQLite, and more
 - **TypeORM**: TypeScript-first ORM for SQL databases
 - **Prisma**: Next-generation ORM with type-safety and auto-generated queries
@@ -164,6 +168,7 @@ Choose from:
 ### Authentication
 
 Choose from:
+
 - **Passport.js**: Comprehensive authentication middleware
 - **JWT**: JSON Web Token authentication
 - **Express-session**: Session-based authentication
@@ -171,12 +176,14 @@ Choose from:
 ### WebSockets
 
 Choose from:
+
 - **Socket.io**: Feature-rich real-time communication
 - **WS**: Lightweight WebSocket implementation
 
 ### View Engines
 
 Choose from:
+
 - **EJS**: Embedded JavaScript templates
 - **Pug**: High-performance template engine (formerly Jade)
 - **Handlebars**: Minimal templating on steroids

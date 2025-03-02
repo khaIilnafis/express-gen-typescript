@@ -1,24 +1,37 @@
 import fs from "fs";
 import path from "path";
 import passportSetup from "./passport.js";
-import { AUTH, PATHS } from "../../constants/index.js";
-import { GeneratorOptions } from "../../utils/types.js";
+import { PATHS } from "../constants/index.js";
+import { AUTH } from "../../templates/constants/index.js";
+import { GeneratorOptions } from "../../types/index.js";
 
 /**
  * Setup authentication based on user selection
  * @param destination - Project destination directory
  * @param authLib - Selected authentication library
  */
-async function setupAuth(destination: string, authLib: string, options: GeneratorOptions): Promise<void> {
+async function setupAuth(
+  destination: string,
+  authLib: string,
+  options: GeneratorOptions,
+): Promise<void> {
   console.log(`Setting up ${authLib} authentication...`);
 
   // Create necessary directories
-  const authDir = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.DIRECTORIES.SRC.AUTH);
+  const authDir = path.join(
+    destination,
+    PATHS.DIRECTORIES.ROOT.SRC,
+    PATHS.DIRECTORIES.SRC.AUTH,
+  );
   if (!fs.existsSync(authDir)) {
     fs.mkdirSync(authDir, { recursive: true });
   }
 
-  const middlewareDir = path.join(destination, PATHS.DIRECTORIES.ROOT.SRC, PATHS.DIRECTORIES.SRC.MIDDLEWARE);
+  const middlewareDir = path.join(
+    destination,
+    PATHS.DIRECTORIES.ROOT.SRC,
+    PATHS.DIRECTORIES.SRC.MIDDLEWARE,
+  );
   if (!fs.existsSync(middlewareDir)) {
     fs.mkdirSync(middlewareDir, { recursive: true });
   }
@@ -26,13 +39,13 @@ async function setupAuth(destination: string, authLib: string, options: Generato
   // Setup based on selected auth lib
   switch (authLib) {
     case AUTH.TYPES.PASSPORT:
-      await setupPassport(destination, options);
+      await setupPassport(options);
       break;
     case AUTH.TYPES.JWT:
-      await setupJWT(destination);
+      await setupJWT(options);
       break;
     case AUTH.TYPES.EXPRESS_SESSION:
-      await setupExpressSession(destination);
+      await setupExpressSession(options);
       break;
   }
 }
@@ -41,7 +54,7 @@ async function setupAuth(destination: string, authLib: string, options: Generato
  * Setup Passport.js authentication
  * @param destination - Project destination directory
  */
-async function setupPassport(destination: string, options: GeneratorOptions): Promise<void> {
+async function setupPassport(options: GeneratorOptions): Promise<void> {
   // Implementation will be moved to a separate file
   await passportSetup(options);
 }
@@ -50,7 +63,7 @@ async function setupPassport(destination: string, options: GeneratorOptions): Pr
  * Setup JWT authentication
  * @param destination - Project destination directory
  */
-async function setupJWT(destination: string): Promise<void> {
+async function setupJWT(_options: GeneratorOptions): Promise<void> {
   // Implementation will be moved to a separate file
   console.log("JWT authentication setup not yet implemented");
 }
@@ -59,7 +72,7 @@ async function setupJWT(destination: string): Promise<void> {
  * Setup Express-session authentication
  * @param destination - Project destination directory
  */
-async function setupExpressSession(destination: string): Promise<void> {
+async function setupExpressSession(_options: GeneratorOptions): Promise<void> {
   // Implementation will be moved to a separate file
   console.log("Express-session authentication setup not yet implemented");
 }

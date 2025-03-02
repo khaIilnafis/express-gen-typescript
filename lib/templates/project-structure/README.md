@@ -31,17 +31,19 @@ config/           # Configuration files
 
 - Node.js (v14 or higher)
 - npm or yarn
-{{databasePrereqs}}
+  {{databasePrereqs}}
 
 ### Installation
 
 1. Clone the repository
+
 ```
 git clone <repository-url>
 cd <project-directory>
 ```
 
 2. Install dependencies
+
 ```
 npm install
 ```
@@ -49,6 +51,7 @@ npm install
 3. Environment Variables
 
 Create a `.env` file in the root directory with the following variables:
+
 ```
 PORT=3000
 NODE_ENV=development
@@ -58,6 +61,7 @@ NODE_ENV=development
 ### Development
 
 Start the development server:
+
 ```
 npm run dev
 ```
@@ -65,6 +69,7 @@ npm run dev
 ### Build
 
 Build for production:
+
 ```
 npm run build
 ```
@@ -72,6 +77,7 @@ npm run build
 ### Production
 
 Start the production server:
+
 ```
 npm start
 ```
@@ -82,4 +88,4 @@ The API documentation is available at `/api-docs` when the server is running.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.

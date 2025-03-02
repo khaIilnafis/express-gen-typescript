@@ -1,14 +1,17 @@
 import * as fs from "fs";
 import * as path from "path";
-import { writeTemplate, getTemplatePath } from "../../utils/template-loader.js";
 import {
-  VIEW_ENGINES,
-  SERVER,
-  PATHS
-} from "../../constants/index.js";
-import { addImportIfNotExists } from "../../utils/file-manipulation.js";
-import { IMPORTS } from "../../constants/templates/server/imports.js";
-import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-processor.js";
+  writeTemplate,
+  getTemplatePath,
+} from "../../utils/templates/template-loader.js";
+import { VIEWS, PATHS } from "../constants/index.js";
+import { SERVER } from "../../templates/constants/index.js";
+import { addImportIfNotExists } from "../../utils/templates/file-manipulation.js";
+import { IMPORTS } from "../../templates/constants/server/imports.js";
+import {
+  getASTTemplatePath,
+  writeASTTemplate,
+} from "../../utils/templates/ast-template-processor.js";
 
 /**
  * Setup view engine based on user selection
@@ -20,7 +23,7 @@ import { getASTTemplatePath, writeASTTemplate } from "../../utils/ast-template-p
 async function setupViewEngine(
   destination: string,
   viewEngine: string,
-  options: { appName?: string } = {}
+  options: { appName?: string } = {},
 ): Promise<void> {
   // Get app name from options or use default
   const appName =
@@ -32,9 +35,9 @@ async function setupViewEngine(
 
   // Create necessary directories if they don't exist
   const viewsDir = path.join(
-    destination, 
-    PATHS.DIRECTORIES.ROOT.SRC, 
-    PATHS.DIRECTORIES.SRC.VIEWS
+    destination,
+    PATHS.DIRECTORIES.ROOT.SRC,
+    PATHS.DIRECTORIES.SRC.VIEWS,
   );
   if (!fs.existsSync(viewsDir)) {
     fs.mkdirSync(viewsDir, { recursive: true });
@@ -54,9 +57,9 @@ async function setupViewEngine(
 
   // Update server.ts to include view engine configuration
   const serverFilePath = path.join(
-    destination, 
-    PATHS.DIRECTORIES.ROOT.SRC, 
-    PATHS.FILES.SERVER.FILE
+    destination,
+    PATHS.DIRECTORIES.ROOT.SRC,
+    PATHS.FILES.SERVER.FILE,
   );
 
   if (fs.existsSync(serverFilePath)) {
@@ -65,13 +68,13 @@ async function setupViewEngine(
     let configContent = "";
 
     switch (viewEngine) {
-      case VIEW_ENGINES.TYPES.EJS:
+      case VIEWS.TYPES.EJS:
         configContent = SERVER.VIEW_ENGINE_SETUP.EJS;
         break;
-      case VIEW_ENGINES.TYPES.PUG:
+      case VIEWS.TYPES.PUG:
         configContent = SERVER.VIEW_ENGINE_SETUP.PUG;
         break;
-      case VIEW_ENGINES.TYPES.HANDLEBARS:
+      case VIEWS.TYPES.HANDLEBARS:
         importStatement = IMPORTS.VIEW_ENGINE.HANDLEBARS;
         configContent = SERVER.VIEW_ENGINE_SETUP.HANDLEBARS;
         break;
@@ -81,18 +84,21 @@ async function setupViewEngine(
     if (importStatement) {
       addImportIfNotExists(serverFilePath, importStatement);
     }
-	// WHy am i doing this here.
+    // WHy am i doing this here.
     // Add configuration to server
     if (configContent) {
-		const tempFilePath = path.join(path.dirname(serverFilePath), 'db-connect-temp.ts');
-		await writeASTTemplate(
-			getASTTemplatePath(PATHS.FILES.MODELS.INIT_TEMPLATE_LOC('sequelize')),
-			tempFilePath,
-			{}
-		  );
-		fs.unlinkSync(tempFilePath)
-		//const generatedContent = fs.readFileSync(tempFilePath, 'utf8');
-    	//insertContentAtMarker(serverFilePath, PROJECT.FILES.COMMON.MARKERS.VIEW_ENGINE_CONFIG_MARKER, generatedContent);
+      const tempFilePath = path.join(
+        path.dirname(serverFilePath),
+        "db-connect-temp.ts",
+      );
+      await writeASTTemplate(
+        getASTTemplatePath(PATHS.FILES.MODELS.INIT_TEMPLATE_LOC("sequelize")),
+        tempFilePath,
+        {},
+      );
+      fs.unlinkSync(tempFilePath);
+      //const generatedContent = fs.readFileSync(tempFilePath, 'utf8');
+      //insertContentAtMarker(serverFilePath, PROJECT.FILES.COMMON.MARKERS.VIEW_ENGINE_CONFIG_MARKER, generatedContent);
     }
   }
 
@@ -108,55 +114,99 @@ async function setupViewEngine(
   const indexFileName = `index${viewExtension}`;
   const headerFileName = `header${viewExtension}`;
   const footerFileName = `footer${viewExtension}`;
+  let engine;
   switch (viewEngine) {
-    case VIEW_ENGINES.TYPES.EJS:
-		let engine = VIEW_ENGINES.TYPES.EJS.toString();
-
-      	// Create main layout
-      	writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.LAYOUTS.MAIN(engine)),path.join(layoutsDir, layoutFileName),templateVars);
-      
-    	// Create index view
-      	writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.INDEX(engine)),path.join(viewsDir, indexFileName),templateVars);
-
-		// Create Header partial
-		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.HEADER(engine)), path.join(partialsDir, headerFileName), templateVars);
-
-		// Create Footer partial
-		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.FOOTER(engine)), path.join(partialsDir, footerFileName), templateVars);
-      break;
-
-    case VIEW_ENGINES.TYPES.PUG:
-		engine = VIEW_ENGINES.TYPES.PUG.toString();
-
-      	// Create main layout
-      	writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.LAYOUTS.MAIN(engine)),path.join(layoutsDir, layoutFileName),templateVars);
-      
-      	// Create index view
-      	writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.INDEX(engine)),path.join(viewsDir, indexFileName),templateVars);
-
-	  	// Create Header partial
-		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.HEADER(engine)), path.join(partialsDir, headerFileName), templateVars);
-
-		// Create Footer partial
-		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.FOOTER(engine)), path.join(partialsDir, footerFileName), templateVars);
-      break;
-
-    case VIEW_ENGINES.TYPES.HANDLEBARS:
-		engine = VIEW_ENGINES.TYPES.HANDLEBARS.toString();
+    case VIEWS.TYPES.EJS:
+      engine = VIEWS.TYPES.EJS.toString();
       // Create main layout
       writeTemplate(
         getTemplatePath(PATHS.FILES.VIEWS.LAYOUTS.MAIN(engine)),
         path.join(layoutsDir, layoutFileName),
-        templateVars
+        templateVars,
       );
- 	 	// Create index view
-      	writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.INDEX(engine)),path.join(viewsDir, indexFileName),templateVars);
 
-	  	// Create Header partial
-		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.HEADER(engine)), path.join(partialsDir, headerFileName), templateVars);
+      // Create index view
+      writeTemplate(
+        getTemplatePath(PATHS.FILES.VIEWS.INDEX(engine)),
+        path.join(viewsDir, indexFileName),
+        templateVars,
+      );
 
-		// Create Footer partial
-		writeTemplate(getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.FOOTER(engine)), path.join(partialsDir, footerFileName), templateVars);
+      // Create Header partial
+      writeTemplate(
+        getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.HEADER(engine)),
+        path.join(partialsDir, headerFileName),
+        templateVars,
+      );
+
+      // Create Footer partial
+      writeTemplate(
+        getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.FOOTER(engine)),
+        path.join(partialsDir, footerFileName),
+        templateVars,
+      );
+      break;
+
+    case VIEWS.TYPES.PUG:
+      engine = VIEWS.TYPES.PUG.toString();
+
+      // Create main layout
+      writeTemplate(
+        getTemplatePath(PATHS.FILES.VIEWS.LAYOUTS.MAIN(engine)),
+        path.join(layoutsDir, layoutFileName),
+        templateVars,
+      );
+
+      // Create index view
+      writeTemplate(
+        getTemplatePath(PATHS.FILES.VIEWS.INDEX(engine)),
+        path.join(viewsDir, indexFileName),
+        templateVars,
+      );
+
+      // Create Header partial
+      writeTemplate(
+        getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.HEADER(engine)),
+        path.join(partialsDir, headerFileName),
+        templateVars,
+      );
+
+      // Create Footer partial
+      writeTemplate(
+        getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.FOOTER(engine)),
+        path.join(partialsDir, footerFileName),
+        templateVars,
+      );
+      break;
+
+    case VIEWS.TYPES.HANDLEBARS:
+      engine = VIEWS.TYPES.HANDLEBARS.toString();
+      // Create main layout
+      writeTemplate(
+        getTemplatePath(PATHS.FILES.VIEWS.LAYOUTS.MAIN(engine)),
+        path.join(layoutsDir, layoutFileName),
+        templateVars,
+      );
+      // Create index view
+      writeTemplate(
+        getTemplatePath(PATHS.FILES.VIEWS.INDEX(engine)),
+        path.join(viewsDir, indexFileName),
+        templateVars,
+      );
+
+      // Create Header partial
+      writeTemplate(
+        getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.HEADER(engine)),
+        path.join(partialsDir, headerFileName),
+        templateVars,
+      );
+
+      // Create Footer partial
+      writeTemplate(
+        getTemplatePath(PATHS.FILES.VIEWS.PARTIALS.FOOTER(engine)),
+        path.join(partialsDir, footerFileName),
+        templateVars,
+      );
       break;
   }
 
@@ -170,12 +220,12 @@ async function setupViewEngine(
  */
 function getViewExtension(viewEngine: string): string {
   switch (viewEngine) {
-    case VIEW_ENGINES.TYPES.PUG:
-      return VIEW_ENGINES.EXTENSIONS.PUG;
-    case VIEW_ENGINES.TYPES.EJS:
-      return VIEW_ENGINES.EXTENSIONS.EJS;
-    case VIEW_ENGINES.TYPES.HANDLEBARS:
-      return VIEW_ENGINES.EXTENSIONS.HANDLEBARS;
+    case VIEWS.TYPES.PUG:
+      return VIEWS.EXTENSIONS.PUG;
+    case VIEWS.TYPES.EJS:
+      return VIEWS.EXTENSIONS.EJS;
+    case VIEWS.TYPES.HANDLEBARS:
+      return VIEWS.EXTENSIONS.HANDLEBARS;
     default:
       return "";
   }
