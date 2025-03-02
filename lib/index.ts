@@ -6,16 +6,21 @@ import { exec } from "child_process";
 import { fileURLToPath } from "url";
 import {
   WEBSOCKETS,
-  VIEW_ENGINES,
+  VIEWS,
   LOGS,
   DEPENDENCIES,
-} from "./constants/index.js";
+} from "./setup/constants/index.js";
 // Import setup modules
 import setup from "./setup/index.js";
 import serverGenerator from "./setup/project-structure/server.js";
-import { GeneratorOptions } from "./utils/types.js";
+import { GeneratorOptions } from "./types/index.js";
 import setupPassport from "./setup/auth/passport.js";
-import { createReadme, setupDatabaseConfig, setupViewsConfig, setupWebsocketsConfig } from "./setup/project-structure/index.js";
+import {
+  createReadme,
+  setupDatabaseConfig,
+  setupViewsConfig,
+  setupWebsocketsConfig,
+} from "./setup/project-structure/index.js";
 
 // Get dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -36,7 +41,7 @@ const execPromise = promisify(exec);
  * @param options - User selected options
  */
 export async function generateExpressTypeScriptApp(
-  options: GeneratorOptions
+  options: GeneratorOptions,
 ): Promise<void> {
   try {
     console.log("Starting express-generator-typescript...");
@@ -48,43 +53,43 @@ export async function generateExpressTypeScriptApp(
     // Normalize options to ensure consistent casing and values
     options = normalizeOptions(options);
 
-	// Initialize git repository
+    // Initialize git repository
     await initializeGitRepository(options.destination);
-	// Copy Yarn configuration files before creating package.json
+    // Copy Yarn configuration files before creating package.json
     await copyYarnFiles(options.destination);
-	// Create package.json
-	await initPackageManager(options);
-	// Create tsconfig.json
+    // Create package.json
+    await initPackageManager(options);
+    // Create tsconfig.json
     await createTsConfig(options.destination);
     // Create basic .env file
     await createEnvFile(options.destination);
-	// Create README.md file
-	await createReadme(options);
-	// Establish project folder structure
+    // Create README.md file
+    await createReadme(options);
+    // Establish project folder structure
     await setup.projectStructure(options);
-	// Create server.ts and type files
- 	// Generate server files
- 	await serverGenerator.generateServerFiles(options);
-	// await serverGenerator.generateGlobalTypesFile(destination, serverOptions);
-	// Setup authentication if enabled
-	if (options.authentication) {
-		await setupPassport(options);
-	}
-	// Setup database config and models
-	if (options.database) {
-		await setupDatabaseConfig(options);
-	}
-	// Setup websockets if enabled
-	if (
-	options.websocketLib &&
-	options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
-	) {
-		await setupWebsocketsConfig(options);
-	}
-	// Setup views if enabled
-	if (options.viewEngine && options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
-		await setupViewsConfig(options);
-	}
+    // Create server.ts and type files
+    // Generate server files
+    await serverGenerator.generateServerFiles(options);
+    // await serverGenerator.generateGlobalTypesFile(destination, serverOptions);
+    // Setup authentication if enabled
+    if (options.authentication) {
+      await setupPassport(options);
+    }
+    // Setup database config and models
+    if (options.database) {
+      await setupDatabaseConfig(options);
+    }
+    // Setup websockets if enabled
+    if (
+      options.websocketLib &&
+      options.websocketLib !== WEBSOCKETS.LIBRARIES.NONE
+    ) {
+      await setupWebsocketsConfig(options);
+    }
+    // Setup views if enabled
+    if (options.viewEngine && options.viewEngine !== VIEWS.TYPES.NONE) {
+      await setupViewsConfig(options);
+    }
 
     // Database setup is now handled within setup.projectStructure
     // Keeping the comment for clarity
@@ -104,41 +109,38 @@ export async function generateExpressTypeScriptApp(
  * @param options - User selected options
  */
 const normalizeOptions = (options: GeneratorOptions): GeneratorOptions => {
-	const normalizedOptions = options;
+  const normalizedOptions = options;
 
-	if (options.database && options.databaseName
-	  ) {
-		normalizedOptions.databaseName = options.databaseName
-		.toLowerCase()
-		.replace(/[^a-z0-9]/g, "_")
-		.replace(/_+/g, "_")
-		.replace(/^_|_$/g, "");
-	  }
-	// Normalize websocketLib option
-	if (options.websocketLib) {
-		// Map "Socket.io" to "socketio" for consistency
-		if (options.websocketLib === "socket.io") {
-			normalizedOptions.websocketLib = WEBSOCKETS.LIBRARIES.SOCKETIO;
-		}
-	}
-	// Normalize viewEngine option
-	if (options.viewEngine) {
-		// Map "Pug (Jade)" to "pug" for consistency
-		if (options.viewEngine === "pug (jade)") {
-			normalizedOptions.viewEngine = VIEW_ENGINES.TYPES.PUG;
-		}
-  	}
+  if (options.database && options.databaseName) {
+    normalizedOptions.databaseName = options.databaseName
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_|_$/g, "");
+  }
+  // Normalize websocketLib option
+  if (options.websocketLib) {
+    // Map "Socket.io" to "socketio" for consistency
+    if (options.websocketLib === "socket.io") {
+      normalizedOptions.websocketLib = WEBSOCKETS.LIBRARIES.SOCKETIO;
+    }
+  }
+  // Normalize viewEngine option
+  if (options.viewEngine) {
+    // Map "Pug (Jade)" to "pug" for consistency
+    if (options.viewEngine === "pug (jade)") {
+      normalizedOptions.viewEngine = VIEWS.TYPES.PUG;
+    }
+  }
   return normalizedOptions;
-}
+};
 
 /**
  * Create package.json file
  * @param destination - Destination path for the project
  * @param options - User selected options
  */
-async function initPackageManager(
-  options: GeneratorOptions
-): Promise<void> {
+async function initPackageManager(options: GeneratorOptions): Promise<void> {
   const packageJsonPath = path.join(options.destination, "package.json");
 
   try {
@@ -148,11 +150,13 @@ async function initPackageManager(
 
     // Read the Yarn-generated package.json
     const generatedPackageJson = JSON.parse(
-      await readFile(packageJsonPath, "utf-8")
+      await readFile(packageJsonPath, "utf-8"),
     );
 
     // Start with base dependencies
-    const dependencies: Record<string, string> = { ...DEPENDENCIES.BASE_DEPENDENCIES };
+    const dependencies: Record<string, string> = {
+      ...DEPENDENCIES.BASE_DEPENDENCIES,
+    };
     const devDependencies: Record<string, string> = {
       ...DEPENDENCIES.BASE_DEV_DEPENDENCIES,
     };
@@ -185,10 +189,10 @@ async function initPackageManager(
       __dirname,
       "templates",
       "project-structure",
-      "package.template.json"
+      "package.template.json",
     );
     const templatePackageJson = JSON.parse(
-      await readFile(templatePath, "utf-8")
+      await readFile(templatePath, "utf-8"),
     );
 
     // Merge our template with the Yarn-generated one, prioritizing Yarn's special fields
@@ -209,7 +213,7 @@ async function initPackageManager(
     // Write the merged package.json file with proper formatting
     await writeFile(
       packageJsonPath,
-      JSON.stringify(mergedPackageJson, null, 2)
+      JSON.stringify(mergedPackageJson, null, 2),
     );
     console.log("Created package.json");
   } catch (error) {
@@ -218,7 +222,9 @@ async function initPackageManager(
 
     // Fallback to creating package.json directly from our template
     // Start with base dependencies
-    const dependencies: Record<string, string> = { ...DEPENDENCIES.BASE_DEPENDENCIES };
+    const dependencies: Record<string, string> = {
+      ...DEPENDENCIES.BASE_DEPENDENCIES,
+    };
     const devDependencies: Record<string, string> = {
       ...DEPENDENCIES.BASE_DEV_DEPENDENCIES,
     };
@@ -231,9 +237,9 @@ async function initPackageManager(
       __dirname,
       "templates",
       "project-structure",
-      "package.template.json"
+      "package.template.json",
     );
-    let packageJsonTemplate = await readFile(templatePath, "utf-8");
+    const packageJsonTemplate = await readFile(templatePath, "utf-8");
 
     // Parse the template as an object for easier manipulation
     const packageJsonObj = JSON.parse(packageJsonTemplate);
@@ -257,7 +263,7 @@ async function initPackageManager(
 function addFeatureDependencies(
   dependencies: Record<string, string>,
   devDependencies: Record<string, string>,
-  options: GeneratorOptions
+  options: GeneratorOptions,
 ): void {
   // Add database dependencies
   if (options.database) {
@@ -273,9 +279,9 @@ function addFeatureDependencies(
 
   // Add authentication dependencies
   if (options.authentication) {
-    let authType = options.authLib;
+    const authType = options.authLib;
 
-	const authDeps =
+    const authDeps =
       DEPENDENCIES.FEATURE_DEPENDENCIES.auth[
         authType as keyof typeof DEPENDENCIES.FEATURE_DEPENDENCIES.auth
       ];
@@ -301,7 +307,7 @@ function addFeatureDependencies(
   }
 
   // Add view engine dependencies
-  if (options.viewEngine && options.viewEngine !== VIEW_ENGINES.TYPES.NONE) {
+  if (options.viewEngine && options.viewEngine !== VIEWS.TYPES.NONE) {
     const viewDeps =
       DEPENDENCIES.FEATURE_DEPENDENCIES.views[
         options.viewEngine as keyof typeof DEPENDENCIES.FEATURE_DEPENDENCIES.views
@@ -325,7 +331,7 @@ async function createTsConfig(destination: string): Promise<void> {
     __dirname,
     "templates",
     "project-structure",
-    "tsconfig.template.json"
+    "tsconfig.template.json",
   );
   const tsconfigContent = await readFile(templatePath, "utf-8");
 
@@ -353,7 +359,7 @@ async function initializeGitRepository(destination: string): Promise<void> {
         __dirname,
         "templates",
         "project-structure",
-        "gitignore.template"
+        "gitignore.template",
       );
       const gitignoreContent = await readFile(templatePath, "utf-8");
 
@@ -383,10 +389,10 @@ function printNextSteps(destination: string): void {
   console.log("2. yarn && yarn build");
   console.log("3. yarn start to start the development server");
   console.log(
-    "\nA Git repository has been initialized in your project directory."
+    "\nA Git repository has been initialized in your project directory.",
   );
   console.log(
-    "Consider making your first commit after installing dependencies:"
+    "Consider making your first commit after installing dependencies:",
   );
   console.log("  git add .");
   console.log("  git commit -m 'Initial commit'\n");
@@ -406,7 +412,7 @@ async function createEnvFile(destination: string): Promise<void> {
     __dirname,
     "templates",
     "project-structure",
-    "env.template"
+    "env.template",
   );
   const envContent = await readFile(templatePath, "utf-8");
 
@@ -433,7 +439,7 @@ async function copyYarnFiles(destination: string): Promise<void> {
       __dirname,
       "templates",
       "project-structure",
-      ".yarnrc.yml"
+      ".yarnrc.yml",
     );
     const yarnrcDestPath = path.join(destination, ".yarnrc.yml");
 
