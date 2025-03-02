@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { GeneratorOptions, TemplateOptions } from "./types.js";
+import { TemplateOptions } from "../../types/index.js";
 // Get the directory name equivalent for ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,13 +19,15 @@ function normalizeTemplatePath(templatePath: string): string {
   }
 
   // In production, try with .js extension
-  const jsPath = templatePath.replace(/\.ast\.ts$/, '.ast.js');
+  const jsPath = templatePath.replace(/\.ast\.ts$/, ".ast.js");
   if (fs.existsSync(jsPath)) {
     return jsPath;
   }
 
   // If neither exists, return the original (let the import system throw appropriate error)
-  console.warn(`Warning: Could not find template at ${templatePath} or ${jsPath}`);
+  console.warn(
+    `Warning: Could not find template at ${templatePath} or ${jsPath}`,
+  );
   return templatePath;
 }
 
@@ -37,30 +39,32 @@ function normalizeTemplatePath(templatePath: string): string {
  */
 export async function processASTTemplate(
   templatePath: string,
-  options: TemplateOptions
+  options: TemplateOptions,
 ): Promise<string> {
   try {
     // Normalize the template path before importing
     const normalizedPath = normalizeTemplatePath(templatePath);
-    
+
     // Import the template module dynamically
     const templateModule = await import(normalizedPath);
-    
+
     // Call the default export function with options
     const ast = templateModule.default(options);
-    
+
     // If the result is already a string, return it directly
-    if (typeof ast === 'string') {
+    if (typeof ast === "string") {
       return ast;
     }
-    
+
     // Otherwise, assume it's an AST and print it using the module's print function
     if (templateModule.print) {
       return templateModule.print(ast);
     }
-    
+
     // If no print function is exported, throw an error
-    throw new Error("Template module must export a 'print' function if it doesn't return a string");
+    throw new Error(
+      "Template module must export a 'print' function if it doesn't return a string",
+    );
   } catch (error) {
     console.error("Error processing AST template:", error);
     throw error;
@@ -76,10 +80,10 @@ export async function processASTTemplate(
 export async function writeASTTemplate(
   astTemplatePath: string,
   destinationPath: string,
-  options: TemplateOptions = {}
+  options: TemplateOptions = {},
 ): Promise<void> {
   try {
-    let generatedCode = await processASTTemplate(astTemplatePath, options);
+    const generatedCode = await processASTTemplate(astTemplatePath, options);
     // Ensure directory exists
     const dir = path.dirname(destinationPath);
     if (!fs.existsSync(dir)) {
@@ -101,16 +105,22 @@ export async function writeASTTemplate(
 export function getASTTemplatePath(relativePath: string): string {
   // In production, we need to replace .ast.ts with .ast.js
   // because the TypeScript files are compiled to JavaScript
-  if (process.env.NODE_ENV !== 'development') {
-    relativePath = relativePath.replace(/\.ast\.ts$/, '.ast.js');
+  if (process.env.NODE_ENV !== "development") {
+    relativePath = relativePath.replace(/\.ast\.ts$/, ".ast.js");
   }
-  let templatePath = path.join(__dirname, "..", "templates", relativePath);
-  return templatePath
+  const templatePath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "templates",
+    relativePath,
+  );
+  return templatePath;
 }
 
 // Export default object for consistency with template-loader.ts
 export default {
   processASTTemplate,
   writeASTTemplate,
-  getASTTemplatePath
-}; 
+  getASTTemplatePath,
+};

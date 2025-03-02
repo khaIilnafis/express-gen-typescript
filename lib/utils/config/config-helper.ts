@@ -4,17 +4,8 @@
 
 import fs from "fs";
 import path from "path";
-import { LOGS } from "../constants/index.js";
+import { LOGS } from "../../setup/constants/index.js";
 
-/**
- * Interface for standardized environment configuration
- */
-export interface EnvConfig {
-  PORT: number;
-  NODE_ENV: string;
-  LOG_LEVEL: string;
-  [key: string]: any; // Allow additional properties
-}
 /**
  * Create an .env file with the given variables
  * @param destination - Directory to create the .env file
@@ -22,7 +13,7 @@ export interface EnvConfig {
  */
 export function createEnvFile(
   destination: string,
-  variables: Record<string, string | number>
+  variables: Record<string, string | number>,
 ): void {
   try {
     const envPath = path.join(destination, ".env");
@@ -60,7 +51,7 @@ export function createEnvFile(
       Object.entries(appVars)
         .map(([key, value]) => `${key}=${value}`)
         .join("\n") + "\n";
-	console.log(`DB VARS LENGTH: ${Object.keys(dbVars).length}`)
+    console.log(`DB VARS LENGTH: ${Object.keys(dbVars).length}`);
     // Add database section if needed
     if (Object.keys(dbVars).length > 0) {
       envContent += "\n# Database Configuration\n";

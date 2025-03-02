@@ -16,14 +16,14 @@ export function insertContentAtMarker(
   filePath: string,
   marker: string,
   content: string,
-  position: "before" | "after" = "after"
+  position: "before" | "after" = "after",
 ): boolean {
   try {
     if (!fs.existsSync(filePath)) {
       console.error(`File not found: ${filePath}`);
       return false;
     }
-    let fileContent = fs.readFileSync(filePath, "utf8");
+    const fileContent = fs.readFileSync(filePath, "utf8");
     const markerPosition = fileContent.indexOf(marker);
 
     if (markerPosition === -1) {
@@ -63,7 +63,7 @@ export function insertContentAtMarker(
  */
 export function addImportIfNotExists(
   filePath: string,
-  importStatement: string
+  importStatement: string,
 ): boolean {
   try {
     if (!fs.existsSync(filePath)) {
@@ -71,7 +71,7 @@ export function addImportIfNotExists(
       return false;
     }
 
-    let fileContent = fs.readFileSync(filePath, "utf8");
+    const fileContent = fs.readFileSync(filePath, "utf8");
 
     // Check if import already exists
     if (fileContent.includes(importStatement)) {
@@ -136,7 +136,8 @@ export function ensureDirectoryExists(dirPath: string): boolean {
  */
 export async function updatePackageJson(
   projectPath: string,
-  updates: Record<string, any>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updates: Record<string, any>,
 ): Promise<boolean> {
   try {
     const packageJsonPath = path.join(projectPath, "package.json");
@@ -149,7 +150,7 @@ export async function updatePackageJson(
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
     // Apply updates
     for (const [key, value] of Object.entries(updates)) {
-		console.log(key);
+      console.log(key);
       if (
         typeof value === "object" &&
         value !== null &&

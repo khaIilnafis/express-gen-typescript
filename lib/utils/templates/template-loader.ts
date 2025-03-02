@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { GeneratorOptions, TemplateVariables } from "./types.js";
+import { TemplateVariables } from "../../types/index.js";
 
 // Get the directory name equivalent for ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -15,7 +15,7 @@ const __dirname = path.dirname(__filename);
  */
 export function loadTemplate(
   templatePath: string,
-  variables: TemplateVariables = {}
+  variables: TemplateVariables = {},
 ): string {
   // Check if template exists
   if (!fs.existsSync(templatePath)) {
@@ -43,7 +43,7 @@ export function loadTemplate(
 export function writeTemplate(
   templatePath: string,
   destinationPath: string,
-  variables: TemplateVariables = {}
+  variables: TemplateVariables = {},
 ): void {
   const content = loadTemplate(templatePath, variables);
 
@@ -63,7 +63,7 @@ export function writeTemplate(
  * @returns Absolute path to the template file
  */
 export function getTemplatePath(relativePath: string): string {
-  return path.join(__dirname, "..", "templates", relativePath);
+  return path.join(__dirname, "..", "..", "templates", relativePath);
 }
 
 // Export all functions as a default object as well for backwards compatibility
