@@ -11,6 +11,5 @@ test/
 .pnp.loader.mjs
 .vscode
 .yarn
-.husky
 
 express-typescript-app/

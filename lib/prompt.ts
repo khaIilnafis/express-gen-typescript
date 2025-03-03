@@ -1,4 +1,4 @@
-import inquirer, { Answers } from "inquirer";
+import inquirer from "inquirer";
 import { GeneratorOptions } from "./types/index.js";
 
 /**
@@ -26,7 +26,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       name: "databaseName",
       message: "Database name (leave empty for project name):",
       default: "",
-      when: (answers: Answers) => answers.useDatabase,
+      when: (answers) => answers.useDatabase,
     },
     {
       type: "list",
@@ -34,7 +34,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       message: "Select database dialect:",
       choices: ["postgres", "mysql", "sqlite", "mariadb", "mssql", "mongodb"],
       default: "postgres",
-      when: (answers: Answers) => answers.useDatabase,
+      when: (answers) => answers.useDatabase,
       filter: (input: string) => input.toLowerCase(),
     },
     {

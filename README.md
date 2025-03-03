@@ -29,8 +29,6 @@ A powerful and customizable Express application generator with full TypeScript s
     - [View Engines](#view-engines)
   - [Available Commands](#available-commands)
   - [Development](#development)
-  - [IDE Setup](#ide-setup)
-    - [VSCode Configuration](#vscode-configuration)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -231,31 +229,11 @@ yarn build
 yarn dev
 ```
 
-## IDE Setup
-
-### VSCode Configuration
-
-For the best development experience with VSCode, add these settings:
-
-```json
-{
-  "eslint.options": {
-    "flags": ["unstable_ts_config"]
-  }
-}
-```
-
-This enables proper ESLint integration with TypeScript files.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+For detailed information on project setup and development workflow, please see [SETUP.md](SETUP.md).
 
 ## License
 
