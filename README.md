@@ -28,7 +28,6 @@ A powerful and customizable Express application generator with full TypeScript s
     - [WebSockets](#websockets)
     - [View Engines](#view-engines)
   - [Available Commands](#available-commands)
-  - [Development](#development)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -208,25 +207,6 @@ yarn lint
 
 # Check TypeScript errors
 yarn type-check
-```
-
-## Development
-
-To contribute to the express-generator-typescript itself:
-
-```bash
-# Clone the repository
-git clone https://github.com/khalilnafis/express-gen-typescript.git
-
-# Install dependencies
-cd express-gen-typescript
-yarn
-
-# Build the generator
-yarn build
-
-# Run the development version
-yarn dev
 ```
 
 ## Contributing

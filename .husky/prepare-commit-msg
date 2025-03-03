@@ -1,2 +1,4 @@
 #!/bin/bash
+# Add this line to prevent Git from opening the editor after Commitizen finishes
+git config --local core.editor true
 exec < /dev/tty && node_modules/.bin/cz --hook || true
