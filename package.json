@@ -11,7 +11,7 @@
     "prepare": "husky",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "fmt-staged": {
+  "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
   },
   "main": "dist/lib/express-generator-typescript.js",

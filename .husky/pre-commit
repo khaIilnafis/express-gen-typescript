@@ -1,1 +1,1 @@
-yarn fmt-staged
+yarn lint-staged
