@@ -10,13 +10,20 @@ This document provides instructions for setting up the Express Generator for Typ
 
 ## Development Workflow
 
-### Running the project
+To contribute to the express-generator-typescript itself:
 
 ```bash
+# Clone the repository
+git clone https://github.com/khalilnafis/express-gen-typescript.git
 
-# Build and run for testing
+# Install dependencies
+cd express-gen-typescript
+yarn
+yarn prepare
+
+# Build the generator
 yarn build
-yarn start
+
 ```
 
 ### Git Workflow
@@ -41,19 +48,6 @@ This project uses Husky to enforce code quality and consistent commits. When you
 3. **Pre-push Hook**:
    - Runs `grunt bump` before pushing to prompt for version bumping
    - This allows you to manage versioning easily when pushing code
-
-### Grunt Tasks
-
-The project uses Grunt for automated tasks:
-
-- **Version Bumping**:
-  ```bash
-  grunt bump
-  ```
-  This interactive task will:
-  - Ask if you want to bump the version
-  - Ask what files should have the version updated
-  - Handle version updates, Git tagging, and pushing
 
 ## Project Structure
 
