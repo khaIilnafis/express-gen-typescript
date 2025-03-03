@@ -213,7 +213,7 @@ yarn type-check
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-For detailed information on project setup and development workflow, please see [SETUP.md](SETUP.md).
+For detailed information on project setup and development workflow, please see [SETUP.md](SETUP.MD).
 
 ## License
 
