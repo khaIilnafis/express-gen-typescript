@@ -17,7 +17,6 @@
     "allowSyntheticDefaultImports": true,
     "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["bin/**/*", "lib/**/*"],
   "exclude": [
     "node_modules",
     "dist",
@@ -25,7 +24,6 @@
     "express-typescript-app"
   ],
   "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node"
+    "esm": true
   }
 }

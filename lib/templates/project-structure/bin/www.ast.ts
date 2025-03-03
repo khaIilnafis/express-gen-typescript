@@ -25,10 +25,10 @@ export default function generateBinWwwAST(_options: GeneratorOptions) {
       [b.importSpecifier(b.identifier("Server"))],
       b.stringLiteral("../src/server"),
     ),
-    b.importDeclaration(
-      [b.importSpecifier(b.identifier("AddressInfo"))],
-      b.stringLiteral("net"),
-    ),
+    // b.importDeclaration(
+    //   [b.importSpecifier(b.identifier("AddressInfo"))],
+    //   b.stringLiteral("net"),
+    // ),
   ];
 
   // Create normalizePort function

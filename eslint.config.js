@@ -8,6 +8,15 @@ export default [
   { ignores: ["express-typescript-app"] },
   { languageOptions: { globals: globals.browser } },
   {
+    files: ["**/*.cjs", "Gruntfile.cjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.commonjs,
+      },
+    },
+  },
+  {
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "error",
