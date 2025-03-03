@@ -1,10 +1,39 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+/* eslint-disable @typescript-eslint/no-require-imports */
 const semver = require("semver");
+const _ = require("lodash");
 module.exports = function (grunt) {
   // Load package.json to get current version
   const pkg = grunt.file.readJSON("package.json");
   const currentVersion = pkg.version;
-
+  //   const types = {
+  //     feat: {
+  //       description: "A new feature",
+  //       title: "Features",
+  //       emoji: "✨",
+  //     },
+  //     fix: {
+  //       description: "A bug fix",
+  //       title: "Bug Fixes",
+  //       emoji: "🐛",
+  //     },
+  //     refactor: {
+  //       description: "A code change that neither fixes a bug nor adds a feature",
+  //       title: "Code Refactoring",
+  //       emoji: "📦",
+  //     },
+  //     test: {
+  //       description: "A code change that neither fixes a bug nor adds a feature",
+  //       title: "Code Refactoring",
+  //       emoji: "📦",
+  //     },
+  //   };
+  //   const length = _.longest(Object.keys(types)).length + 1;
+  //   const choices = _.map([], function (type, key) {
+  //     return {
+  //       name: (key + ":").padEnd(length) + " " + type.description,
+  //       value: key,
+  //     };
+  //   });
   grunt.loadNpmTasks("grunt-bump");
   grunt.loadNpmTasks("grunt-prompt");
   grunt.initConfig({
@@ -99,6 +128,24 @@ module.exports = function (grunt) {
           ],
         },
       },
+      //   checkout: {
+      //     options: {
+      //       questions: [
+      //         {
+      //           config: "branch.type",
+      //           type: "lists",
+      //           message:
+      //             "Select the type of branch you're creating: (Use arrow keys)",
+      //           choices: choices,
+      //         },
+      //         {
+      //           config: "branch.name",
+      //           type: "input",
+      //           message: "Name your branch:",
+      //         },
+      //       ],
+      //     },
+      //   },
     },
     bump: {
       options: {
@@ -122,6 +169,7 @@ module.exports = function (grunt) {
   });
 
   grunt.registerTask("bump", ["prompt:bump", "processBump"]);
+  //   grunt.registerTask("checkout", ["prompt:checkout", "processCheckout"]);
   grunt.registerTask("processBump", function () {
     // If bump was requested
     if (grunt.config("bump")) {
@@ -162,4 +210,9 @@ module.exports = function (grunt) {
       grunt.log.writeln("Skipping bump process");
     }
   });
+
+  //   grunt.registerTask("processCheckout", function () {
+  //     const type = grunt.config("branch.type");
+  //     const name = grunt.config("branch.name");
+  //   });
 };

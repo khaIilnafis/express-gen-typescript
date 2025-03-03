@@ -587,6 +587,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash@npm:^4":
+  version: 4.17.16
+  resolution: "@types/lodash@npm:4.17.16"
+  checksum: 10c0/cf017901b8ab1d7aabc86d5189d9288f4f99f19a75caf020c0e2c77b8d4cead4db0d0b842d009b029339f92399f49f34377dd7c2721053388f251778b4c23534
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:*":
   version: 22.13.5
   resolution: "@types/node@npm:22.13.5"
@@ -1613,6 +1620,7 @@ __metadata:
     "@babel/parser": "npm:^7.26.9"
     "@eslint/js": "npm:^9.21.0"
     "@types/inquirer": "npm:^9.0.7"
+    "@types/lodash": "npm:^4"
     "@types/node": "npm:^20.11.30"
     cz-conventional-changelog: "npm:^3.3.0"
     edit-json-file: "npm:^1.7.0"
@@ -1624,6 +1632,7 @@ __metadata:
     husky: "npm:^9.1.7"
     inquirer: "npm:^12.4.2"
     lint-staged: "npm:^15.4.3"
+    lodash: "npm:^4.17.21"
     prettier: "npm:3.5.2"
     recast: "npm:^0.23.10"
     rimraf: "npm:^6.0.1"
