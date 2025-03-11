@@ -19,13 +19,27 @@ function parseArgs(): Partial<GeneratorOptions> {
     if (arg === "--projectName" && i + 1 < args.length) {
       options.projectName = args[++i];
     } else if (arg === "--database" && i + 1 < args.length) {
-      options.database = Boolean(args[++i]);
+      options.database = true;
     } else if (arg === "--dialect" && i + 1 < args.length) {
       options.dialect = args[++i];
     } else if (arg === "--databaseOrm" && i + 1 < args.length) {
       options.databaseOrm = args[++i];
     } else if (arg === "--databaseName" && i + 1 < args.length) {
       options.databaseName = args[++i];
+    } else if (arg === "-auth" && i + 1 < args.length) {
+      options.authentication = true;
+    } else if (arg === "--authLib" && i + 1 < args.length) {
+      options.authLib = args[++i];
+    } else if (arg === "--authStrategy" && i + 1 < args.length) {
+      options.authStrategy = args[++i];
+    } else if (arg === "--websockets" && i + 1 < args.length) {
+      options.webSockets = true;
+    } else if (arg === "--websocketLib" && i + 1 < args.length) {
+      options.websocketLib = args[++i];
+    } else if (arg === "--views" && i + 1 < args.length) {
+      options.view = true;
+    } else if (arg === "--viewEngine" && i + 1 < args.length) {
+      options.viewEngine = args[++i];
     } else if (arg === "--skipPrompt") {
       options.skipPrompt = true;
     } else if (arg === "--help") {
