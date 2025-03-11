@@ -513,13 +513,6 @@ export default function generatePassportConfigAST(_options: GeneratorOptions) {
   // Add return type annotation
   genTokenArrowFunc.returnType = b.tsTypeAnnotation(b.tsStringKeyword());
 
-  // JWT import for the generateToken function
-  const jwtImport = b.importDeclaration(
-    [b.importDefaultSpecifier(b.identifier("jwt"))],
-    b.stringLiteral("jsonwebtoken"),
-  );
-  imports.push(jwtImport);
-
   // Default export
   const defaultExport = astConfig.generateExports(authConfig.exports).DEFAULT;
 

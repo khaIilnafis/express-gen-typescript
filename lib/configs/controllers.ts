@@ -21,22 +21,31 @@ export const controllerConfig = {
   },
   exampleController: {
     imports: {
-      CONTROLLER: {
-        NAME: "./exampleController",
-        DEFAULT: {},
-        NAMED: {
-          GETALL: "getAllController",
-          GETBYID: "getByIdController",
-          CREATE: "createController",
-          UPDATE: "updateController",
-          DELETE: "deleteController",
-        },
-      },
+      //   CONTROLLER: {
+      //     NAME: "./exampleController",
+      //     DEFAULT: {},
+      //     NAMED: {
+      //       GETALL: "getAllController",
+      //       GETBYID: "getByIdController",
+      //       CREATE: "createController",
+      //       UPDATE: "updateController",
+      //       DELETE: "deleteController",
+      //     },
+      //   },
       SOCKETIO: {
         NAME: "socket.io",
         DEFAULT: {},
         NAMED: {
           SERVER: ["Server", "SocketIOServer"],
+        },
+      },
+      EXPRESS: {
+        NAME: "express",
+        DEFAULT: {},
+        NAMED: {
+          REQUEST: "Request",
+          RESPONSE: "Response",
+          NEXT: "NextFunction",
         },
       },
     },
@@ -51,6 +60,13 @@ export const controllerConfig = {
             CREATE: "createController",
             UPDATE: "updateController",
             DELETE: "deleteController",
+          },
+        },
+        SOCKETIO: {
+          NAME: "socket.io",
+          DEFAULT: {},
+          NAMED: {
+            SERVER: ["Server", "SocketIOServer"],
           },
         },
       },

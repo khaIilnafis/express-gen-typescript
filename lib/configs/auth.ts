@@ -29,13 +29,13 @@ export const authConfig = {
         },
         NAMED: {},
       },
-      //   JWT: {
-      //     NAME: "jsonwebtoken",
-      //     DEFAULT: {
-      //       JWT: "jwt",
-      //     },
-      //     NAMED: {},
-      //   },
+      JWT: {
+        NAME: "jsonwebtoken",
+        DEFAULT: {
+          JWT: "jwt",
+        },
+        NAMED: {},
+      },
     },
   },
   exports: {
