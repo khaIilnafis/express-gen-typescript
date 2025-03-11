@@ -26,6 +26,14 @@ export type DerivedImportLibrary<T extends ImportConfig> = {
 export type ImportsFromConfig<T extends Record<string, ImportConfig>> = {
   [K in keyof T]: DerivedImportLibrary<T[K]>;
 };
+export type ExportConfig = {
+  NAMED: Record<string, string>;
+};
+
+// Mapped type that converts a LibraryConfig into an ExportLibrary-like type.
+export type ExportsFromConfig<T extends ExportConfig> = {
+  [K in keyof T["NAMED"]]: Record<string, string>;
+};
 
 export enum CALLEES {
   THIS,

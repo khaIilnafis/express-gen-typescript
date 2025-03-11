@@ -1,8 +1,10 @@
 import {
   EnvConfig,
+  ExportConfig,
   ImportConfig,
   DerivedImportLibrary,
   ImportsFromConfig,
+  ExportsFromConfig,
   ConstructorFromConfig,
   ConstructorItem,
   CALLEES,
@@ -12,16 +14,23 @@ import {
   TemplateOptions,
   TemplateVariables,
   ASTTEmplateOptions,
-} from "./templates.js";
+} from "./builder-config.js";
 import { GeneratorOptions } from "./setup.js";
-import { ImportsBuilderFn, ConstructorBuilderFn } from "./builders.js";
+import {
+  ImportsBuilderFn,
+  ExportsBuilderFn,
+  ConstructorBuilderFn,
+} from "./builders.js";
 
 export {
   GeneratorOptions,
   EnvConfig,
   ImportConfig,
+  ExportConfig,
   DerivedImportLibrary,
   ImportsFromConfig,
+  ExportsFromConfig,
+  ExportsBuilderFn,
   ConstructorFromConfig,
   ConstructorItem,
   CALLEES,

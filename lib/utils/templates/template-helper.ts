@@ -1,7 +1,10 @@
 import * as recast from "recast";
 import { ConstructorBuilderFn, ImportsBuilderFn } from "../../types/index.js";
-import { astConfig } from "../../configs/templates.js";
-import { ClassPropertyBuilderFn } from "../../types/builders.js";
+import { astConfig } from "../../configs/builder-config.js";
+import {
+  ClassPropertyBuilderFn,
+  ExportsBuilderFn,
+} from "../../types/builders.js";
 const b = recast.types.builders;
 
 export const buildImports: ImportsBuilderFn = (
@@ -61,10 +64,31 @@ export const buildImports: ImportsBuilderFn = (
       );
     }
   }
-  console.log(importDeclarations);
+  //   console.log(importDeclarations);
   return importDeclarations;
 };
+export const buildExports: ExportsBuilderFn = (
+  exports,
+): recast.types.namedTypes.ExportNamedDeclaration[] => {
+  const exportAllDeclaration: recast.types.namedTypes.ExportNamedDeclaration[] =
+    [];
+  const namedExportDecl = b.exportNamedDeclaration(null, []);
 
+  for (const exportModule of Object.keys(exports)) {
+    const exportKeys = exports[exportModule];
+    for (const key of Object.keys(exportKeys)) {
+      const namedExportName = exportKeys[key];
+      namedExportDecl.specifiers?.push(
+        b.exportSpecifier.from({
+          local: b.identifier(namedExportName),
+          exported: b.identifier(namedExportName),
+        }),
+      );
+    }
+    exportAllDeclaration.push(namedExportDecl);
+  }
+  return exportAllDeclaration;
+};
 export const buildConstructor: ConstructorBuilderFn = (
   options,
   cfg,

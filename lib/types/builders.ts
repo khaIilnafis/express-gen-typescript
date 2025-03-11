@@ -4,12 +4,18 @@ import {
   ImportsFromConfig,
   ConstructorFromConfig,
   ConstructorItem,
+  ExportsFromConfig,
+  ExportConfig,
 } from "./config.js";
 import { GeneratorOptions } from "./setup.js";
 
 export type ImportsBuilderFn = <T extends Record<string, ImportConfig>>(
   imports: ImportsFromConfig<T>,
 ) => recast.types.namedTypes.ImportDeclaration[];
+
+export type ExportsBuilderFn = <T extends ExportConfig>(
+  imports: ExportsFromConfig<T>,
+) => recast.types.namedTypes.ExportNamedDeclaration[];
 
 export type ConstructorBuilderFn = <T extends Record<string, ConstructorItem>>(
   options: GeneratorOptions,
