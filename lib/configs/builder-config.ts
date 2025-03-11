@@ -25,6 +25,14 @@ export const astConfig: ASTTEmplateOptions = Object.freeze({
     const exportDeclaration = buildExports(exports);
     return exportDeclaration;
   }) as ExportsBuilderFn,
+  generateConstructor: ((options, cfg) => {
+    const constructorFn = buildConstructor(options, cfg);
+    return constructorFn;
+  }) as ConstructorBuilderFn,
+  generateClassProperties: ((options, cfg) => {
+    const classPropertyFn = buildClassProperties(options, cfg);
+    return classPropertyFn;
+  }) as ClassPropertyBuilderFn,
   AUTHENTICATION: {
     config: () => {},
     getImports: () => {},
@@ -44,10 +52,10 @@ export const astConfig: ASTTEmplateOptions = Object.freeze({
     buildIndex: () => {},
     buildController: () => {},
     updateIndex: () => {},
-    generateImports: ((imports) => {
-      const importDeclaration = buildImports(imports);
-      return importDeclaration;
-    }) as ImportsBuilderFn,
+    // generateImports: ((imports) => {
+    //   const importDeclaration = buildImports(imports);
+    //   return importDeclaration;
+    // }) as ImportsBuilderFn,
     generateConstructor: ((options, cfg) => {
       const constructorFn = buildConstructor(options, cfg);
       return constructorFn;

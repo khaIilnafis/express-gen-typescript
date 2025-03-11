@@ -13,9 +13,9 @@ export const controllerConfig = {
       },
     },
     exports: {
+      DEFAULT: {},
       NAMED: {
         EXAMPLE: "ExampleController",
-        DUNDUN: "MyController1",
       },
     } as ExportConfig,
   },
@@ -42,14 +42,16 @@ export const controllerConfig = {
     },
     constructor: {
       imports: {
-        NAME: "./exampleController",
-        DEFAULT: {},
-        NAMED: {
-          GETALL: "getAllController",
-          GETBYID: "getByIdController",
-          CREATE: "createController",
-          UPDATE: "updateController",
-          DELETE: "deleteController",
+        CONTROLLER: {
+          NAME: "./exampleController",
+          DEFAULT: {},
+          NAMED: {
+            GETALL: "getAllController",
+            GETBYID: "getByIdController",
+            CREATE: "createController",
+            UPDATE: "updateController",
+            DELETE: "deleteController",
+          },
         },
       },
       methods: {
