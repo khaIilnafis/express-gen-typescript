@@ -1,7 +1,6 @@
-import { ImportsFromConfig } from "../types/index.js";
+import { ImportsFromConfig } from "../types/config.js";
 
-// Configuration for template library imports.
-export const imports = {
+export const authConfig = {
   PASSPORT: {
     NAME: "passport",
     DEFAULT: { passport: "passport" },
@@ -12,11 +11,11 @@ export const imports = {
     DEFAULT: {},
     NAMED: { STRATEGY: "Strategy", EXTRACT_JWT: "ExtractJwt" },
   },
-  PASSPORT_INSTANCE: {
-    NAME: "../auth/passport",
-    DEFAULT: { passport: "passport" },
-    NAMED: {},
-  },
+  //   PASSPORT_INSTANCE: {
+  //     NAME: "../auth/passport",
+  //     DEFAULT: { passport: "passport" },
+  //     NAMED: {},
+  //   },
   EXPRESS: {
     NAME: "express",
     DEFAULT: {},
@@ -34,5 +33,5 @@ export const imports = {
     NAMED: {},
   },
 };
-type ImportsType = ImportsFromConfig<typeof imports>;
-export const IMPORTS: ImportsType = Object.freeze(imports);
+type ImportsType = ImportsFromConfig<typeof authConfig>;
+export const IMPORTS: ImportsType = Object.freeze(authConfig);

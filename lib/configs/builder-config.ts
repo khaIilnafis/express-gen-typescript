@@ -4,10 +4,12 @@ import {
   ConstructorBuilderFn,
   GeneratorOptions,
   ImportsBuilderFn,
+  ExportsBuilderFn,
 } from "../types/index.js";
 import {
   buildClassProperties,
   buildConstructor,
+  buildExports,
   buildImports,
 } from "../utils/templates/template-helper.js";
 import { ClassPropertyBuilderFn } from "../types/builders.js";
@@ -15,6 +17,14 @@ import { ClassPropertyBuilderFn } from "../types/builders.js";
 const b = recast.types.builders;
 
 export const astConfig: ASTTEmplateOptions = Object.freeze({
+  generateImports: ((imports) => {
+    const importDeclaration = buildImports(imports);
+    return importDeclaration;
+  }) as ImportsBuilderFn,
+  generateExports: ((exports) => {
+    const exportDeclaration = buildExports(exports);
+    return exportDeclaration;
+  }) as ExportsBuilderFn,
   AUTHENTICATION: {
     config: () => {},
     getImports: () => {},

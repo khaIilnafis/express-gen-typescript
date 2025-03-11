@@ -7,7 +7,7 @@ import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { COMMENTS } from "../../constants/index.js";
 import { GeneratorOptions } from "../../../types/index.js";
-import { astConfig } from "../../../configs/templates.js";
+import { astConfig } from "../../../configs/builder-config.js";
 
 const b = recast.types.builders;
 

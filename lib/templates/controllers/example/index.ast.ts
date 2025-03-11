@@ -6,7 +6,7 @@
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { CALLEES, GeneratorOptions } from "../../../types/index.js";
-import { astConfig } from "../../../configs/templates.js";
+import { astConfig } from "../../../configs/builder-config.js";
 const b = recast.types.builders;
 
 /**
@@ -32,6 +32,7 @@ const imports = {
     },
   },
 };
+
 const constructor = {
   GET_ALL: {
     METHOD: "getAll",
@@ -67,8 +68,8 @@ const constructor = {
 export default function generateExampleControllerIndexAST(
   options: GeneratorOptions,
 ) {
-  const controllerImports = astConfig.CONTROLLER.generateImports(imports);
-  // Build the imports sectio
+  // Build the imports section
+  const controllerImports = astConfig.generateImports(imports);
 
   // Create class properties for the controller class
   const classProperties: recast.types.namedTypes.ClassProperty[] = [];
