@@ -41,6 +41,9 @@ export async function processASTTemplate(
   templatePath: string,
   options: TemplateOptions,
 ): Promise<string> {
+  if (!templatePath) {
+    throw new Error("Template path required");
+  }
   try {
     // Normalize the template path before importing
     const normalizedPath = normalizeTemplatePath(templatePath);
@@ -82,6 +85,9 @@ export async function writeASTTemplate(
   destinationPath: string,
   options: TemplateOptions = {},
 ): Promise<void> {
+  if (!astTemplatePath || !destinationPath) {
+    throw new Error("Path arguments required required");
+  }
   try {
     const generatedCode = await processASTTemplate(astTemplatePath, options);
     // Ensure directory exists
@@ -92,7 +98,7 @@ export async function writeASTTemplate(
     // Write generated code to destination
     fs.writeFileSync(destinationPath, generatedCode);
   } catch (error) {
-    console.error("Error processing AST template:", error);
+    console.error("Error writing AST template:", error);
     throw error;
   }
 }

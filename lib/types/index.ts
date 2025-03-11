@@ -20,6 +20,8 @@ import {
   ImportsBuilderFn,
   ExportsBuilderFn,
   ConstructorBuilderFn,
+  ExportBuilderReturn,
+  ClassPropertyBuilderFn,
 } from "./builders.js";
 
 export {
@@ -31,6 +33,8 @@ export {
   ImportsFromConfig,
   ExportsFromConfig,
   ExportsBuilderFn,
+  ExportBuilderReturn,
+  ClassPropertyBuilderFn,
   ConstructorFromConfig,
   ConstructorItem,
   CALLEES,

@@ -7,38 +7,9 @@ import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { TEMPLATES } from "../../constants/index.js";
 import { GeneratorOptions } from "../../../types/index.js";
-// import { buildImports } from "../../../utils/templates/template-helper.js";
-import { astConfig, IMPORTS } from "../../../configs/index.js";
+import { astConfig, authConfig } from "../../../configs/index.js";
 const b = recast.types.builders;
 
-// const IMPORTS = {
-//   PASSPORT: {
-//     NAME: "passport",
-//     DEFAULT: { passport: "passport" },
-//     NAMED: {},
-//   },
-//   PASSPORT_JWT: {
-//     NAME: "passport-jwt",
-//     DEFAULT: {},
-//     NAMED: { STRATEGY: "Strategy", EXTRACT_JWT: "ExtractJwt" },
-//   },
-//   EXPRESS: {
-//     NAME: "express",
-//     DEFAULT: {},
-//     NAMED: {
-//       REQUEST: "Request",
-//       RESPONSE: "Response",
-//       NEXT: "NextFunction",
-//     },
-//   },
-//   MODEL: {
-//     NAME: "../models/example",
-//     DEFAULT: {
-//       EXAMPLE: "Example",
-//     },
-//     NAMED: {},
-//   },
-// };
 /**
  * Generates the Passport.js configuration AST with provided options
  * @param options Template options
@@ -48,7 +19,7 @@ export default function generatePassportConfigAST(_options: GeneratorOptions) {
   //Options = authenticationStrat, might be the
   // Build the imports section
   //   const imports = buildImports(IMPORTS);
-  const imports = astConfig.generateImports(IMPORTS);
+  const imports = astConfig.generateImports(authConfig.imports.ALL);
 
   // JWT Options const declaration
   const jwtOptionsDeclaration = b.variableDeclaration("const", [
@@ -550,9 +521,7 @@ export default function generatePassportConfigAST(_options: GeneratorOptions) {
   imports.push(jwtImport);
 
   // Default export
-  const defaultExport = b.exportDefaultDeclaration(
-    b.identifier(TEMPLATES.AUTH.TYPES.PASSPORT),
-  );
+  const defaultExport = astConfig.generateExports(authConfig.exports).DEFAULT;
 
   // Build the AST program
   const ast = recast.parse("", { parser: tsParser });

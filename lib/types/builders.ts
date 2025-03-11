@@ -15,8 +15,12 @@ export type ImportsBuilderFn = <T extends Record<string, ImportConfig>>(
 
 export type ExportsBuilderFn = <T extends ExportConfig>(
   imports: ExportsFromConfig<T>,
-) => recast.types.namedTypes.ExportNamedDeclaration[];
+) => ExportBuilderReturn;
 
+export type ExportBuilderReturn = {
+  NAMED: recast.types.namedTypes.ExportNamedDeclaration[];
+  DEFAULT: recast.types.namedTypes.ExportDefaultDeclaration | undefined;
+};
 export type ConstructorBuilderFn = <T extends Record<string, ConstructorItem>>(
   options: GeneratorOptions,
   cfg: ConstructorFromConfig<T>,

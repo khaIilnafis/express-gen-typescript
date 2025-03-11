@@ -19,6 +19,8 @@ export type TemplateOptions = TemplateVariables | GeneratorOptions;
 export interface ASTTEmplateOptions {
   generateImports: ImportsBuilderFn;
   generateExports: ExportsBuilderFn;
+  generateConstructor: ConstructorBuilderFn;
+  generateClassProperties: ClassPropertyBuilderFn;
   AUTHENTICATION: {
     config: () => void;
     getImports: () => void;
@@ -38,7 +40,7 @@ export interface ASTTEmplateOptions {
     buildIndex: () => void;
     buildController: () => void;
     updateIndex: () => void;
-    generateImports: ImportsBuilderFn;
+    // generateImports: ImportsBuilderFn;
     generateConstructor: ConstructorBuilderFn;
     generateClassProperties: ClassPropertyBuilderFn;
   };

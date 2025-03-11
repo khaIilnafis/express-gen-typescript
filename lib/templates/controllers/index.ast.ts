@@ -10,32 +10,6 @@ import { astConfig, controllerConfig } from "../../configs/index.js";
 
 const b = recast.types.builders;
 
-// const importsConfig = {
-//   CONTROLLER: {
-//     NAME: "./example",
-//     DEFAULT: {},
-//     NAMED: {
-//       EXAMPLE: "ExampleController",
-//     },
-//   },
-// };
-/**
- * Helper function to create a properly configured export specifier
- * @param local - Local identifier
- * @param exported - Exported identifier
- * @returns Properly configured export specifier
- */
-// function createExportSpecifier(
-//   local: recast.types.namedTypes.Identifier,
-//   exported: recast.types.namedTypes.Identifier,
-// ): recast.types.namedTypes.ExportSpecifier {
-//   // Use the .from() method to properly set all required properties
-//   return b.exportSpecifier.from({
-//     local: local,
-//     exported: exported,
-//   });
-// }
-
 /**
  * Generates the controllers index AST with provided options
  * @param options Template options
@@ -46,16 +20,11 @@ export default function generateControllersIndexAST(
 ) {
   // Build the imports section
   const imports = astConfig.generateImports(controllerConfig.module.imports);
-  const exports = astConfig.generateExports(controllerConfig.module.exports);
+
   // Build the exports section
-  //   const exports = [
-  //     b.exportNamedDeclaration(null, [
-  //       createExportSpecifier(
-  //         b.identifier("ExampleController"),
-  //         b.identifier("ExampleController"),
-  //       ),
-  //     ]),
-  //   ];
+  const exports = astConfig.generateExports(
+    controllerConfig.module.exports,
+  ).NAMED;
 
   // Build the AST program
   const program = b.program([...imports, ...exports]);

@@ -7,39 +7,39 @@ import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { COMMENTS } from "../../constants/index.js";
 import { GeneratorOptions } from "../../../types/index.js";
-import { astConfig } from "../../../configs/builder-config.js";
+import { astConfig, controllerConfig } from "../../../configs/index.js";
 
 const b = recast.types.builders;
 
-const imports = {
-  //   CONTROLLER: {
-  //     NAME: "./exampleController",
-  //     DEFAULT: {},
-  //     NAMED: {
-  //       GETALL: "getAllController",
-  //       GETBYID: "getByIdController",
-  //       CREATE: "createController",
-  //       UPDATE: "updateController",
-  //       DELETE: "deleteController",
-  //     },
-  //   },
-  SOCKETIO: {
-    NAME: "socket.io",
-    DEFAULT: {},
-    NAMED: {
-      SERVER: ["Server", "SocketIOServer"],
-    },
-  },
-  EXPRESS: {
-    NAME: "express",
-    DEFAULT: {},
-    NAMED: {
-      REQUEST: "Request",
-      RESPONSE: "Response",
-      NEXT: "NextFunction",
-    },
-  },
-};
+// const imports = {
+//   //   CONTROLLER: {
+//   //     NAME: "./exampleController",
+//   //     DEFAULT: {},
+//   //     NAMED: {
+//   //       GETALL: "getAllController",
+//   //       GETBYID: "getByIdController",
+//   //       CREATE: "createController",
+//   //       UPDATE: "updateController",
+//   //       DELETE: "deleteController",
+//   //     },
+//   //   },
+//   SOCKETIO: {
+//     NAME: "socket.io",
+//     DEFAULT: {},
+//     NAMED: {
+//       SERVER: ["Server", "SocketIOServer"],
+//     },
+//   },
+//   EXPRESS: {
+//     NAME: "express",
+//     DEFAULT: {},
+//     NAMED: {
+//       REQUEST: "Request",
+//       RESPONSE: "Response",
+//       NEXT: "NextFunction",
+//     },
+//   },
+// };
 
 /**
  * Generates the example controller AST with provided options
@@ -50,7 +50,9 @@ export default function generateExampleControllerAST(
   options: GeneratorOptions,
 ) {
   // Import declarations
-  const controllerImports = astConfig.CONTROLLER.generateImports(imports);
+  const controllerImports = astConfig.generateImports(
+    controllerConfig.exampleController.imports,
+  );
 
   // Create Example interface
   const exampleInterface = b.tsInterfaceDeclaration(

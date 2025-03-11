@@ -6,32 +6,8 @@
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { CALLEES, GeneratorOptions } from "../../../types/index.js";
-import { astConfig } from "../../../configs/builder-config.js";
+import { astConfig, controllerConfig } from "../../../configs/index.js";
 const b = recast.types.builders;
-
-/**
- * Template options interface
- */
-const imports = {
-  CONTROLLER: {
-    NAME: "./exampleController",
-    DEFAULT: {},
-    NAMED: {
-      GETALL: "getAllController",
-      GETBYID: "getByIdController",
-      CREATE: "createController",
-      UPDATE: "updateController",
-      DELETE: "deleteController",
-    },
-  },
-  SOCKETIO: {
-    NAME: "socket.io",
-    DEFAULT: {},
-    NAMED: {
-      SERVER: ["Server", "SocketIOServer"],
-    },
-  },
-};
 
 const constructor = {
   GET_ALL: {
@@ -69,7 +45,9 @@ export default function generateExampleControllerIndexAST(
   options: GeneratorOptions,
 ) {
   // Build the imports section
-  const controllerImports = astConfig.generateImports(imports);
+  const controllerImports = astConfig.generateImports(
+    controllerConfig.exampleController.constructor.imports,
+  );
 
   // Create class properties for the controller class
   const classProperties: recast.types.namedTypes.ClassProperty[] = [];
@@ -98,13 +76,12 @@ export default function generateExampleControllerIndexAST(
   }
 
   // Add controller method properties with type annotations
-  const controllerMethodProperties =
-    astConfig.CONTROLLER.generateClassProperties(options, constructor);
-  // Add constructor and assign properties
-  const constructorMethod = astConfig.CONTROLLER.generateConstructor(
+  const controllerMethodProperties = astConfig.generateClassProperties(
     options,
     constructor,
   );
+  // Add constructor and assign properties
+  const constructorMethod = astConfig.generateConstructor(options, constructor);
 
   // Create the class body
   const classBody = b.classBody([

@@ -1,10 +1,12 @@
 import * as recast from "recast";
-import { ConstructorBuilderFn, ImportsBuilderFn } from "../../types/index.js";
-import { astConfig } from "../../configs/builder-config.js";
 import {
+  ConstructorBuilderFn,
+  ImportsBuilderFn,
   ClassPropertyBuilderFn,
   ExportsBuilderFn,
-} from "../../types/builders.js";
+  ExportBuilderReturn,
+} from "../../types/index.js";
+import { astConfig } from "../../configs/builder-config.js";
 const b = recast.types.builders;
 
 export const buildImports: ImportsBuilderFn = (
@@ -40,11 +42,7 @@ export const buildImports: ImportsBuilderFn = (
       for (const key of namedKeys) {
         // The value of each key is used as the local identifier.
         const namedImportName = namedObj[key];
-        console.log(namedImportName);
         if (Array.isArray(namedImportName)) {
-          console.log(`array deteceted`);
-          console.log(namedImportName[0]);
-          console.log(namedImportName[1]);
           specifiers.push(
             b.importSpecifier(
               b.identifier(namedImportName[0]),
@@ -64,30 +62,38 @@ export const buildImports: ImportsBuilderFn = (
       );
     }
   }
-  //   console.log(importDeclarations);
   return importDeclarations;
 };
 export const buildExports: ExportsBuilderFn = (
   exports,
-): recast.types.namedTypes.ExportNamedDeclaration[] => {
+): ExportBuilderReturn => {
   const exportAllDeclaration: recast.types.namedTypes.ExportNamedDeclaration[] =
     [];
   const namedExportDecl = b.exportNamedDeclaration(null, []);
-
-  for (const exportModule of Object.keys(exports)) {
-    const exportKeys = exports[exportModule];
-    for (const key of Object.keys(exportKeys)) {
-      const namedExportName = exportKeys[key];
-      namedExportDecl.specifiers?.push(
-        b.exportSpecifier.from({
-          local: b.identifier(namedExportName),
-          exported: b.identifier(namedExportName),
-        }),
-      );
-    }
+  let defaultExportDecl;
+  const namedObjs = exports.NAMED;
+  const defaultObjs = exports.DEFAULT;
+  for (const exportModule of Object.keys(namedObjs)) {
+    namedExportDecl.specifiers?.push(
+      b.exportSpecifier.from({
+        local: b.identifier(namedObjs[exportModule]),
+        exported: b.identifier(namedObjs[exportModule]),
+      }),
+    );
     exportAllDeclaration.push(namedExportDecl);
   }
-  return exportAllDeclaration;
+  for (const exportModule of Object.keys(defaultObjs)) {
+    defaultExportDecl = b.exportDefaultDeclaration(
+      b.identifier(defaultObjs[exportModule]),
+    );
+    exportAllDeclaration.push(namedExportDecl);
+  }
+
+  const templateExports = {
+    NAMED: exportAllDeclaration,
+    DEFAULT: defaultExportDecl,
+  };
+  return templateExports;
 };
 export const buildConstructor: ConstructorBuilderFn = (
   options,

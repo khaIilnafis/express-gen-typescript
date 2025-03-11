@@ -150,7 +150,6 @@ export async function updatePackageJson(
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
     // Apply updates
     for (const [key, value] of Object.entries(updates)) {
-      console.log(key);
       if (
         typeof value === "object" &&
         value !== null &&
