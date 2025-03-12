@@ -5,37 +5,11 @@
 
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
-import { CALLEES, GeneratorOptions } from "../../../types/index.js";
-import { astConfig, controllerConfig } from "../../../configs/index.js";
+import { GeneratorOptions } from "../../../types/index.js";
+import { CONTROLLER_CONFIG } from "../../../presets/index.js";
+import { astConfig } from "../../../utils/builders/index.js";
 const b = recast.types.builders;
 
-const constructor = {
-  GET_ALL: {
-    METHOD: "getAll",
-    CALLER: "getAllController",
-    CALLE: CALLEES.THIS,
-  },
-  GET_BY_ID: {
-    METHOD: "getById",
-    CALLER: "getByIdController",
-    CALLE: CALLEES.THIS,
-  },
-  CREATE: {
-    METHOD: "create",
-    CALLER: "createController",
-    CALLE: CALLEES.THIS,
-  },
-  UPDATE: {
-    METHOD: "update",
-    CALLER: "updateController",
-    CALLE: CALLEES.THIS,
-  },
-  DELETE: {
-    METHOD: "delete",
-    CALLER: "deleteController",
-    CALLE: CALLEES.THIS,
-  },
-};
 /**
  * Generates the example controller index AST with provided options
  * @param options Template options
@@ -46,7 +20,7 @@ export default function generateExampleControllerIndexAST(
 ) {
   // Build the imports section
   const controllerImports = astConfig.generateImports(
-    controllerConfig.exampleController.constructor.imports,
+    CONTROLLER_CONFIG.controllerConfig.exampleController.constructor.imports,
   );
 
   // Create class properties for the controller class
@@ -78,10 +52,12 @@ export default function generateExampleControllerIndexAST(
   // Add controller method properties with type annotations
   const controllerMethodProperties = astConfig.generateClassProperties(
     options,
-    constructor,
+    CONTROLLER_CONFIG.controllerConfig.exampleController.constructor.class,
   );
   // Add constructor and assign properties
-  const constructorMethod = astConfig.generateConstructor(options, constructor);
+  const constructorMethod = astConfig.generateConstructor(
+    CONTROLLER_CONFIG.controllerConfig.exampleController.constructor.methods,
+  );
 
   // Create the class body
   const classBody = b.classBody([
@@ -100,10 +76,12 @@ export default function generateExampleControllerIndexAST(
   // Create exports
   const namedExport = b.exportNamedDeclaration(exampleControllerClass, []);
 
-  const defaultExport = b.exportDefaultDeclaration(
-    b.identifier("ExampleController"),
-  );
-
+  //   const defaultExport = b.exportDefaultDeclaration(
+  //     b.identifier("ExampleController"),
+  //   );
+  const defaultExport = astConfig.generateExports(
+    CONTROLLER_CONFIG.controllerConfig.exampleController.constructor.exports,
+  ).DEFAULT!;
   // Build the AST program
   const program = b.program([...controllerImports, namedExport, defaultExport]);
 

@@ -7,202 +7,20 @@ import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { COMMENTS, TEMPLATES } from "../constants/index.js";
 import { GeneratorOptions } from "../../types/index.js";
-import { PATHS } from "../../setup/constants/index.js";
-import { EXTENSIONS } from "../../setup/constants/paths/extensions.js";
+// import { PATHS } from "../../setup/constants/index.js";
+// import { EXTENSIONS } from "../../setup/constants/paths/extensions.js";
 import { IMPORTS } from "../constants/server/imports.js";
+import { astConfig } from "../../utils/builders/builder-config.js";
+import { SERVER_CONFIG } from "../../presets/index.js";
+import { buildMethod } from "../../utils/builders/index.js";
 const b = recast.types.builders;
 
 /**
  * Function to conditionally add imports based on options
  * @returns Array of import declarations
  */
-function getImports(options: GeneratorOptions) {
-  const imports = [
-    // Base imports that are always included
-    b.importDeclaration(
-      [b.importDefaultSpecifier(b.identifier("dotenv"))],
-      b.stringLiteral("dotenv"),
-    ),
-    b.expressionStatement(
-      b.callExpression(
-        b.memberExpression(b.identifier("dotenv"), b.identifier("config")),
-        [
-          b.objectExpression([
-            b.objectProperty(b.identifier("path"), b.stringLiteral(".env")),
-          ]),
-        ],
-      ),
-    ),
-    b.importDeclaration(
-      [
-        b.importDefaultSpecifier(b.identifier("express")),
-        b.importSpecifier(b.identifier("Application")),
-        b.importSpecifier(b.identifier("Request")),
-        b.importSpecifier(b.identifier("Response")),
-        b.importSpecifier(b.identifier("NextFunction")),
-      ],
-      b.stringLiteral("express"),
-    ),
-    b.importDeclaration(
-      [b.importDefaultSpecifier(b.identifier("helmet"))],
-      b.stringLiteral("helmet"),
-    ),
-    b.importDeclaration(
-      [b.importDefaultSpecifier(b.identifier("cors"))],
-      b.stringLiteral("cors"),
-    ),
-    b.importDeclaration(
-      [b.importDefaultSpecifier(b.identifier("morgan"))],
-      b.stringLiteral("morgan"),
-    ),
-    b.importDeclaration(
-      [b.importDefaultSpecifier(b.identifier("path"))],
-      b.stringLiteral("path"),
-    ),
-    b.importDeclaration(
-      [b.importDefaultSpecifier(b.identifier("http"))],
-      b.stringLiteral("http"),
-    ),
-  ];
-
-  // Database imports
-  if (options.database) {
-    if (options.databaseOrm === "mongoose") {
-      imports.push(
-        b.importDeclaration(
-          [b.importDefaultSpecifier(b.identifier("mongoose"))],
-          b.stringLiteral("mongoose"),
-        ),
-      );
-    } else if (options.databaseOrm === "typeorm") {
-      imports.push(
-        b.importDeclaration(
-          [b.importDefaultSpecifier(b.identifier("typeorm"))],
-          b.stringLiteral("typeorm"),
-        ),
-      );
-    } else if (options.databaseOrm === "sequelize") {
-      imports.push(
-        b.importDeclaration(
-          [b.importDefaultSpecifier(b.identifier("sequelize"))],
-          b.stringLiteral("sequelize"),
-        ),
-      );
-      imports.push(
-        b.importDeclaration(
-          [b.importSpecifier(b.identifier(IMPORTS.DATABASE.INITIALIZE))],
-          b.stringLiteral(EXTENSIONS.REL_PATH + PATHS.DIRECTORIES.SRC.DATABASE),
-        ),
-      );
-    } else if (options.databaseOrm === "sequelize-typescript") {
-      imports.push(
-        b.importDeclaration(
-          [b.importSpecifier(b.identifier("Sequelize"))],
-          b.stringLiteral("sequelize-typescript"),
-        ),
-      );
-    } else if (options.databaseOrm === "prisma") {
-      imports.push(
-        b.importDeclaration(
-          [b.importDefaultSpecifier(b.identifier("prisma"))],
-          b.stringLiteral("@prisma/client"),
-        ),
-      );
-    }
-  } else {
-    // Add placeholder comment for database imports
-    imports.push(
-      b.expressionStatement(
-        b.identifier(TEMPLATES.STRINGS.MARKERS.DATABASE_IMPORT),
-      ),
-    );
-  }
-
-  // Authentication imports
-  if (options.authentication) {
-    imports.push(
-      b.importDeclaration(
-        [b.importDefaultSpecifier(b.identifier("passport"))],
-        b.stringLiteral("passport"),
-      ),
-    );
-  } else {
-    // Add placeholder comment for auth imports
-    imports.push(
-      b.expressionStatement(
-        b.identifier(TEMPLATES.STRINGS.MARKERS.AUTH_IMPORT),
-      ),
-    );
-  }
-
-  // WebSocket imports
-  if (options.websocketLib !== "none") {
-    if (options.websocketLib === "socketio") {
-      imports.push(
-        b.importDeclaration(
-          [
-            b.importSpecifier(b.identifier("Server as SocketIOServer")),
-            b.importSpecifier(b.identifier("Socket")),
-          ],
-          b.stringLiteral("socket.io"),
-        ),
-      );
-    } else if (options.websocketLib === "ws") {
-      imports.push(
-        b.importDeclaration(
-          [b.importDefaultSpecifier(b.identifier("WebSocket"))],
-          b.stringLiteral("ws"),
-        ),
-      );
-    }
-  } else {
-    // Add placeholder comment for websocket imports
-    imports.push(
-      b.expressionStatement(
-        b.identifier(TEMPLATES.STRINGS.MARKERS.WEBSOCKET_IMPORT),
-      ),
-    );
-  }
-
-  // View engine imports
-  if (options.viewEngine !== "none") {
-    // Add specific view engine imports
-    if (options.viewEngine === "ejs") {
-      imports.push(
-        b.importDeclaration(
-          [b.importDefaultSpecifier(b.identifier("ejs"))],
-          b.stringLiteral("ejs"),
-        ),
-      );
-    } else if (options.viewEngine === "pug") {
-      imports.push(
-        b.importDeclaration(
-          [b.importDefaultSpecifier(b.identifier("pug"))],
-          b.stringLiteral("pug"),
-        ),
-      );
-    } else if (options.viewEngine === "handlebars") {
-      imports.push(
-        b.importDeclaration(
-          [b.importDefaultSpecifier(b.identifier("exphbs"))],
-          b.stringLiteral("express-handlebars"),
-        ),
-      );
-    }
-  } else {
-    // Add placeholder comment for view imports
-    imports.push(
-      b.expressionStatement(b.identifier("/* PLACEHOLDER: viewImports */")),
-    );
-  }
-
-  // Routes import
-  imports.push(
-    b.importDeclaration(
-      [b.importSpecifier(b.identifier("initializeRoutes"))],
-      b.stringLiteral("./routes"),
-    ),
-  );
+function getImports(_options: GeneratorOptions) {
+  const imports = astConfig.generateImports(SERVER_CONFIG.serverImports);
 
   return imports;
 }
@@ -266,122 +84,6 @@ function getClassProperties(options: GeneratorOptions) {
   }
 
   return properties;
-}
-
-/**
- * Function to generate constructor method with appropriate calls
- * @returns Method definition for constructor
- */
-function getConstructorMethod(options: GeneratorOptions) {
-  const constructorStatements = [
-    // Default constructor statements
-    b.expressionStatement(
-      b.assignmentExpression(
-        "=",
-        b.memberExpression(b.thisExpression(), b.identifier("app")),
-        b.callExpression(b.identifier("express"), []),
-      ),
-    ),
-    b.expressionStatement(
-      b.assignmentExpression(
-        "=",
-        b.memberExpression(b.thisExpression(), b.identifier("server")),
-        b.callExpression(
-          b.memberExpression(
-            b.identifier("http"),
-            b.identifier("createServer"),
-          ),
-          [b.memberExpression(b.thisExpression(), b.identifier("app"))],
-        ),
-      ),
-    ),
-    b.expressionStatement(
-      b.assignmentExpression(
-        "=",
-        b.memberExpression(b.thisExpression(), b.identifier("port")),
-        b.logicalExpression(
-          "||",
-          b.memberExpression(
-            b.memberExpression(b.identifier("process"), b.identifier("env")),
-            b.identifier("PORT"),
-          ),
-          b.numericLiteral(3000),
-        ),
-      ),
-    ),
-    // Initialize middlewares
-    b.expressionStatement(
-      b.callExpression(
-        b.memberExpression(
-          b.thisExpression(),
-          b.identifier("initializeMiddlewares"),
-        ),
-        [],
-      ),
-    ),
-  ];
-
-  // Add database initialization if needed
-  if (options.database) {
-    constructorStatements.push(
-      b.expressionStatement(
-        b.callExpression(
-          b.memberExpression(
-            b.identifier("Server"),
-            b.identifier("connectToDatabase"),
-          ),
-          [],
-        ),
-      ),
-    );
-  }
-
-  // Add WebSocket initialization if needed
-  if (options.websocketLib !== "none") {
-    constructorStatements.push(
-      b.expressionStatement(
-        b.callExpression(
-          b.memberExpression(
-            b.thisExpression(),
-            b.identifier("initializeWebSockets"),
-          ),
-          [],
-        ),
-      ),
-    );
-  }
-
-  // Initialize routes
-  constructorStatements.push(
-    b.expressionStatement(
-      b.callExpression(
-        b.memberExpression(
-          b.thisExpression(),
-          b.identifier("initializeRoutes"),
-        ),
-        [],
-      ),
-    ),
-  );
-
-  // Initialize error handling
-  constructorStatements.push(
-    b.expressionStatement(
-      b.callExpression(
-        b.memberExpression(
-          b.thisExpression(),
-          b.identifier("initializeErrorHandling"),
-        ),
-        [],
-      ),
-    ),
-  );
-
-  return b.methodDefinition(
-    "constructor",
-    b.identifier("constructor"),
-    b.functionExpression(null, [], b.blockStatement(constructorStatements)),
-  );
 }
 
 /**
@@ -756,84 +458,6 @@ function getWebSocketMethod(options: GeneratorOptions) {
 }
 
 /**
- * Get view engine setup code
- * @returns Array of statements for view engine setup or null if no view engine selected
- */
-function getViewEngineSetup(options: GeneratorOptions) {
-  if (options.viewEngine === "none") {
-    return null;
-  }
-
-  const viewStatements: unknown[] = [];
-
-  // Set views directory
-  viewStatements.push(
-    b.expressionStatement(
-      b.callExpression(
-        b.memberExpression(
-          b.memberExpression(b.thisExpression(), b.identifier("app")),
-          b.identifier("set"),
-        ),
-        [
-          b.stringLiteral("views"),
-          b.callExpression(
-            b.memberExpression(b.identifier("path"), b.identifier("join")),
-            [b.identifier("__dirname"), b.stringLiteral("views")],
-          ),
-        ],
-      ),
-    ),
-  );
-
-  // Set view engine
-  viewStatements.push(
-    b.expressionStatement(
-      b.callExpression(
-        b.memberExpression(
-          b.memberExpression(b.thisExpression(), b.identifier("app")),
-          b.identifier("set"),
-        ),
-        [
-          b.stringLiteral("view engine"),
-          b.stringLiteral(options.viewEngine || ""),
-        ],
-      ),
-    ),
-  );
-
-  // Additional engine-specific setup
-  if (options.viewEngine === "handlebars") {
-    viewStatements.push(
-      b.expressionStatement(
-        b.callExpression(
-          b.memberExpression(
-            b.memberExpression(b.thisExpression(), b.identifier("app")),
-            b.identifier("engine"),
-          ),
-          [
-            b.stringLiteral("handlebars"),
-            b.callExpression(b.identifier("exphbs"), [
-              b.objectExpression([
-                b.objectProperty(
-                  b.identifier("defaultLayout"),
-                  b.stringLiteral("main"),
-                ),
-                b.objectProperty(
-                  b.identifier("extname"),
-                  b.stringLiteral(".handlebars"),
-                ),
-              ]),
-            ]),
-          ],
-        ),
-      ),
-    );
-  }
-
-  return viewStatements;
-}
-
-/**
  * Function to generate the router initialization code
  * @returns Expression statement for router initialization
  */
@@ -1052,7 +676,10 @@ export default function generateServerAST(opts: GeneratorOptions) {
             // constructor() { ... }
             //@ts-expect-error: recast type issues
             (() => {
-              const constructorMethod = getConstructorMethod(opts);
+              //
+              const constructorMethod = astConfig.generateConstructor(
+                SERVER_CONFIG.serverConstructor,
+              );
               constructorMethod.comments = [
                 b.commentBlock(COMMENTS.SERVER.CONSTRUCTOR_METHOD, true),
               ];
@@ -1061,115 +688,13 @@ export default function generateServerAST(opts: GeneratorOptions) {
             // private initializeMiddlewares(): void { ... }
             //@ts-expect-error: recast type issues
             (() => {
-              const initMiddlewaresMethod = b.methodDefinition(
-                "method",
-                b.identifier("initializeMiddlewares"),
-                b.functionExpression(
-                  null,
-                  [],
-                  b.blockStatement([
-                    // this.app.use(helmet());
-                    b.expressionStatement(
-                      b.callExpression(
-                        b.memberExpression(
-                          b.memberExpression(
-                            b.thisExpression(),
-                            b.identifier("app"),
-                          ),
-                          b.identifier("use"),
-                        ),
-                        [b.callExpression(b.identifier("helmet"), [])],
-                      ),
-                    ),
-                    // this.app.use(cors());
-                    b.expressionStatement(
-                      b.callExpression(
-                        b.memberExpression(
-                          b.memberExpression(
-                            b.thisExpression(),
-                            b.identifier("app"),
-                          ),
-                          b.identifier("use"),
-                        ),
-                        [b.callExpression(b.identifier("cors"), [])],
-                      ),
-                    ),
-                    // this.app.use(morgan('dev'));
-                    b.expressionStatement(
-                      b.callExpression(
-                        b.memberExpression(
-                          b.memberExpression(
-                            b.thisExpression(),
-                            b.identifier("app"),
-                          ),
-                          b.identifier("use"),
-                        ),
-                        [
-                          b.callExpression(b.identifier("morgan"), [
-                            b.stringLiteral("dev"),
-                          ]),
-                        ],
-                      ),
-                    ),
-                    // this.app.use(express.json());
-                    b.expressionStatement(
-                      b.callExpression(
-                        b.memberExpression(
-                          b.memberExpression(
-                            b.thisExpression(),
-                            b.identifier("app"),
-                          ),
-                          b.identifier("use"),
-                        ),
-                        [
-                          b.callExpression(
-                            b.memberExpression(
-                              b.identifier("express"),
-                              b.identifier("json"),
-                            ),
-                            [],
-                          ),
-                        ],
-                      ),
-                    ),
-                    // this.app.use(express.urlencoded({ extended: true }));
-                    b.expressionStatement(
-                      b.callExpression(
-                        b.memberExpression(
-                          b.memberExpression(
-                            b.thisExpression(),
-                            b.identifier("app"),
-                          ),
-                          b.identifier("use"),
-                        ),
-                        [
-                          b.callExpression(
-                            b.memberExpression(
-                              b.identifier("express"),
-                              b.identifier("urlencoded"),
-                            ),
-                            [
-                              b.objectExpression([
-                                b.objectProperty(
-                                  b.identifier("extended"),
-                                  b.booleanLiteral(true),
-                                ),
-                              ]),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    // View engine setup if needed
-                    //@ts-expect-error: recast type issues
-                    ...(getViewEngineSetup(opts) || []),
-                  ]),
-                ),
+              const middlewareMethod = buildMethod(
+                SERVER_CONFIG.middlewareMethodConfig,
               );
-              initMiddlewaresMethod.comments = [
+              middlewareMethod.comments = [
                 b.commentBlock(COMMENTS.SERVER.INITIALIZE_MIDDLEWARES, true),
               ];
-              return initMiddlewaresMethod;
+              return middlewareMethod;
             })(),
             // Database method if needed
             //@ts-expect-error: recast type issues

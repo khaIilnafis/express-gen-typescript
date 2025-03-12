@@ -7,39 +7,10 @@ import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { COMMENTS } from "../../constants/index.js";
 import { GeneratorOptions } from "../../../types/index.js";
-import { astConfig, controllerConfig } from "../../../configs/index.js";
+import { CONTROLLER_CONFIG } from "../../../presets/index.js";
+import { astConfig } from "../../../utils/builders/index.js";
 
 const b = recast.types.builders;
-
-// const imports = {
-//   //   CONTROLLER: {
-//   //     NAME: "./exampleController",
-//   //     DEFAULT: {},
-//   //     NAMED: {
-//   //       GETALL: "getAllController",
-//   //       GETBYID: "getByIdController",
-//   //       CREATE: "createController",
-//   //       UPDATE: "updateController",
-//   //       DELETE: "deleteController",
-//   //     },
-//   //   },
-//   SOCKETIO: {
-//     NAME: "socket.io",
-//     DEFAULT: {},
-//     NAMED: {
-//       SERVER: ["Server", "SocketIOServer"],
-//     },
-//   },
-//   EXPRESS: {
-//     NAME: "express",
-//     DEFAULT: {},
-//     NAMED: {
-//       REQUEST: "Request",
-//       RESPONSE: "Response",
-//       NEXT: "NextFunction",
-//     },
-//   },
-// };
 
 /**
  * Generates the example controller AST with provided options
@@ -51,7 +22,7 @@ export default function generateExampleControllerAST(
 ) {
   // Import declarations
   const controllerImports = astConfig.generateImports(
-    controllerConfig.exampleController.imports,
+    CONTROLLER_CONFIG.controllerConfig.exampleController.imports,
   );
 
   // Create Example interface

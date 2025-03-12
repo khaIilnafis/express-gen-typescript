@@ -6,6 +6,7 @@ import {
   ConstructorItem,
   ExportsFromConfig,
   ExportConfig,
+  ConstructorDefinitionIR,
 } from "./config.js";
 import { GeneratorOptions } from "./setup.js";
 
@@ -21,9 +22,9 @@ export type ExportBuilderReturn = {
   NAMED: recast.types.namedTypes.ExportNamedDeclaration[];
   DEFAULT: recast.types.namedTypes.ExportDefaultDeclaration | undefined;
 };
-export type ConstructorBuilderFn = <T extends Record<string, ConstructorItem>>(
-  options: GeneratorOptions,
-  cfg: ConstructorFromConfig<T>,
+
+export type ConstructorBuilderFn = (
+  constructorDef: ConstructorDefinitionIR,
 ) => recast.types.namedTypes.MethodDefinition;
 
 export type ClassPropertyBuilderFn = <

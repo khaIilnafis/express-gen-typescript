@@ -14,7 +14,7 @@ import {
 
 // Base dependencies for all Express TypeScript projects
 export const BASE_DEPENDENCIES: Dependencies = Object.freeze({
-  express: "^4.21.2",
+  express: "^5.0.1",
   helmet: "^8.0.0",
   morgan: "^1.10.0",
   cors: "^2.8.5",

@@ -7,7 +7,8 @@ import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { TEMPLATES } from "../../constants/index.js";
 import { GeneratorOptions } from "../../../types/index.js";
-import { astConfig, authConfig } from "../../../configs/index.js";
+import { AUTH_CONFIG } from "../../../presets/index.js";
+import { astConfig } from "../../../utils/builders/index.js";
 const b = recast.types.builders;
 
 /**
@@ -19,7 +20,7 @@ export default function generatePassportConfigAST(_options: GeneratorOptions) {
   //Options = authenticationStrat, might be the
   // Build the imports section
   //   const imports = buildImports(IMPORTS);
-  const imports = astConfig.generateImports(authConfig.imports.ALL);
+  const imports = astConfig.generateImports(AUTH_CONFIG.authImports.ALL);
 
   // JWT Options const declaration
   const jwtOptionsDeclaration = b.variableDeclaration("const", [
@@ -514,7 +515,9 @@ export default function generatePassportConfigAST(_options: GeneratorOptions) {
   genTokenArrowFunc.returnType = b.tsTypeAnnotation(b.tsStringKeyword());
 
   // Default export
-  const defaultExport = astConfig.generateExports(authConfig.exports).DEFAULT;
+  const defaultExport = astConfig.generateExports(
+    AUTH_CONFIG.authExports,
+  ).DEFAULT;
 
   // Build the AST program
   const ast = recast.parse("", { parser: tsParser });

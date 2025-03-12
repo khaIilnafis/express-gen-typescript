@@ -6,6 +6,8 @@
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { GeneratorOptions } from "../../types/setup.js";
+import { ROUTES_CONFIG } from "../../presets/index.js";
+import { astConfig } from "../../utils/builders/index.js";
 
 const b = recast.types.builders;
 
@@ -23,40 +25,9 @@ export default function generateRoutesIndexAST(options: GeneratorOptions) {
   };
 
   // Build the imports section based on options
-  const routeImports = [
-    // Base import for Express Router
-    b.importDeclaration(
-      [b.importSpecifier(b.identifier("Router"))],
-      b.stringLiteral("express"),
-    ),
-    // Import the example routes
-    b.importDeclaration(
-      [b.importSpecifier(b.identifier("ExampleRoutes"))],
-      b.stringLiteral("./example"),
-    ),
-  ];
-  console.log(opts.websocketLib);
-  // Add WebSocket imports if needed
-  if (opts.websocketLib === "socketio") {
-    routeImports.push(
-      b.importDeclaration(
-        [
-          b.importSpecifier(
-            b.identifier("Server"),
-            b.identifier("SocketIOServer"),
-          ),
-        ],
-        b.stringLiteral("socket.io"),
-      ),
-    );
-  } else if (opts.websocketLib === "ws") {
-    routeImports.push(
-      b.importDeclaration(
-        [b.importDefaultSpecifier(b.identifier("WebSocket"))],
-        b.stringLiteral("ws"),
-      ),
-    );
-  }
+  const routeImports = astConfig.generateImports(
+    ROUTES_CONFIG.routesConfig.module.imports,
+  );
 
   // Create the initializeRoutes function with appropriate parameters
   const functionParams: unknown[] = [];
@@ -156,10 +127,12 @@ export default function generateRoutesIndexAST(options: GeneratorOptions) {
   const initializeRoutes = b.exportNamedDeclaration(functionDecl, []);
 
   // Create default export
-  const routeDefaultExport = b.exportDefaultDeclaration(
-    b.identifier("initializeRoutes"),
-  );
-
+  //   const routeDefaultExport = b.exportDefaultDeclaration(
+  //     b.identifier("initializeRoutes"),
+  //   );
+  const routeDefaultExport = astConfig.generateExports(
+    ROUTES_CONFIG.routesConfig.module.exports,
+  ).DEFAULT!;
   // Build the AST program
   return b.program([...routeImports, initializeRoutes, routeDefaultExport]);
 }

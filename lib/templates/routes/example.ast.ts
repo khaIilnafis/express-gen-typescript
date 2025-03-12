@@ -6,6 +6,8 @@
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { GeneratorOptions } from "../../types/setup.js";
+import { astConfig } from "../../utils/builders/index.js";
+import { routesConfig } from "../../presets/routes.js";
 
 const b = recast.types.builders;
 
@@ -16,43 +18,8 @@ const b = recast.types.builders;
  */
 export default function generateExampleRoutesAST(options: GeneratorOptions) {
   // Build the imports section based on options
-  const routeImports = [
-    // Base import for Express Router
-    b.importDeclaration(
-      [b.importSpecifier(b.identifier("Router"))],
-      b.stringLiteral("express"),
-    ),
-    // Import the example controller
-    b.importDeclaration(
-      [b.importSpecifier(b.identifier("ExampleController"))],
-      b.stringLiteral("../controllers/example"),
-    ),
-  ];
-
+  const routeImports = astConfig.generateImports(routesConfig.example.imports);
   // Add WebSocket imports if needed
-  if (options.webSockets) {
-    routeImports.push(
-      b.importDeclaration(
-        [
-          b.importSpecifier(
-            b.identifier("Server"),
-            b.identifier("SocketIOServer"),
-          ),
-        ],
-        b.stringLiteral("socket.io"),
-      ),
-    );
-  }
-
-  // Add authentication imports if needed
-  if (options.authentication) {
-    routeImports.push(
-      b.importDeclaration(
-        [b.importDefaultSpecifier(b.identifier("passport"))],
-        b.stringLiteral("../auth/passport"),
-      ),
-    );
-  }
 
   // Create the create method parameters
   const createMethodParams = [b.identifier("router")];

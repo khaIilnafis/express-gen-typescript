@@ -6,6 +6,8 @@
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { GeneratorOptions } from "../../../types/setup.js";
+import { astConfig } from "../../../utils/builders/index.js";
+import { servicesConfig } from "../../../presets/services.js";
 
 const b = recast.types.builders;
 
@@ -15,32 +17,10 @@ const b = recast.types.builders;
  * @returns AST for services/example/index.ts file
  */
 export default function generateServicesExampleIndexAST(
-  options: GeneratorOptions,
+  _options: GeneratorOptions,
 ) {
-  // Determine which model to import based on the database option
-  let importPath = "";
-  switch (options.databaseOrm) {
-    case "mongoose":
-      importPath = "../../models/mongoose/Example";
-      break;
-    case "sequelize":
-      importPath = "../../models/sequelize/Example";
-      break;
-    case "typeorm":
-      importPath = "../../models/typeorm/Example.entity";
-      break;
-    default:
-      importPath = "../../models/sequelize/Example";
-  }
-
   // Build the imports section
-  const imports = [
-    b.importDeclaration(
-      [b.importDefaultSpecifier(b.identifier("Example"))],
-      b.stringLiteral(importPath),
-    ),
-  ];
-
+  const imports = astConfig.generateImports(servicesConfig.MODEL.imports);
   // Build the findOneExample function
   const findOneExampleFunction = b.exportNamedDeclaration(
     b.functionDeclaration(

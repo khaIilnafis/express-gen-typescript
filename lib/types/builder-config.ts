@@ -21,41 +21,11 @@ export interface ASTTEmplateOptions {
   generateExports: ExportsBuilderFn;
   generateConstructor: ConstructorBuilderFn;
   generateClassProperties: ClassPropertyBuilderFn;
-  AUTHENTICATION: {
-    config: () => void;
-    getImports: () => void;
-    builtInit: () => void;
-  };
-  MODEL: {
-    config: () => void;
-    buildIndex: () => void;
-    buildModel: () => void;
-  };
-  DATABASE: {
-    config: () => void;
-    buildIndex: () => void;
-  };
+
   CONTROLLER: {
-    conifg: () => void;
-    buildIndex: () => void;
-    buildController: () => void;
-    updateIndex: () => void;
-    // generateImports: ImportsBuilderFn;
-    generateConstructor: ConstructorBuilderFn;
     generateClassProperties: ClassPropertyBuilderFn;
   };
-  ROUTE: {
-    config: () => void;
-    buildInit: () => void;
-    buildClass: () => void;
-  };
-  VIEW: {
-    config: () => void;
-    generate: () => void;
-  };
-  SERVER: {
-    config: () => void;
-  };
+
   SOCKET: {
     generateSocketImport: ImportsBuilderFn;
     getSocketParam: (

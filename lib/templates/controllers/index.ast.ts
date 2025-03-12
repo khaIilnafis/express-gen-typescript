@@ -6,7 +6,8 @@
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { GeneratorOptions } from "../../types/setup.js";
-import { astConfig, controllerConfig } from "../../configs/index.js";
+import { CONTROLLER_CONFIG } from "../../presets/index.js";
+import { astConfig } from "../../utils/builders/index.js";
 
 const b = recast.types.builders;
 
@@ -19,11 +20,13 @@ export default function generateControllersIndexAST(
   _options: GeneratorOptions,
 ) {
   // Build the imports section
-  const imports = astConfig.generateImports(controllerConfig.module.imports);
+  const imports = astConfig.generateImports(
+    CONTROLLER_CONFIG.controllerConfig.module.imports,
+  );
 
   // Build the exports section
   const exports = astConfig.generateExports(
-    controllerConfig.module.exports,
+    CONTROLLER_CONFIG.controllerConfig.module.exports,
   ).NAMED;
 
   // Build the AST program

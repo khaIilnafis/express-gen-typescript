@@ -5,14 +5,12 @@ import {
   GeneratorOptions,
   ImportsBuilderFn,
   ExportsBuilderFn,
-} from "../types/index.js";
-import {
-  buildClassProperties,
-  buildConstructor,
-  buildExports,
-  buildImports,
-} from "../utils/templates/template-helper.js";
-import { ClassPropertyBuilderFn } from "../types/builders.js";
+} from "../../types/index.js";
+import { buildClassProperties } from "./class.js";
+import { buildConstructor } from "./constructors.js";
+import { buildExports } from "./exports.js";
+import { buildImports } from "./imports.js";
+import { ClassPropertyBuilderFn } from "../../types/builders.js";
 
 const b = recast.types.builders;
 
@@ -25,41 +23,15 @@ export const astConfig: ASTTEmplateOptions = Object.freeze({
     const exportDeclaration = buildExports(exports);
     return exportDeclaration;
   }) as ExportsBuilderFn,
-  generateConstructor: ((options, cfg) => {
-    const constructorFn = buildConstructor(options, cfg);
+  generateConstructor: ((constructorDef) => {
+    const constructorFn = buildConstructor(constructorDef);
     return constructorFn;
   }) as ConstructorBuilderFn,
   generateClassProperties: ((options, cfg) => {
     const classPropertyFn = buildClassProperties(options, cfg);
     return classPropertyFn;
   }) as ClassPropertyBuilderFn,
-  AUTHENTICATION: {
-    config: () => {},
-    getImports: () => {},
-    builtInit: () => {},
-  },
-  MODEL: {
-    config: () => {},
-    buildIndex: () => {},
-    buildModel: () => {},
-  },
-  DATABASE: {
-    config: () => {},
-    buildIndex: () => {},
-  },
   CONTROLLER: {
-    conifg: () => {},
-    buildIndex: () => {},
-    buildController: () => {},
-    updateIndex: () => {},
-    // generateImports: ((imports) => {
-    //   const importDeclaration = buildImports(imports);
-    //   return importDeclaration;
-    // }) as ImportsBuilderFn,
-    generateConstructor: ((options, cfg) => {
-      const constructorFn = buildConstructor(options, cfg);
-      return constructorFn;
-    }) as ConstructorBuilderFn,
     generateClassProperties: ((options, cfg) => {
       const classPropertyFn = buildClassProperties(options, cfg);
       return classPropertyFn;
@@ -79,17 +51,5 @@ export const astConfig: ASTTEmplateOptions = Object.freeze({
       );
       return ioParam;
     },
-  },
-  ROUTE: {
-    config: () => {},
-    buildInit: () => {},
-    buildClass: () => {},
-  },
-  VIEW: {
-    config: () => {},
-    generate: () => {},
-  },
-  SERVER: {
-    config: () => {},
   },
 });
