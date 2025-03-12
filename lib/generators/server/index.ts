@@ -4,7 +4,7 @@ import {
   ImportsFromConfig,
 } from "../../types/index.js";
 
-const serverImports: ImportsFromConfig<{
+const imports: ImportsFromConfig<{
   ENV: ImportConfig;
   PATH: ImportConfig;
   HTTP: ImportConfig;
@@ -47,7 +47,7 @@ const serverImports: ImportsFromConfig<{
     },
   },
 };
-const serverInit: MethodExpressionIR = {
+const init: MethodExpressionIR = {
   target: { object: "this", property: "server" },
   method: "=",
   arguments: [
@@ -109,7 +109,7 @@ const setPort: MethodExpressionIR = {
   ],
 };
 
-const serverConstructorCalls = {
+const constructorCalls = {
   initExpressInstance,
   initServerInstance,
   setPort,
@@ -139,8 +139,8 @@ const serverConstructorCalls = {
     arguments: [],
   },
 };
-export const SERVER = Object.freeze({
-  IMPORTS: serverImports,
-  INIT: serverInit,
-  CONSTRUCTOR: serverConstructorCalls,
+export const SERVER_CONFIG = Object.freeze({
+  IMPORTS: imports,
+  INIT: init,
+  CONSTRUCTOR: constructorCalls,
 });

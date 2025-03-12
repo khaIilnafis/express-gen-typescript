@@ -6,7 +6,7 @@
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { GeneratorOptions } from "../../../types/index.js";
-import { CONTROLLER_CONFIG } from "../../../presets/index.js";
+import { CONTROLLER_PRESET } from "../../../presets/index.js";
 import { astConfig } from "../../../utils/builders/index.js";
 const b = recast.types.builders;
 
@@ -20,7 +20,7 @@ export default function generateExampleControllerIndexAST(
 ) {
   // Build the imports section
   const controllerImports = astConfig.generateImports(
-    CONTROLLER_CONFIG.controllerConfig.exampleController.constructor.imports,
+    CONTROLLER_PRESET.CONSTRUCTOR.IMPORTS,
   );
 
   // Create class properties for the controller class
@@ -52,11 +52,11 @@ export default function generateExampleControllerIndexAST(
   // Add controller method properties with type annotations
   const controllerMethodProperties = astConfig.generateClassProperties(
     options,
-    CONTROLLER_CONFIG.controllerConfig.exampleController.constructor.class,
+    CONTROLLER_PRESET.CONSTRUCTOR.PROPERTIES.PROPERTIES,
   );
   // Add constructor and assign properties
   const constructorMethod = astConfig.generateConstructor(
-    CONTROLLER_CONFIG.controllerConfig.exampleController.constructor.methods,
+    CONTROLLER_PRESET.CONSTRUCTOR.ASSIGNMENTS,
   );
 
   // Create the class body
@@ -80,7 +80,7 @@ export default function generateExampleControllerIndexAST(
   //     b.identifier("ExampleController"),
   //   );
   const defaultExport = astConfig.generateExports(
-    CONTROLLER_CONFIG.controllerConfig.exampleController.constructor.exports,
+    CONTROLLER_PRESET.CONSTRUCTOR.EXPORTS.CONTROLLER,
   ).DEFAULT!;
   // Build the AST program
   const program = b.program([...controllerImports, namedExport, defaultExport]);

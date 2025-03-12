@@ -2,43 +2,43 @@ import { ImportsIR, MethodDefinitionIR } from "../types/index.js";
 import { ConstructorDefinitionIR } from "../types/index.js";
 import { EXPRESS } from "./express.js";
 import { MIDDLEWARE_CONFIG } from "../generators/middlwares/index.js";
-import { SERVER } from "../generators/server/index.js";
+import { SERVER_CONFIG } from "../generators/server/index.js";
 import { MODELS } from "../generators/models/index.js";
 import { AUTH_CONFIG } from "../generators/auth/index.js";
 import { SOCKETS_CONFIG } from "../generators/sockets/index.js";
 import { VIEWS_CONFIG } from "../generators/views/index.js";
 
-export const serverImports: ImportsIR = {
-  ENV: SERVER.IMPORTS.ENV,
+const serverImports: ImportsIR = {
+  ENV: SERVER_CONFIG.IMPORTS.ENV,
   EXPRESS: EXPRESS.imports,
   HELMET: MIDDLEWARE_CONFIG.HELMET.IMPORTS.helmetImport,
   CORS: MIDDLEWARE_CONFIG.CORS.IMPORTS.corsImport,
   MORGAN: MIDDLEWARE_CONFIG.MORGAN.IMPORTS.morganImport,
-  PATH: SERVER.IMPORTS.PATH,
-  HTTP: SERVER.IMPORTS.HTTP,
+  PATH: SERVER_CONFIG.IMPORTS.PATH,
+  HTTP: SERVER_CONFIG.IMPORTS.HTTP,
   SEQUELIZE: MODELS.SEQUELIZE.IMPORTS.SEQUELIZE,
   PASSPORT: AUTH_CONFIG.PASSPORT.IMPORTS.PASSPORT,
   EJS: VIEWS_CONFIG.EJS.IMPORTS,
-  DATABASE: SERVER.IMPORTS.DATABASE,
+  DATABASE: SERVER_CONFIG.IMPORTS.DATABASE,
   SOCKETIO: SOCKETS_CONFIG.SOCKETIO.IMPORTS.SOCKETIO,
-  ROUTES: SERVER.IMPORTS.ROUTES,
+  ROUTES: SERVER_CONFIG.IMPORTS.ROUTES,
 };
-export const serverConstructor: ConstructorDefinitionIR = {
+const serverConstructor: ConstructorDefinitionIR = {
   parameters: [
     // Define any parameters the constructor should take
   ],
   expressions: [
-    SERVER.CONSTRUCTOR.initExpressInstance,
-    SERVER.CONSTRUCTOR.initServerInstance,
-    SERVER.CONSTRUCTOR.setPort,
-    SERVER.CONSTRUCTOR.initializeMiddlewares,
-    SERVER.CONSTRUCTOR.initalizeWebsockets,
-    SERVER.CONSTRUCTOR.initializeRoutes,
-    SERVER.CONSTRUCTOR.initializeErrorHandling,
-    SERVER.CONSTRUCTOR.connectToDatabase,
+    SERVER_CONFIG.CONSTRUCTOR.initExpressInstance,
+    SERVER_CONFIG.CONSTRUCTOR.initServerInstance,
+    SERVER_CONFIG.CONSTRUCTOR.setPort,
+    SERVER_CONFIG.CONSTRUCTOR.initializeMiddlewares,
+    SERVER_CONFIG.CONSTRUCTOR.initalizeWebsockets,
+    SERVER_CONFIG.CONSTRUCTOR.initializeRoutes,
+    SERVER_CONFIG.CONSTRUCTOR.initializeErrorHandling,
+    SERVER_CONFIG.CONSTRUCTOR.connectToDatabase,
   ],
 };
-export const middlewareMethodConfig: MethodDefinitionIR = {
+const middlewareMethodConfig: MethodDefinitionIR = {
   name: "initializeMiddlewares",
   parameters: [],
   returnType: "void",
@@ -51,4 +51,10 @@ export const middlewareMethodConfig: MethodDefinitionIR = {
     MIDDLEWARE_CONFIG.EXPRESS.METHODS.setViewsDir,
     MIDDLEWARE_CONFIG.EXPRESS.METHODS.setViewEngine,
   ],
+};
+
+export const SERVER = {
+  CONSTRUCTOR: serverConstructor,
+  MIDDLWARE: middlewareMethodConfig,
+  IMPORTS: serverImports,
 };

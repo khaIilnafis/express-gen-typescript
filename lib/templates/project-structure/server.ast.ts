@@ -11,7 +11,7 @@ import { GeneratorOptions } from "../../types/index.js";
 // import { EXTENSIONS } from "../../setup/constants/paths/extensions.js";
 import { IMPORTS } from "../constants/server/imports.js";
 import { astConfig } from "../../utils/builders/builder-config.js";
-import { SERVER_CONFIG } from "../../presets/index.js";
+import { SERVER_PRESET } from "../../presets/index.js";
 import { buildMethod } from "../../utils/builders/index.js";
 const b = recast.types.builders;
 
@@ -20,7 +20,7 @@ const b = recast.types.builders;
  * @returns Array of import declarations
  */
 function getImports(_options: GeneratorOptions) {
-  const imports = astConfig.generateImports(SERVER_CONFIG.serverImports);
+  const imports = astConfig.generateImports(SERVER_PRESET.IMPORTS);
 
   return imports;
 }
@@ -678,7 +678,7 @@ export default function generateServerAST(opts: GeneratorOptions) {
             (() => {
               //
               const constructorMethod = astConfig.generateConstructor(
-                SERVER_CONFIG.serverConstructor,
+                SERVER_PRESET.CONSTRUCTOR,
               );
               constructorMethod.comments = [
                 b.commentBlock(COMMENTS.SERVER.CONSTRUCTOR_METHOD, true),
@@ -688,9 +688,7 @@ export default function generateServerAST(opts: GeneratorOptions) {
             // private initializeMiddlewares(): void { ... }
             //@ts-expect-error: recast type issues
             (() => {
-              const middlewareMethod = buildMethod(
-                SERVER_CONFIG.middlewareMethodConfig,
-              );
+              const middlewareMethod = buildMethod(SERVER_PRESET.MIDDLWARE);
               middlewareMethod.comments = [
                 b.commentBlock(COMMENTS.SERVER.INITIALIZE_MIDDLEWARES, true),
               ];

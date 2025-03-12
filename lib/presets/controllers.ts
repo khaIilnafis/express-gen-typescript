@@ -1,168 +1,55 @@
-import { CALLEES } from "../types/config.js";
+import { ImportsIR } from "../types/config.js";
 import { ConstructorDefinitionIR } from "../types/index.js";
-// Configuration for controllers
-export const controllerConfig = {
-  module: {
-    imports: {
-      CONTROLLER: {
-        NAME: "./example",
-        DEFAULT: {},
-        NAMED: {
-          EXAMPLE: "ExampleController",
-        },
-      },
-    },
-    exports: {
-      DEFAULT: {},
-      NAMED: {
-        EXAMPLE: "ExampleController",
-      },
-    },
+import { CONTROLLER_CONFIG } from "../generators/controllers/index.js";
+
+const moduleImports: ImportsIR = {
+  CONTROLLER: CONTROLLER_CONFIG.MODULE.IMPORTS.CONTROLLER,
+};
+const moduleExports = {
+  CONTROLLER: CONTROLLER_CONFIG.MODULE.EXPORTS,
+};
+const constructorImports: ImportsIR = {
+  CONTROLLER: CONTROLLER_CONFIG.CONSTRUCTOR.IMPORTS.CONTROLLER,
+  SOCKETIO: CONTROLLER_CONFIG.CONSTRUCTOR.IMPORTS.SOCKETIO,
+};
+const constructorAssignments: ConstructorDefinitionIR = {
+  parameters: [
+    // Define any parameters the constructor should take
+    CONTROLLER_CONFIG.CONSTRUCTOR.PARAMS.ioParam,
+  ],
+  expressions: [
+    CONTROLLER_CONFIG.CONSTRUCTOR.ASSIGNMENTS.assignIO,
+    CONTROLLER_CONFIG.CONSTRUCTOR.ASSIGNMENTS.assignGetAll,
+    CONTROLLER_CONFIG.CONSTRUCTOR.ASSIGNMENTS.assignGetById,
+    CONTROLLER_CONFIG.CONSTRUCTOR.ASSIGNMENTS.assignCreate,
+    CONTROLLER_CONFIG.CONSTRUCTOR.ASSIGNMENTS.assignUpdate,
+    CONTROLLER_CONFIG.CONSTRUCTOR.ASSIGNMENTS.assignDelete,
+  ],
+};
+const constructorExports = {
+  CONTROLLER: CONTROLLER_CONFIG.CONSTRUCTOR.EXPORTS,
+};
+
+const controllerImports: ImportsIR = {
+  EXPRESS: CONTROLLER_CONFIG.CONTROLLER.IMPORTS.EXPRESS,
+  SOCKETIO: CONTROLLER_CONFIG.CONTROLLER.IMPORTS.SOCKETIO,
+};
+
+const constructorProperties = {
+  PROPERTIES: CONTROLLER_CONFIG.CONSTRUCTOR.PROPERTIES,
+};
+
+export const CONTROLLER = {
+  CONSTRUCTOR: {
+    IMPORTS: constructorImports,
+    ASSIGNMENTS: constructorAssignments,
+    PROPERTIES: constructorProperties,
+    EXPORTS: constructorExports,
   },
-  exampleController: {
-    imports: {
-      SOCKETIO: {
-        NAME: "socket.io",
-        DEFAULT: {},
-        NAMED: {
-          SERVER: ["Server", "SocketIOServer"],
-        },
-      },
-      EXPRESS: {
-        NAME: "express",
-        DEFAULT: {},
-        NAMED: {
-          REQUEST: "Request",
-          RESPONSE: "Response",
-          NEXT: "NextFunction",
-        },
-      },
-    },
-    constructor: {
-      imports: {
-        CONTROLLER: {
-          NAME: "./exampleController",
-          DEFAULT: {},
-          NAMED: {
-            GETALL: "getAllController",
-            GETBYID: "getByIdController",
-            CREATE: "createController",
-            UPDATE: "updateController",
-            DELETE: "deleteController",
-          },
-        },
-        SOCKETIO: {
-          NAME: "socket.io",
-          DEFAULT: {},
-          NAMED: {
-            SERVER: ["Server", "SocketIOServer"],
-          },
-        },
-      },
-      exports: {
-        DEFAULT: {
-          EXAMPLE: "ExampleController",
-        },
-        NAMED: {},
-      },
-      class: {
-        GET_ALL: {
-          METHOD: "getAll",
-          CALLER: "getAllController",
-          CALLE: CALLEES.THIS,
-        },
-        GET_BY_ID: {
-          METHOD: "getById",
-          CALLER: "getByIdController",
-          CALLE: CALLEES.THIS,
-        },
-        CREATE: {
-          METHOD: "create",
-          CALLER: "createController",
-          CALLE: CALLEES.THIS,
-        },
-        UPDATE: {
-          METHOD: "update",
-          CALLER: "updateController",
-          CALLE: CALLEES.THIS,
-        },
-        DELETE: {
-          METHOD: "delete",
-          CALLER: "deleteController",
-          CALLE: CALLEES.THIS,
-        },
-      },
-      methods: {
-        parameters: [
-          // Define any parameters the constructor should take
-          // For WebSockets example:
-          { name: "io", type: "SocketIOServer", isOptional: true },
-        ],
-        expressions: [
-          // Store the io parameter if needed
-          {
-            target: { object: "this", property: "io" },
-            method: "=",
-            arguments: [{ type: "identifier", value: "io" }],
-          },
-          // Controller methods
-          {
-            target: { object: "this", property: "getAll" },
-            method: "=",
-            arguments: [
-              {
-                type: "function_call",
-                value: "getAllController",
-                arguments: [{ type: "identifier", value: "io" }],
-              },
-            ],
-          },
-          {
-            target: { object: "this", property: "getById" },
-            method: "=",
-            arguments: [
-              {
-                type: "function_call",
-                value: "getByIdController",
-                arguments: [{ type: "identifier", value: "io" }],
-              },
-            ],
-          },
-          {
-            target: { object: "this", property: "create" },
-            method: "=",
-            arguments: [
-              {
-                type: "function_call",
-                value: "createController",
-                arguments: [{ type: "identifier", value: "io" }],
-              },
-            ],
-          },
-          {
-            target: { object: "this", property: "update" },
-            method: "=",
-            arguments: [
-              {
-                type: "function_call",
-                value: "updateController",
-                arguments: [{ type: "identifier", value: "io" }],
-              },
-            ],
-          },
-          {
-            target: { object: "this", property: "delete" },
-            method: "=",
-            arguments: [
-              {
-                type: "function_call",
-                value: "deleteController",
-                arguments: [{ type: "identifier", value: "io" }],
-              },
-            ],
-          },
-        ],
-      } as ConstructorDefinitionIR,
-    },
+  MODULE: {
+    IMPORTS: moduleImports,
+    EXPORTS: moduleExports,
   },
+  IMPORTS: controllerImports,
+  EXPORTS: {},
 };

@@ -7,7 +7,7 @@ import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { COMMENTS } from "../../constants/index.js";
 import { GeneratorOptions } from "../../../types/index.js";
-import { CONTROLLER_CONFIG } from "../../../presets/index.js";
+import { CONTROLLER_PRESET } from "../../../presets/index.js";
 import { astConfig } from "../../../utils/builders/index.js";
 
 const b = recast.types.builders;
@@ -22,7 +22,7 @@ export default function generateExampleControllerAST(
 ) {
   // Import declarations
   const controllerImports = astConfig.generateImports(
-    CONTROLLER_CONFIG.controllerConfig.exampleController.imports,
+    CONTROLLER_PRESET.IMPORTS,
   );
 
   // Create Example interface
