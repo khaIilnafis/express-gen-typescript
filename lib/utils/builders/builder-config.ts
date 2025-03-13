@@ -1,18 +1,17 @@
-import * as recast from "recast";
 import {
   ASTTEmplateOptions,
   ConstructorBuilderFn,
-  GeneratorOptions,
   ImportsBuilderFn,
   ExportsBuilderFn,
+  PropertiesBuilderFn,
+  PropertyBuilderFn,
+  MethodBuilderFn,
 } from "../../types/index.js";
-import { buildClassProperties } from "./class.js";
+import { buildProperties, buildProperty } from "./properties.js";
 import { buildConstructor } from "./constructors.js";
 import { buildExports } from "./exports.js";
 import { buildImports } from "./imports.js";
-import { ClassPropertyBuilderFn } from "../../types/builders.js";
-
-const b = recast.types.builders;
+import { buildMethod } from "./method.js";
 
 export const astConfig: ASTTEmplateOptions = Object.freeze({
   generateImports: ((imports) => {
@@ -27,29 +26,16 @@ export const astConfig: ASTTEmplateOptions = Object.freeze({
     const constructorFn = buildConstructor(constructorDef);
     return constructorFn;
   }) as ConstructorBuilderFn,
-  generateClassProperties: ((options, cfg) => {
-    const classPropertyFn = buildClassProperties(options, cfg);
+  generateProperty: ((propertyDef) => {
+    const classPropertyFn = buildProperty(propertyDef);
     return classPropertyFn;
-  }) as ClassPropertyBuilderFn,
-  CONTROLLER: {
-    generateClassProperties: ((options, cfg) => {
-      const classPropertyFn = buildClassProperties(options, cfg);
-      return classPropertyFn;
-    }) as ClassPropertyBuilderFn,
-  },
-  SOCKET: {
-    generateSocketImport: ((_imports) => {}) as ImportsBuilderFn,
-    //param identifier and type identifier would need to be available
-    getSocketParam: (
-      optional: boolean,
-      _opts: GeneratorOptions,
-    ): recast.types.namedTypes.Identifier => {
-      const ioParam = b.identifier("io");
-      ioParam.optional = optional;
-      ioParam.typeAnnotation = b.tsTypeAnnotation(
-        b.tsTypeReference(b.identifier("SocketIOServer")),
-      );
-      return ioParam;
-    },
-  },
+  }) as PropertyBuilderFn,
+  generateProperties: ((propertiesDef) => {
+    const classPropertyFn = buildProperties(propertiesDef);
+    return classPropertyFn;
+  }) as PropertiesBuilderFn,
+  generateMethod: ((methodDef) => {
+    const methodFn = buildMethod(methodDef);
+    return methodFn;
+  }) as MethodBuilderFn,
 });

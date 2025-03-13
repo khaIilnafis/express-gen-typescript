@@ -1,4 +1,4 @@
-import { buildClassProperties } from "./class.js";
+import { buildProperty, buildProperties } from "./properties.js";
 import { buildConstructor } from "./constructors.js";
 import { buildExports } from "./exports.js";
 import { buildExpression } from "./expressions.js";
@@ -7,7 +7,8 @@ import { buildMethod, buildMethodArgument } from "./method.js";
 import { astConfig } from "./builder-config.js";
 export {
   astConfig,
-  buildClassProperties,
+  buildProperty,
+  buildProperties,
   buildConstructor,
   buildExports,
   buildExpression,
