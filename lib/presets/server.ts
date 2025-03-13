@@ -35,7 +35,7 @@ const serverConstructor: ConstructorDefinitionIR = {
     SERVER_CONFIG.CONSTRUCTOR.initalizeWebsockets,
     SERVER_CONFIG.CONSTRUCTOR.initializeRoutes,
     SERVER_CONFIG.CONSTRUCTOR.initializeErrorHandling,
-    SERVER_CONFIG.CONSTRUCTOR.connectToDatabase,
+    SERVER_CONFIG.CONSTRUCTOR.initalizeConnectToDatabase,
   ],
 };
 const middlewareMethodConfig: MethodDefinitionIR = {
@@ -52,9 +52,34 @@ const middlewareMethodConfig: MethodDefinitionIR = {
     MIDDLEWARE_CONFIG.EXPRESS.METHODS.setViewEngine,
   ],
 };
-
+const initializeWebSockets: MethodDefinitionIR = {
+  name: "initializeWebSockets",
+  parameters: [],
+  expressions: [
+    SERVER_CONFIG.WEBSOCKETS.ASSIGNMENT,
+    SERVER_CONFIG.WEBSOCKETS.LISTENER,
+  ],
+};
+const bootstrap: MethodDefinitionIR = {
+  name: "bootstrap",
+  parameters: [],
+  isStatic: true,
+  expressions: [SERVER_CONFIG.BOOTSTRAP],
+};
+const connectToDatabase: MethodDefinitionIR = {
+  name: "connectToDatabase",
+  parameters: [],
+  returnType: "Promise<void>",
+  isStatic: true,
+  isAsync: true,
+  expressions: [SERVER_CONFIG.DB_CONNECT],
+};
 export const SERVER = {
   CONSTRUCTOR: serverConstructor,
-  MIDDLWARE: middlewareMethodConfig,
+  MIDDLEWARE: middlewareMethodConfig,
   IMPORTS: serverImports,
+  WEBSOCKETS: initializeWebSockets,
+  BOOSTRAP: bootstrap,
+  DB_CONNECT: connectToDatabase,
+  PROPERTIES: SERVER_CONFIG.PROPERTIES,
 };

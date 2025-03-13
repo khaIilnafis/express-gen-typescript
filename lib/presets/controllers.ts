@@ -35,15 +35,13 @@ const controllerImports: ImportsIR = {
   SOCKETIO: CONTROLLER_CONFIG.CONTROLLER.IMPORTS.SOCKETIO,
 };
 
-const constructorProperties = {
-  PROPERTIES: CONTROLLER_CONFIG.CONSTRUCTOR.PROPERTIES,
+const classProperties = {
+  PROPERTIES: CONTROLLER_CONFIG.CLASS.classProperties,
 };
-
 export const CONTROLLER = {
   CONSTRUCTOR: {
     IMPORTS: constructorImports,
     ASSIGNMENTS: constructorAssignments,
-    PROPERTIES: constructorProperties,
     EXPORTS: constructorExports,
   },
   MODULE: {
@@ -52,4 +50,5 @@ export const CONTROLLER = {
   },
   IMPORTS: controllerImports,
   EXPORTS: {},
+  CLASS: classProperties,
 };
