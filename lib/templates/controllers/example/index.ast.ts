@@ -25,35 +25,17 @@ export default function generateExampleControllerIndexAST(
 
   // Create class properties for the controller class
   const classProperties: recast.types.namedTypes.ClassProperty[] = [];
-
+  const { privateIoProperty, ...publicProperties } =
+    CONTROLLER_PRESET.CLASS.PROPERTIES;
   // Add io property for WebSocket if needed
   if (options.webSockets) {
-    const ioProperty = b.classProperty(
-      b.identifier("io"),
-      null,
-    ) as recast.types.namedTypes.ClassProperty;
-
-    // Set modifiers separately
-    ioProperty.static = false;
-    // Use proper type casting to set private property
-    (ioProperty as recast.types.namedTypes.ClassProperty).access = "private";
-
-    // Add type annotation separately
-    ioProperty.typeAnnotation = b.tsTypeAnnotation(
-      b.tsUnionType([
-        b.tsTypeReference(b.identifier("SocketIOServer")),
-        b.tsUndefinedKeyword(),
-      ]),
-    );
-
+    const ioProperty = astConfig.generateProperty(privateIoProperty);
     classProperties.push(ioProperty);
   }
 
   // Add controller method properties with type annotations
-  const controllerMethodProperties = astConfig.generateClassProperties(
-    options,
-    CONTROLLER_PRESET.CONSTRUCTOR.PROPERTIES.PROPERTIES,
-  );
+  const controllerMethodProperties =
+    astConfig.generateProperties(publicProperties);
   // Add constructor and assign properties
   const constructorMethod = astConfig.generateConstructor(
     CONTROLLER_PRESET.CONSTRUCTOR.ASSIGNMENTS,

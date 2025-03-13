@@ -5,11 +5,8 @@
 
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
-import { COMMENTS, TEMPLATES } from "../constants/index.js";
+import { COMMENTS } from "../constants/index.js";
 import { GeneratorOptions } from "../../types/index.js";
-// import { PATHS } from "../../setup/constants/index.js";
-// import { EXTENSIONS } from "../../setup/constants/paths/extensions.js";
-import { IMPORTS } from "../constants/server/imports.js";
 import { astConfig } from "../../utils/builders/builder-config.js";
 import { SERVER_PRESET } from "../../presets/index.js";
 import { buildMethod } from "../../utils/builders/index.js";
@@ -84,377 +81,6 @@ function getClassProperties(options: GeneratorOptions) {
   }
 
   return properties;
-}
-
-/**
- * Function to get database connection method
- * @returns Method definition for database connection or null if no database selected
- */
-function getDatabaseMethod(options: GeneratorOptions) {
-  if (!options.database) {
-    return null;
-  }
-
-  let methodBody: recast.types.namedTypes.BlockStatement;
-
-  if (options.databaseOrm === "sequelize") {
-    methodBody = b.blockStatement([
-      // try {
-      b.tryStatement(
-        b.blockStatement([
-          // await initializeDatabase();
-          b.expressionStatement(
-            b.awaitExpression(
-              b.callExpression(b.identifier(IMPORTS.DATABASE.INITIALIZE), []),
-            ),
-          ),
-          // console.log('Database connection established successfully.');
-          b.expressionStatement(
-            b.callExpression(
-              b.memberExpression(b.identifier("console"), b.identifier("log")),
-              [
-                b.stringLiteral(
-                  "Database connection established successfully.",
-                ),
-              ],
-            ),
-          ),
-        ]),
-        // catch (error) {
-        b.catchClause(
-          b.identifier("error"),
-          null, // No guard expression
-          b.blockStatement([
-            // console.error('Database connection error:', error);
-            b.expressionStatement(
-              b.callExpression(
-                b.memberExpression(
-                  b.identifier("console"),
-                  b.identifier("error"),
-                ),
-                [
-                  b.stringLiteral("Database connection error:"),
-                  b.identifier("error"),
-                ],
-              ),
-            ),
-            // Comment: // process.exit(1);
-            b.emptyStatement(),
-          ]),
-        ),
-      ),
-    ]);
-  } else if (options.databaseOrm === "mongoose") {
-    methodBody = b.blockStatement([
-      b.tryStatement(
-        b.blockStatement([
-          b.variableDeclaration("const", [
-            b.variableDeclarator(
-              b.identifier("uri"),
-              b.templateLiteral(
-                [
-                  b.templateElement({ raw: "", cooked: "" }, false),
-                  b.templateElement({ raw: "", cooked: "" }, true),
-                ],
-                [
-                  b.memberExpression(
-                    b.memberExpression(
-                      b.identifier("process"),
-                      b.identifier("env"),
-                    ),
-                    b.identifier("MONGODB_URI"),
-                  ),
-                ],
-              ),
-            ),
-          ]),
-          b.expressionStatement(
-            b.awaitExpression(
-              b.callExpression(
-                b.memberExpression(
-                  b.identifier("mongoose"),
-                  b.identifier("connect"),
-                ),
-                [b.identifier("uri")],
-              ),
-            ),
-          ),
-          b.expressionStatement(
-            b.callExpression(
-              b.memberExpression(b.identifier("console"), b.identifier("log")),
-              [b.stringLiteral("Connected to MongoDB")],
-            ),
-          ),
-        ]),
-        b.catchClause(
-          b.identifier("error"),
-          null, // param defaults to null in newer versions
-          b.blockStatement([
-            b.expressionStatement(
-              b.callExpression(
-                b.memberExpression(
-                  b.identifier("console"),
-                  b.identifier("error"),
-                ),
-                [
-                  b.stringLiteral("Error connecting to MongoDB:"),
-                  b.identifier("error"),
-                ],
-              ),
-            ),
-            b.throwStatement(b.identifier("error")),
-          ]),
-        ),
-      ),
-    ]);
-  } else if (options.databaseOrm === "prisma") {
-    methodBody = b.blockStatement([
-      b.tryStatement(
-        b.blockStatement([
-          b.expressionStatement(
-            b.assignmentExpression(
-              "=",
-              b.memberExpression(b.thisExpression(), b.identifier("prisma")),
-              b.newExpression(b.identifier("PrismaClient"), []),
-            ),
-          ),
-          b.expressionStatement(
-            b.awaitExpression(
-              b.callExpression(
-                b.memberExpression(
-                  b.memberExpression(
-                    b.thisExpression(),
-                    b.identifier("prisma"),
-                  ),
-                  b.identifier("$connect"),
-                ),
-                [],
-              ),
-            ),
-          ),
-          b.expressionStatement(
-            b.callExpression(
-              b.memberExpression(b.identifier("console"), b.identifier("log")),
-              [b.stringLiteral("Connected to database via Prisma")],
-            ),
-          ),
-        ]),
-        b.catchClause(
-          b.identifier("error"),
-          null, // param defaults to null in newer versions
-          b.blockStatement([
-            b.expressionStatement(
-              b.callExpression(
-                b.memberExpression(
-                  b.identifier("console"),
-                  b.identifier("error"),
-                ),
-                [
-                  b.stringLiteral("Error connecting to database:"),
-                  b.identifier("error"),
-                ],
-              ),
-            ),
-            b.throwStatement(b.identifier("error")),
-          ]),
-        ),
-      ),
-    ]);
-  } else {
-    // Generic database method for other types
-    methodBody = b.blockStatement([
-      b.expressionStatement(
-        b.callExpression(
-          b.memberExpression(b.identifier("console"), b.identifier("log")),
-          [b.stringLiteral(`Connecting to ${options.database} database...`)],
-        ),
-      ),
-      b.expressionStatement(
-        b.identifier(TEMPLATES.STRINGS.MARKERS.SERVER.DATABASE_CONNECTION),
-      ),
-    ]);
-  }
-  // Add method node with async and private modifiers
-  const connectToDatabaseMethod = b.classMethod(
-    "method",
-    b.identifier("connectToDatabase"),
-    [],
-    methodBody,
-    false, // not computed
-    true, // is private
-  );
-  connectToDatabaseMethod.comments = [
-    b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true),
-  ];
-  // Add async modifier
-  connectToDatabaseMethod.async = true;
-
-  // Add return type annotation
-  connectToDatabaseMethod.returnType = b.tsTypeAnnotation(
-    b.tsTypeReference(
-      b.identifier("Promise"),
-      b.tsTypeParameterInstantiation([b.tsVoidKeyword()]),
-    ),
-  );
-  return connectToDatabaseMethod;
-}
-
-/**
- * Function to get WebSocket initialization method
- * @returns Method definition for WebSocket initialization or null if no WebSocket library selected
- */
-function getWebSocketMethod(options: GeneratorOptions) {
-  if (options.websocketLib === "none") {
-    return null;
-  }
-
-  // Create a default empty method body to handle the undefined case
-  let methodBody: recast.types.namedTypes.BlockStatement;
-
-  if (options.websocketLib === "socketio") {
-    methodBody = b.blockStatement([
-      b.expressionStatement(
-        b.assignmentExpression(
-          "=",
-          b.memberExpression(b.thisExpression(), b.identifier("io")),
-          b.newExpression(
-            b.tsInstantiationExpression(b.identifier("SocketIOServer")),
-            [
-              b.memberExpression(b.thisExpression(), b.identifier("server")),
-              b.objectExpression([
-                b.objectProperty(
-                  b.identifier("cors"),
-                  b.objectExpression([
-                    b.objectProperty(
-                      b.identifier("origin"),
-                      b.stringLiteral("*"),
-                    ),
-                  ]),
-                ),
-              ]),
-            ],
-          ),
-        ),
-      ),
-      b.expressionStatement(
-        b.callExpression(
-          b.memberExpression(
-            b.memberExpression(b.thisExpression(), b.identifier("io")),
-            b.identifier("on"),
-          ),
-          [
-            b.stringLiteral("connection"),
-            b.arrowFunctionExpression(
-              [
-                Object.assign(b.identifier("socket"), {
-                  typeAnnotation: b.tsTypeAnnotation(
-                    b.tsTypeReference(b.identifier("Socket")),
-                  ),
-                }),
-              ],
-              b.blockStatement([
-                b.expressionStatement(
-                  b.callExpression(
-                    b.memberExpression(
-                      b.identifier("console"),
-                      b.identifier("log"),
-                    ),
-                    [
-                      b.templateLiteral(
-                        [
-                          b.templateElement(
-                            {
-                              raw: "Socket connected: ",
-                              cooked: "Socket connected: ",
-                            },
-                            false,
-                          ),
-                          b.templateElement({ raw: "", cooked: "" }, true),
-                        ],
-                        [
-                          b.memberExpression(
-                            b.identifier("socket"),
-                            b.identifier("id"),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ]),
-            ),
-          ],
-        ),
-      ),
-    ]);
-  } else if (options.websocketLib === "ws") {
-    methodBody = b.blockStatement([
-      b.expressionStatement(
-        b.assignmentExpression(
-          "=",
-          b.memberExpression(b.thisExpression(), b.identifier("wss")),
-          b.newExpression(
-            b.memberExpression(
-              b.identifier("WebSocket"),
-              b.identifier("Server"),
-            ),
-            [
-              b.objectExpression([
-                b.objectProperty(
-                  b.identifier("server"),
-                  b.memberExpression(
-                    b.thisExpression(),
-                    b.identifier("server"),
-                  ),
-                ),
-              ]),
-            ],
-          ),
-        ),
-      ),
-      b.expressionStatement(
-        b.callExpression(
-          b.memberExpression(
-            b.memberExpression(b.thisExpression(), b.identifier("wss")),
-            b.identifier("on"),
-          ),
-          [
-            b.stringLiteral("connection"),
-            b.arrowFunctionExpression(
-              [b.identifier("ws")],
-              b.blockStatement([
-                b.expressionStatement(
-                  b.callExpression(
-                    b.memberExpression(
-                      b.identifier("console"),
-                      b.identifier("log"),
-                    ),
-                    [b.stringLiteral("WebSocket client connected")],
-                  ),
-                ),
-              ]),
-            ),
-          ],
-        ),
-      ),
-    ]);
-  } else {
-    // Default case: empty block statement when no websocket lib is selected
-    methodBody = b.blockStatement([
-      b.expressionStatement(
-        b.callExpression(
-          b.memberExpression(b.identifier("console"), b.identifier("log")),
-          [b.stringLiteral("WebSockets not configured")],
-        ),
-      ),
-    ]);
-  }
-
-  return b.methodDefinition(
-    "method",
-    b.identifier("initializeWebSockets"),
-    b.functionExpression(null, [], methodBody),
-  );
 }
 
 /**
@@ -654,20 +280,23 @@ export default function generateServerAST(opts: GeneratorOptions) {
             // static bootstrap(): Server { return new Server(); }
             //@ts-expect-error: recast type issues
             (() => {
-              const bootstrapMethod = b.methodDefinition(
-                "method",
-                b.identifier("bootstrap"),
-                b.functionExpression(
-                  null,
-                  [],
-                  b.blockStatement([
-                    b.returnStatement(
-                      b.newExpression(b.identifier("Server"), []),
-                    ),
-                  ]),
-                ),
-                true, // static method
+              const bootstrapMethod = astConfig.generateMethod(
+                SERVER_PRESET.BOOSTRAP,
               );
+              //   b.methodDefinition(
+              //     "method",
+              //     b.identifier("bootstrap"),
+              //     b.functionExpression(
+              //       null,
+              //       [],
+              //       b.blockStatement([
+              //         b.returnStatement(
+              //           b.newExpression(b.identifier("Server"), []),
+              //         ),
+              //       ]),
+              //     ),
+              //     true, // static method
+              //   );
               bootstrapMethod.comments = [
                 b.commentBlock(COMMENTS.SERVER.BOOTSTRAP_METHOD, true),
               ];
@@ -688,7 +317,7 @@ export default function generateServerAST(opts: GeneratorOptions) {
             // private initializeMiddlewares(): void { ... }
             //@ts-expect-error: recast type issues
             (() => {
-              const middlewareMethod = buildMethod(SERVER_PRESET.MIDDLWARE);
+              const middlewareMethod = buildMethod(SERVER_PRESET.MIDDLEWARE);
               middlewareMethod.comments = [
                 b.commentBlock(COMMENTS.SERVER.INITIALIZE_MIDDLEWARES, true),
               ];
@@ -696,37 +325,37 @@ export default function generateServerAST(opts: GeneratorOptions) {
             })(),
             // Database method if needed
             //@ts-expect-error: recast type issues
-            ...(getDatabaseMethod(opts)
-              ? [
-                  (() => {
-                    const dbMethod = getDatabaseMethod(opts);
-                    if (dbMethod) {
-                      dbMethod.comments = [
-                        b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true),
-                      ];
-                    }
-                    return dbMethod;
-                  })(),
-                ]
-              : []),
+            (() => {
+              const dbMethod = astConfig.generateMethod(
+                SERVER_PRESET.DB_CONNECT,
+              );
+              dbMethod.comments = [
+                b.commentBlock(COMMENTS.SERVER.CONNECT_DATABASE, true),
+              ];
+              return dbMethod;
+            })(),
             // WebSocket method if needed
             //@ts-expect-error: recast type issues
-            ...(getWebSocketMethod(opts)
-              ? [
-                  (() => {
-                    const wsMethod = getWebSocketMethod(opts);
-                    if (wsMethod) {
-                      wsMethod.comments = [
-                        b.commentBlock(
-                          COMMENTS.SERVER.INITIALIZE_WEBSOCKETS,
-                          true,
-                        ),
-                      ];
-                    }
-                    return wsMethod;
-                  })(),
-                ]
-              : []),
+            (() => {
+              const wsMethod = astConfig.generateMethod(
+                SERVER_PRESET.WEBSOCKETS,
+              );
+              wsMethod.comments = [
+                b.commentBlock(COMMENTS.SERVER.INITIALIZE_WEBSOCKETS, true),
+              ];
+              return wsMethod;
+            })(),
+            // ...(getWebSocketMethod(opts)
+            //   ? [
+            //       (() => {
+            //         const wsMethod = getWebSocketMethod(opts);
+            //         if (wsMethod) {
+
+            //         }
+            //         return wsMethod;
+            //       })(),
+            //     ]
+            //   : []),
             // private initializeRoutes(): void { ... }
             //@ts-expect-error: recast type issues
             (() => {
