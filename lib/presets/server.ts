@@ -74,6 +74,39 @@ const connectToDatabase: MethodDefinitionIR = {
   isAsync: true,
   expressions: [SERVER_CONFIG.DB_CONNECT],
 };
+
+const initializeRoutes: MethodDefinitionIR = {
+  name: "initializeRoutes",
+  parameters: [],
+  expressions: [
+    SERVER_CONFIG.ROUTES.ROUTER_DECLARATION,
+    SERVER_CONFIG.ROUTES.API_ROUTES,
+    SERVER_CONFIG.ROUTES.ROOT_HANDLER,
+    SERVER_CONFIG.ROUTES.API_404_HANDLER,
+  ],
+};
+const initializeErrorHandling: MethodDefinitionIR = {
+  name: "initializeErrorHandling",
+  parameters: [],
+  expressions: [
+    SERVER_CONFIG.ERROR_HANDLING.NOT_FOUND_HANDLER,
+    SERVER_CONFIG.ERROR_HANDLING.GLOBAL_ERROR_HANDLER,
+  ],
+};
+const listener: MethodDefinitionIR = {
+  name: "listen",
+  parameters: [
+    {
+      name: "port",
+      type: "number",
+    },
+  ],
+  returnType: "void",
+  expressions: [
+    SERVER_CONFIG.LISTEN.SERVER_LISTEN,
+    SERVER_CONFIG.LISTEN.ERROR_HANDLER,
+  ],
+};
 export const SERVER = {
   CONSTRUCTOR: serverConstructor,
   MIDDLEWARE: middlewareMethodConfig,
@@ -82,4 +115,7 @@ export const SERVER = {
   BOOSTRAP: bootstrap,
   DB_CONNECT: connectToDatabase,
   PROPERTIES: SERVER_CONFIG.PROPERTIES,
+  ROUTES: initializeRoutes,
+  ERROR_HANDLING: initializeErrorHandling,
+  LISTEN: listener,
 };

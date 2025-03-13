@@ -118,6 +118,16 @@ export type ConstructorDefinitionIR = {
   parameters: ParameterIR[];
   expressions: MethodExpressionIR[];
 };
+export interface TemplateLiteralPartIR {
+  text: string;
+  isExpression: boolean;
+}
+
+export interface TemplateLiteralIR {
+  type: "template_literal";
+  quasis: TemplateLiteralPartIR[];
+  expressions: MethodArgumentIR[];
+}
 export type FunctionExpressionIR = {
   type: "arrow_function" | "function_expression";
   parameters: ParameterIR[];
@@ -133,7 +143,11 @@ export type MethodArgumentIR = {
     | "object"
     | "property_access"
     | "logical_expression"
-    | "constructor_call";
+    | "template_literal"
+    | "binary_expression"
+    | "unary_expression"
+    | "constructor_call"
+    | "conditional_expression";
   isConstructor?: boolean;
   value?: string | number | boolean | null;
   properties?: Record<string, MethodArgumentIR>; // For objects
@@ -144,9 +158,36 @@ export type MethodArgumentIR = {
   isTemplate?: boolean; // Flag for template literals
   templateParts?: Array<{ text: string; isExpression: boolean }>;
   templateExpressions?: MethodArgumentIR[]; // For embedded expressions
-  operator?: "||" | "&&"; // For logical expressions
+  operator?:
+    | "||"
+    | "&&"
+    | "+"
+    | "-"
+    | "*"
+    | "/"
+    | "==="
+    | "!=="
+    | "=="
+    | "!="
+    | ">"
+    | "<"
+    | ">="
+    | "<="; // For logical expressions
+  unaryOperator?: "typeof" | "!" | "+" | "-" | "~";
   left?: MethodArgumentIR; // Left side of logical expression
   right?: MethodArgumentIR; // Right side of logical expression
+  quasis?: TemplateLiteralPartIR[];
+  expressions?: MethodArgumentIR[];
+  test?: MethodArgumentIR;
+  consequent?: MethodArgumentIR;
+  alternate?: MethodArgumentIR;
+};
+
+export type TryCatchBlockIR = {
+  tryBlock: MethodExpressionIR[];
+  catchParameter: string; // e.g., "error"
+  catchBlock: MethodExpressionIR[];
+  finallyBlock?: MethodExpressionIR[]; // Optional finally block
 };
 export type expressionTypeIR =
   | "assignment"
@@ -154,13 +195,11 @@ export type expressionTypeIR =
   | "function_call"
   | "await"
   | "try_catch"
+  | "variable_declaration"
+  | "switch_statement"
+  | "switch_case"
+  | "throw"
   | "return";
-export type TryCatchBlockIR = {
-  tryBlock: MethodExpressionIR[];
-  catchParameter: string; // e.g., "error"
-  catchBlock: MethodExpressionIR[];
-  finallyBlock?: MethodExpressionIR[]; // Optional finally block
-};
 // Type for method expression (e.g., this.app.use(helmet()))
 export type MethodExpressionIR = {
   expressionType?: expressionTypeIR;
@@ -170,7 +209,20 @@ export type MethodExpressionIR = {
   };
   method?: string; // e.g., "use" or "set"
   arguments: MethodArgumentIR[];
+  // For try-catch blocks
   tryCatchBlock?: TryCatchBlockIR;
+  // For variable declarations
+  variableKind?: "const" | "let" | "var";
+  declarations?: Array<{
+    id: string;
+    init: unknown;
+  }>;
+  // For switch statements
+  discriminant?: unknown;
+  cases?: MethodExpressionIR[];
+  // For switch cases
+  caseValue?: string | number | null;
+  statements?: MethodExpressionIR[];
 };
 
 export type MethodDefinitionIR = {

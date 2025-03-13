@@ -28,7 +28,33 @@ export const buildExpression = (
           buildMethodArgument(expr.arguments[0]),
         ),
       );
+    case "variable_declaration": {
+      // Validate required properties
+      if (!expr.declarations || !expr.variableKind) {
+        throw new Error(
+          "Missing required properties for 'variable_declaration': declarations and variableKind",
+        );
+      }
 
+      // Process each declarator
+      const declarators = expr.declarations.map((decl) => {
+        if (!decl.id) {
+          throw new Error(
+            "Missing required property 'id' in variable declaration",
+          );
+        }
+
+        return b.variableDeclarator(
+          b.identifier(decl.id),
+          // Initialize with the processed argument or null if no init provided
+          //@ts-expect-error recast type issues
+          decl.init ? buildMethodArgument(decl.init) : null,
+        );
+      });
+
+      // Create and return the variable declaration statement
+      return b.variableDeclaration(expr.variableKind, declarators);
+    }
     case "method_call": {
       // Build the base target (e.g., this.app)
       const target = b.memberExpression(
@@ -67,6 +93,63 @@ export const buildExpression = (
           expr.arguments.map((arg) => buildMethodArgument(arg)),
         ),
       );
+    case "switch_statement": {
+      if (!expr.discriminant) {
+        throw new Error("Missing discriminant for 'switch_statement'");
+      }
+
+      if (!expr.cases || !Array.isArray(expr.cases)) {
+        throw new Error("Missing cases array for 'switch_statement'");
+      }
+
+      // Build the discriminant expression
+      //@ts-expect-error recast type issues
+      const discriminant = buildMethodArgument(expr.discriminant);
+
+      // Build the switch cases
+      const cases = expr.cases.map((caseExpr) => {
+        if (caseExpr.expressionType !== "switch_case") {
+          throw new Error("Invalid case expression in switch statement");
+        }
+
+        return buildExpression(caseExpr);
+      });
+
+      // Create and return switch statement
+      //@ts-expect-error recast type issues
+      return b.switchStatement(discriminant, cases);
+    }
+
+    case "switch_case": {
+      // Check if this is a default case (null case value)
+      const isDefault = expr.caseValue === null;
+
+      // Build case test (null for default case)
+      const test = isDefault
+        ? null
+        : buildMethodArgument({
+            type: "literal",
+            value: expr.caseValue,
+          });
+
+      // Build case statements
+      const consequent = expr.statements
+        ? expr.statements.map((stmt) => buildExpression(stmt))
+        : [];
+
+      // Add break statement if not explicitly included and not a default case
+      const hasBreak = consequent.some(
+        (stmt) => stmt.type === "BreakStatement",
+      );
+
+      if (!hasBreak && !isDefault) {
+        consequent.push(b.breakStatement());
+      }
+
+      // Create and return the switch case
+      //@ts-expect-error recast type issues
+      return b.switchCase(test, consequent);
+    }
     case "await": {
       // Create an await expression
       return b.expressionStatement(
@@ -109,6 +192,17 @@ export const buildExpression = (
         catchClause,
         finallyBlockStatement,
       );
+    }
+    case "throw": {
+      // Build the throw argument
+      const throwArg =
+        expr.arguments && expr.arguments.length > 0
+          ? buildMethodArgument(expr.arguments[0])
+          : b.identifier("undefined");
+
+      // Create and return the throw statement
+      //@ts-expect-error recast type issues
+      return b.throwStatement(throwArg);
     }
     case "return": {
       const returnExpr = buildMethodArgument(

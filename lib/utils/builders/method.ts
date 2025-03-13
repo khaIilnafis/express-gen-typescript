@@ -2,6 +2,8 @@ import * as recast from "recast";
 import { MethodDefinitionIR, MethodArgumentIR } from "../../types/index.js";
 import { buildExpression } from "./expressions.js";
 import { buildParameters } from "./params.js";
+import { FunctionExpressionIR } from "../../types/config.js";
+// import { TemplateLiteralIR } from "../../types/config.js";
 
 const b = recast.types.builders;
 
@@ -43,37 +45,16 @@ export const buildMethod = (
   return method;
 };
 // Helper function to build method arguments
-export const buildMethodArgument = (
+export function buildMethodArgument(
   arg: MethodArgumentIR,
-): recast.types.namedTypes.Expression => {
+): recast.types.namedTypes.Expression {
+  if (!arg) {
+    return b.nullLiteral();
+  }
+
+  // Handle different argument types
   switch (arg.type) {
     case "literal":
-      if (arg.isTemplate && arg.templateParts) {
-        const elements = [];
-        const expressions = [];
-
-        // Create template elements from parts
-        for (let i = 0; i < arg.templateParts.length; i++) {
-          const part = arg.templateParts[i];
-          elements.push(
-            b.templateElement(
-              { raw: part.text, cooked: part.text },
-              i === arg.templateParts.length - 1, // is tail?
-            ),
-          );
-
-          // Add expression if this part has an expression and there's a corresponding templateExpression
-          if (
-            part.isExpression &&
-            arg.templateExpressions &&
-            i < arg.templateExpressions.length
-          ) {
-            expressions.push(buildMethodArgument(arg.templateExpressions[i]));
-          }
-        }
-        //@ts-expect-error recast type issues
-        return b.templateLiteral(elements, expressions);
-      }
       if (typeof arg.value === "string") {
         return b.stringLiteral(arg.value);
       } else if (typeof arg.value === "number") {
@@ -85,109 +66,69 @@ export const buildMethodArgument = (
       }
 
     case "identifier":
-      if (!arg.value) {
-        console.warn("Identifier with no value", arg);
-        return b.identifier("undefinedIdentifier"); // Provide a default to prevent crashes
-      }
       return b.identifier(arg.value as string);
 
-    case "constructor_call":
-      return b.newExpression(
-        b.identifier(arg.value as string),
-        //@ts-expect-error recast type issues
-        (arg.arguments || []).map((subArg) => buildMethodArgument(subArg)),
+    case "property_access":
+      return b.memberExpression(
+        b.identifier(arg.target as string),
+        b.identifier(arg.property as string),
       );
+
     case "function_call":
-      // Check for functionExpression and handle it specially
       if (arg.functionExpression) {
-        // Build an arrow function or function expression based on the functionExpression
-        const params = (arg.functionExpression.parameters || []).map(
-          (param) => {
-            const identifier = b.identifier(param.name || "param");
-
-            // Add type annotation if available
-            if (param.type) {
-              identifier.typeAnnotation = b.tsTypeAnnotation(
-                b.tsTypeReference(b.identifier(param.type)),
-              );
-            }
-
-            return identifier;
-          },
-        );
-
-        const bodyStatements = (arg.functionExpression.body || []).map((expr) =>
-          buildExpression(expr),
-        );
-
-        if (arg.functionExpression.type === "arrow_function") {
-          return b.arrowFunctionExpression(
-            params,
-            //@ts-expect-error recast type issues
-            b.blockStatement(bodyStatements),
-          );
-        } else {
-          return b.functionExpression(
-            null,
-            params,
-            //@ts-expect-error recast type issues
-            b.blockStatement(bodyStatements),
-          );
-        }
-      }
-
-      // Handle normal function calls (existing code with safety checks)
-      if (arg.target && arg.property) {
-        // For calls like path.join
+        // Handle function expressions (e.g., arrow functions)
+        return buildFunctionExpression(arg.functionExpression);
+      } else if (arg.target && arg.property) {
+        // Handle method calls (e.g., object.method())
         return b.callExpression(
           b.memberExpression(
             b.identifier(arg.target),
             b.identifier(arg.property),
           ),
           //@ts-expect-error recast type issues
-          (arg.arguments || []).map((subArg) => buildMethodArgument(subArg)),
+          (arg.arguments || []).map(buildMethodArgument),
         );
-      } else if (arg.value) {
-        // For simple function calls like helmet(), but check if value exists
+      } else {
+        // Handle direct function calls (e.g., func())
         return b.callExpression(
           b.identifier(arg.value as string),
           //@ts-expect-error recast type issues
-          (arg.arguments || []).map((subArg) => buildMethodArgument(subArg)),
+          (arg.arguments || []).map(buildMethodArgument),
         );
-      } else {
-        // Fallback if no valid function identifier is found
-        console.warn("Function call with no valid identifier found", arg);
-        return b.identifier("undefinedFunction"); // Provide a default to prevent crashes
       }
 
-    case "object": {
-      if (!arg.properties) return b.objectExpression([]);
+    case "constructor_call":
+      return b.newExpression(
+        b.identifier(arg.value as string),
+        //@ts-expect-error recast type issues
+        (arg.arguments || []).map(buildMethodArgument),
+      );
 
-      const properties = Object.entries(arg.properties).map(([key, value]) => {
-        return b.objectProperty(
-          b.identifier(key),
-          //@ts-expect-error recast type issues
-          buildMethodArgument(value),
-        );
-      });
+    case "object": {
+      const properties = [];
+
+      if (arg.properties) {
+        for (const key in arg.properties) {
+          properties.push(
+            b.objectProperty(
+              b.identifier(key),
+              //@ts-expect-error recast type issues
+              buildMethodArgument(arg.properties[key]),
+            ),
+          );
+        }
+      }
 
       return b.objectExpression(properties);
     }
-    case "property_access":
-      if (!arg.target || !arg.property) {
-        console.warn("Property access with missing target or property", arg);
-        return b.identifier("undefinedProperty"); // Provide a default to prevent crashes
+    case "logical_expression":
+      if (!arg.left || !arg.right || !arg.operator) {
+        throw new Error("Logical expression missing left, right, or operator");
       }
 
-      return b.memberExpression(
-        b.identifier(arg.target),
-        b.identifier(arg.property),
-      );
-    case "logical_expression": {
-      if (!arg.operator || !arg.left || !arg.right) {
-        throw new Error(
-          "Logical expression requires operator, left and right operands",
-        );
+      // Only allow || and && for logical expressions
+      if (arg.operator !== "||" && arg.operator !== "&&") {
+        throw new Error(`Invalid logical operator: ${arg.operator}`);
       }
 
       return b.logicalExpression(
@@ -196,8 +137,146 @@ export const buildMethodArgument = (
         buildMethodArgument(arg.left),
         buildMethodArgument(arg.right),
       );
+
+    case "binary_expression": {
+      if (!arg.left || !arg.right || !arg.operator) {
+        throw new Error("Binary expression missing left, right, or operator");
+      }
+
+      // Ensure operator is valid for binary expressions
+      const validBinaryOps = [
+        "+",
+        "-",
+        "*",
+        "/",
+        "===",
+        "!==",
+        "==",
+        "!=",
+        ">",
+        "<",
+        ">=",
+        "<=",
+      ];
+      if (!validBinaryOps.includes(arg.operator)) {
+        throw new Error(`Invalid binary operator: ${arg.operator}`);
+      }
+
+      return b.binaryExpression(
+        //@ts-expect-error recast type issues
+        arg.operator,
+        buildMethodArgument(arg.left),
+        buildMethodArgument(arg.right),
+      );
+    }
+    case "unary_expression": {
+      if (!arg.arguments?.[0] || !arg.unaryOperator) {
+        throw new Error("Unary expression missing argument or operator");
+      }
+
+      // Validate unary operators
+      const validUnaryOps = ["typeof", "!", "+", "-", "~"];
+      if (!validUnaryOps.includes(arg.unaryOperator)) {
+        throw new Error(`Invalid unary operator: ${arg.unaryOperator}`);
+      }
+
+      return b.unaryExpression(
+        arg.unaryOperator,
+        //@ts-expect-error recast type issues
+        buildMethodArgument(arg.arguments[0]),
+        // The third argument is a boolean indicating if the operator is prefix (true) or postfix (false)
+        true,
+      );
+    }
+    case "template_literal": {
+      // Use optional chaining and provide defaults
+      const quasis = arg.quasis || [];
+      const expressions = arg.expressions || [];
+
+      if (quasis.length === 0) {
+        throw new Error("Template literal must have at least one quasi part");
+      }
+
+      // Create template elements
+      const quasisElements = quasis.map((quasi, i) =>
+        b.templateElement(
+          {
+            raw: quasi.text,
+            cooked: quasi.text,
+          },
+          i === quasis.length - 1, // true for last element
+        ),
+      );
+
+      // Process expressions
+      const expressionElements = expressions.map((expr) =>
+        buildMethodArgument(expr),
+      );
+
+      //@ts-expect-error recast type issues
+      return b.templateLiteral(quasisElements, expressionElements);
+    }
+    case "conditional_expression": {
+      if (!arg.test || !arg.consequent || !arg.alternate) {
+        throw new Error(
+          "Conditional expression missing test, consequent, or alternate",
+        );
+      }
+
+      // Single @ts-expect-error for the whole expression
+      return b.conditionalExpression(
+        //@ts-expect-error recast type issues
+        buildMethodArgument(arg.test),
+        buildMethodArgument(arg.consequent),
+        buildMethodArgument(arg.alternate),
+      );
     }
     default:
       throw new Error(`Unsupported argument type: ${arg.type}`);
   }
-};
+}
+
+// Helper function to build function expressions (arrow functions)
+function buildFunctionExpression(
+  funcExpr: FunctionExpressionIR,
+): recast.types.namedTypes.Expression {
+  const params = (funcExpr.parameters || []).map((param) => {
+    const identifier = b.identifier(param.name);
+
+    // Add type annotation if available
+    if (param.type) {
+      identifier.typeAnnotation = b.tsTypeAnnotation(
+        b.tsTypeReference(b.identifier(param.type)),
+      );
+    }
+
+    return identifier;
+  });
+
+  const bodyStatements = (funcExpr.body || []).map((expr) => {
+    // Handle different types of statements in the function body
+    if (expr.expressionType === "return") {
+      return b.returnStatement(
+        //@ts-expect-error recast type issues
+        expr.arguments && expr.arguments.length > 0
+          ? buildMethodArgument(expr.arguments[0])
+          : null,
+      );
+    } else {
+      // Default to buildExpression for other statement types
+      // Note: This assumes buildExpression is imported or available in this scope
+      return buildExpression(expr);
+    }
+  });
+
+  // Create block statement for the function body
+  //@ts-expect-error recast type issues
+  const bodyBlock = b.blockStatement(bodyStatements);
+
+  // Create and return the appropriate function expression
+  if (funcExpr.type === "arrow_function") {
+    return b.arrowFunctionExpression(params, bodyBlock);
+  } else {
+    return b.functionExpression(null, params, bodyBlock);
+  }
+}
