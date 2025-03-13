@@ -1,9 +1,10 @@
-import * as recast from "recast";
 import {
-  ClassPropertyBuilderFn,
+  PropertyBuilderFn,
   ConstructorBuilderFn,
   ExportsBuilderFn,
   ImportsBuilderFn,
+  MethodBuilderFn,
+  PropertiesBuilderFn,
 } from "./builders.js";
 import { GeneratorOptions } from "./setup.js";
 
@@ -20,17 +21,7 @@ export interface ASTTEmplateOptions {
   generateImports: ImportsBuilderFn;
   generateExports: ExportsBuilderFn;
   generateConstructor: ConstructorBuilderFn;
-  generateClassProperties: ClassPropertyBuilderFn;
-
-  CONTROLLER: {
-    generateClassProperties: ClassPropertyBuilderFn;
-  };
-
-  SOCKET: {
-    generateSocketImport: ImportsBuilderFn;
-    getSocketParam: (
-      optional: boolean,
-      ops: GeneratorOptions,
-    ) => recast.types.namedTypes.Identifier;
-  };
+  generateProperty: PropertyBuilderFn;
+  generateProperties: PropertiesBuilderFn;
+  generateMethod: MethodBuilderFn;
 }

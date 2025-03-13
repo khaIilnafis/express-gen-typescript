@@ -15,7 +15,8 @@ import {
   ImportsIR,
   MiddlewareConfig,
   DependencyIR,
-  CALLEES,
+  PropertiesIR,
+  PropertyIR,
 } from "./config.js";
 import {
   TemplateOptions,
@@ -28,7 +29,9 @@ import {
   ExportsBuilderFn,
   ConstructorBuilderFn,
   ExportBuilderReturn,
-  ClassPropertyBuilderFn,
+  PropertyBuilderFn,
+  MethodBuilderFn,
+  PropertiesBuilderFn,
 } from "./builders.js";
 
 export {
@@ -41,10 +44,12 @@ export {
   ExportsFromConfig,
   ExportsBuilderFn,
   ExportBuilderReturn,
-  ClassPropertyBuilderFn,
+  PropertyBuilderFn,
+  PropertiesBuilderFn,
   ConstructorFromConfig,
   ConstructorItem,
-  CALLEES,
+  PropertiesIR,
+  PropertyIR,
   ParameterIR,
   ImportsIR,
   ConstructorDefinitionIR,
@@ -58,4 +63,5 @@ export {
   ASTTEmplateOptions,
   ImportsBuilderFn,
   ConstructorBuilderFn,
+  MethodBuilderFn,
 };
