@@ -4,7 +4,7 @@ import {
   ImportsFromConfig,
   ExportConfig,
   ParameterIR,
-  CALLEES,
+  //   CALLEES,
 } from "../../types/index.js";
 
 const IMPORTS: ImportsFromConfig<{
@@ -38,7 +38,7 @@ const EXPORTS: ExportConfig = {
 };
 const assignGetAll: MethodExpressionIR = {
   target: { object: "this", property: "getAll" },
-  method: "=",
+  expressionType: "assignment",
   arguments: [
     {
       type: "function_call",
@@ -49,7 +49,7 @@ const assignGetAll: MethodExpressionIR = {
 };
 const assignGetById: MethodExpressionIR = {
   target: { object: "this", property: "getById" },
-  method: "=",
+  expressionType: "assignment",
   arguments: [
     {
       type: "function_call",
@@ -60,7 +60,7 @@ const assignGetById: MethodExpressionIR = {
 };
 const assignCreate: MethodExpressionIR = {
   target: { object: "this", property: "create" },
-  method: "=",
+  expressionType: "assignment",
   arguments: [
     {
       type: "function_call",
@@ -71,7 +71,7 @@ const assignCreate: MethodExpressionIR = {
 };
 const assignUpdate: MethodExpressionIR = {
   target: { object: "this", property: "update" },
-  method: "=",
+  expressionType: "assignment",
   arguments: [
     {
       type: "function_call",
@@ -82,7 +82,7 @@ const assignUpdate: MethodExpressionIR = {
 };
 const assignDelete: MethodExpressionIR = {
   target: { object: "this", property: "delete" },
-  method: "=",
+  expressionType: "assignment",
   arguments: [
     {
       type: "function_call",
@@ -93,7 +93,7 @@ const assignDelete: MethodExpressionIR = {
 };
 const assignIO: MethodExpressionIR = {
   target: { object: "this", property: "io" },
-  method: "=",
+  expressionType: "assignment",
   arguments: [{ type: "identifier", value: "io" }],
 };
 const ioParam: ParameterIR = {
@@ -112,37 +112,10 @@ const ASSIGNMENTS = {
   assignUpdate,
   assignDelete,
 };
-const PROPERTIES = {
-  GET_ALL: {
-    METHOD: "getAll",
-    CALLER: "getAllController",
-    CALLE: CALLEES.THIS,
-  },
-  GET_BY_ID: {
-    METHOD: "getById",
-    CALLER: "getByIdController",
-    CALLE: CALLEES.THIS,
-  },
-  CREATE: {
-    METHOD: "create",
-    CALLER: "createController",
-    CALLE: CALLEES.THIS,
-  },
-  UPDATE: {
-    METHOD: "update",
-    CALLER: "updateController",
-    CALLE: CALLEES.THIS,
-  },
-  DELETE: {
-    METHOD: "delete",
-    CALLER: "deleteController",
-    CALLE: CALLEES.THIS,
-  },
-};
+
 export const CONSTRUCTOR = Object.freeze({
   IMPORTS,
   EXPORTS,
   PARAMS: ioParams,
   ASSIGNMENTS,
-  PROPERTIES,
 });
