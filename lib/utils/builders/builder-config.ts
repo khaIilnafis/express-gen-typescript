@@ -6,12 +6,13 @@ import {
   PropertiesBuilderFn,
   PropertyBuilderFn,
   MethodBuilderFn,
+  FunctionBuilderFn,
 } from "../../types/index.js";
 import { buildProperties, buildProperty } from "./properties.js";
 import { buildConstructor } from "./constructors.js";
 import { buildExports } from "./exports.js";
 import { buildImports } from "./imports.js";
-import { buildMethod } from "./method.js";
+import { buildMethod, buildFunction } from "./method.js";
 
 export const astConfig: ASTTEmplateOptions = Object.freeze({
   generateImports: ((imports) => {
@@ -38,4 +39,8 @@ export const astConfig: ASTTEmplateOptions = Object.freeze({
     const methodFn = buildMethod(methodDef);
     return methodFn;
   }) as MethodBuilderFn,
+  generateFunction: ((funcDef) => {
+    const funcDecl = buildFunction(funcDef);
+    return funcDecl;
+  }) as FunctionBuilderFn,
 });

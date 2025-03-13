@@ -184,10 +184,11 @@ export type MethodArgumentIR = {
 };
 
 export type TryCatchBlockIR = {
-  tryBlock: MethodExpressionIR[];
-  catchParameter: string; // e.g., "error"
-  catchBlock: MethodExpressionIR[];
+  tryBlock?: MethodExpressionIR[];
+  catchParameter?: string; // e.g., "error"
+  catchBlock?: MethodExpressionIR[];
   finallyBlock?: MethodExpressionIR[]; // Optional finally block
+  tryStatements?: MethodExpressionIR[]; // For simple if-statement like blocks
 };
 export type expressionTypeIR =
   | "assignment"
@@ -199,7 +200,8 @@ export type expressionTypeIR =
   | "switch_statement"
   | "switch_case"
   | "throw"
-  | "return";
+  | "return"
+  | "conditional";
 // Type for method expression (e.g., this.app.use(helmet()))
 export type MethodExpressionIR = {
   expressionType?: expressionTypeIR;

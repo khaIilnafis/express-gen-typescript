@@ -44,6 +44,47 @@ export const buildMethod = (
 
   return method;
 };
+
+/**
+ * Builds a standalone function declaration from a method definition
+ *
+ * @param funcDef The function definition (using MethodDefinitionIR)
+ * @returns A function declaration AST node
+ */
+export const buildFunction = (
+  funcDef: MethodDefinitionIR,
+): recast.types.namedTypes.FunctionDeclaration => {
+  // Create function parameters
+  const params = buildParameters(funcDef.parameters);
+
+  // Create function body statements
+  const bodyStatements: recast.types.namedTypes.Statement[] =
+    funcDef.expressions.map((expr) => buildExpression(expr));
+
+  // Create the function declaration
+  const funcDecl = b.functionDeclaration(
+    b.identifier(funcDef.name),
+    //@ts-expect-error recast type issues
+    params,
+    //@ts-expect-error recast type issues
+    b.blockStatement(bodyStatements),
+  );
+
+  // Add return type if specified
+  if (funcDef.returnType) {
+    funcDecl.returnType = b.tsTypeAnnotation(
+      b.tsTypeReference(b.identifier(funcDef.returnType)),
+    );
+  }
+
+  // Set async flag if needed
+  if (funcDef.isAsync) {
+    funcDecl.async = true;
+  }
+
+  return funcDecl;
+};
+
 // Helper function to build method arguments
 export function buildMethodArgument(
   arg: MethodArgumentIR,

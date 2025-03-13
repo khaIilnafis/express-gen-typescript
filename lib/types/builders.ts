@@ -18,7 +18,7 @@ export type ImportsBuilderFn = <T extends Record<string, ImportConfig>>(
 ) => recast.types.namedTypes.ImportDeclaration[];
 
 export type ExportsBuilderFn = <T extends ExportConfig>(
-  imports: ExportsFromConfig<T>,
+  exports: ExportsFromConfig<T>,
 ) => ExportBuilderReturn;
 
 export type ExportBuilderReturn = {
@@ -41,3 +41,7 @@ export type PropertyBuilderFn = (
 export type MethodBuilderFn = (
   methodDef: MethodDefinitionIR,
 ) => recast.types.namedTypes.MethodDefinition;
+
+export type FunctionBuilderFn = (
+  funcDef: MethodDefinitionIR,
+) => recast.types.namedTypes.FunctionDeclaration;

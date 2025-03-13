@@ -28,6 +28,35 @@ export const buildExpression = (
           buildMethodArgument(expr.arguments[0]),
         ),
       );
+    case "conditional": {
+      // Handle if statements
+      // Get the condition from arguments
+      if (!expr.arguments || expr.arguments.length === 0) {
+        throw new Error("Missing condition for conditional expression");
+      }
+
+      // Get the body from tryCatchBlock.tryBlock
+      if (!expr.tryCatchBlock || !expr.tryCatchBlock.tryBlock) {
+        throw new Error("Missing body statements for conditional expression");
+      }
+
+      // Build the condition expression
+      const condition = buildMethodArgument(expr.arguments[0]);
+
+      // Build the body statements
+      const bodyStatements = expr.tryCatchBlock.tryBlock.map((stmt) =>
+        buildExpression(stmt),
+      );
+
+      // Create and return the if statement
+      return b.ifStatement(
+        // @ts-expect-error recast typing issues
+        condition,
+        //@ts-expect-error recast type issues
+        b.blockStatement(bodyStatements),
+        null, // No else block for now
+      );
+    }
     case "variable_declaration": {
       // Validate required properties
       if (!expr.declarations || !expr.variableKind) {
@@ -164,6 +193,10 @@ export const buildExpression = (
 
       const { tryBlock, catchParameter, catchBlock, finallyBlock } =
         expr.tryCatchBlock;
+
+      if (!tryBlock || !catchParameter || !catchBlock) {
+        throw new Error("Missing required properties in tryCatchBlock");
+      }
 
       // Build try block statements
       const tryStatements = tryBlock.map((expr) => buildExpression(expr));

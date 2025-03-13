@@ -32,6 +32,7 @@ import {
   PropertyBuilderFn,
   MethodBuilderFn,
   PropertiesBuilderFn,
+  FunctionBuilderFn,
 } from "./builders.js";
 
 export {
@@ -64,4 +65,5 @@ export {
   ImportsBuilderFn,
   ConstructorBuilderFn,
   MethodBuilderFn,
+  FunctionBuilderFn,
 };

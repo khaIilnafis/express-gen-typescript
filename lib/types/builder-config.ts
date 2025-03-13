@@ -5,6 +5,7 @@ import {
   ImportsBuilderFn,
   MethodBuilderFn,
   PropertiesBuilderFn,
+  FunctionBuilderFn,
 } from "./builders.js";
 import { GeneratorOptions } from "./setup.js";
 
@@ -24,4 +25,5 @@ export interface ASTTEmplateOptions {
   generateProperty: PropertyBuilderFn;
   generateProperties: PropertiesBuilderFn;
   generateMethod: MethodBuilderFn;
+  generateFunction: FunctionBuilderFn;
 }
