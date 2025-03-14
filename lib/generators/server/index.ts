@@ -848,3 +848,6 @@ export const SERVER_CONFIG = Object.freeze({
   ERROR_HANDLING: detailedErrorHandling,
   LISTEN: detailedListenMethod,
 });
+
+// Export the new generator
+export { ExpressServerGenerator } from "./generator.js";
