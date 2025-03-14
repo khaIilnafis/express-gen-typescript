@@ -42,7 +42,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       name: "databaseOrm",
       message: "Select a database ORM:",
       choices: ["Sequelize", "TypeORM", "Prisma"],
-      when: (answers) => answers.dialect !== "mongodb",
+      when: (answers) => answers.useDatabase && answers.dialect !== "mongodb",
       filter: (input: string) => input.toLowerCase(),
     },
     {
@@ -50,7 +50,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
       name: "databaseOrm",
       message: "Select a database ORM:",
       choices: ["Mongoose", "Prisma"],
-      when: (answers) => answers.dialect == "mongodb",
+      when: (answers) => answers.useDatabase && answers.dialect == "mongodb",
       filter: (input: string) => input.toLowerCase(),
     },
     {

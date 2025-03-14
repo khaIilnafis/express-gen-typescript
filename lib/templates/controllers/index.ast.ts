@@ -6,25 +6,10 @@
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { GeneratorOptions } from "../../types/setup.js";
+import { CONTROLLER_PRESET } from "../../presets/index.js";
+import { astConfig } from "../../utils/builders/index.js";
 
 const b = recast.types.builders;
-
-/**
- * Helper function to create a properly configured export specifier
- * @param local - Local identifier
- * @param exported - Exported identifier
- * @returns Properly configured export specifier
- */
-function createExportSpecifier(
-  local: recast.types.namedTypes.Identifier,
-  exported: recast.types.namedTypes.Identifier,
-): recast.types.namedTypes.ExportSpecifier {
-  // Use the .from() method to properly set all required properties
-  return b.exportSpecifier.from({
-    local: local,
-    exported: exported,
-  });
-}
 
 /**
  * Generates the controllers index AST with provided options
@@ -35,22 +20,12 @@ export default function generateControllersIndexAST(
   _options: GeneratorOptions,
 ) {
   // Build the imports section
-  const imports = [
-    b.importDeclaration(
-      [b.importSpecifier(b.identifier("ExampleController"))],
-      b.stringLiteral("./example"),
-    ),
-  ];
+  const imports = astConfig.generateImports(CONTROLLER_PRESET.MODULE.IMPORTS);
 
   // Build the exports section
-  const exports = [
-    b.exportNamedDeclaration(null, [
-      createExportSpecifier(
-        b.identifier("ExampleController"),
-        b.identifier("ExampleController"),
-      ),
-    ]),
-  ];
+  const exports = astConfig.generateExports(
+    CONTROLLER_PRESET.MODULE.EXPORTS.CONTROLLER,
+  ).NAMED;
 
   // Build the AST program
   const program = b.program([...imports, ...exports]);

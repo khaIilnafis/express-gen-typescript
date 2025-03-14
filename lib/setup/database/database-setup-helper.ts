@@ -170,7 +170,7 @@ export class DatabaseSetupHelper {
 
     // Get database-specific environment variables
     const envVars = getDatabaseEnvVars(dbDialect, databaseName!);
-    console.log(envVars);
+
     // Create or update .env file
     const envFilePath = path.join(destination, ".env");
 

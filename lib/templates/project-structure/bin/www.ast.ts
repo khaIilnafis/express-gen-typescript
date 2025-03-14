@@ -6,6 +6,9 @@
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { GeneratorOptions } from "../../../types/setup.js";
+import { BIN_PRESET } from "../../../presets/index.js";
+import { astConfig } from "../../../utils/builders/builder-config.js";
+import { buildExpression } from "../../../utils/builders/expressions.js";
 
 const b = recast.types.builders;
 
@@ -19,135 +22,48 @@ export default function generateBinWwwAST(_options: GeneratorOptions) {
   const shebang = b.expressionStatement(b.literal("#!/usr/bin/env ts-node"));
   shebang.comments = [{ type: "CommentLine", value: "!", leading: true }];
 
-  // Build the imports section
-  const imports = [
-    b.importDeclaration(
-      [b.importSpecifier(b.identifier("Server"))],
-      b.stringLiteral("../src/server"),
-    ),
-    // b.importDeclaration(
-    //   [b.importSpecifier(b.identifier("AddressInfo"))],
-    //   b.stringLiteral("net"),
-    // ),
-  ];
+  // Build the imports section using the preset configuration
+  const imports = astConfig.generateImports(BIN_PRESET.IMPORTS);
 
-  // Create normalizePort function
-  const normalizePortFunction = b.functionDeclaration(
-    b.identifier("normalizePort"),
-    [b.identifier("val")],
-    b.blockStatement([
-      // const port = parseInt(val, 10)
-      b.variableDeclaration("const", [
-        b.variableDeclarator(
-          b.identifier("port"),
-          b.callExpression(b.identifier("parseInt"), [
-            b.identifier("val"),
-            b.numericLiteral(10),
-          ]),
-        ),
-      ]),
-      // if (isNaN(port)) { return val; }
-      b.ifStatement(
-        b.callExpression(b.identifier("isNaN"), [b.identifier("port")]),
-        b.blockStatement([b.returnStatement(b.numericLiteral(3000))]),
-        null,
-      ),
-      // if (port >= 0) { return port; }
-      b.ifStatement(
-        b.binaryExpression(">=", b.identifier("port"), b.numericLiteral(0)),
-        b.blockStatement([b.returnStatement(b.identifier("port"))]),
-        null,
-      ),
-      // return false;
-      b.returnStatement(b.numericLiteral(3000)),
-    ]),
+  // Create normalizePort function as a standalone function
+  const normalizePortFunction = astConfig.generateFunction(
+    BIN_PRESET.NORMALIZE_PORT,
   );
-
-  // Add normalizePort function return type annotation
-  const normalizePortFnParams = normalizePortFunction
-    .params[0] as recast.types.namedTypes.Identifier;
-  normalizePortFnParams.typeAnnotation = b.tsTypeAnnotation(
-    b.tsStringKeyword(),
-  );
-
-  normalizePortFunction.returnType = b.tsTypeAnnotation(b.tsNumberKeyword());
-
-  // Add normalizePort function JSDoc comment
   normalizePortFunction.comments = [
-    b.commentBlock(
-      "*\n * Normalize a port into a number, string, or false.\n ",
-      true,
-      false,
-    ),
+    b.commentBlock(BIN_PRESET.COMMENTS.NORMALIZE_PORT, true, false),
   ];
 
-  // Create const port declaration
-  const portDeclaration = b.variableDeclaration("const", [
-    b.variableDeclarator(
-      b.identifier("port"),
-      b.callExpression(b.identifier("normalizePort"), [
-        b.logicalExpression(
-          "||",
-          b.memberExpression(
-            b.memberExpression(b.identifier("process"), b.identifier("env")),
-            b.identifier("PORT"),
-          ),
-          b.stringLiteral("3000"),
-        ),
-      ]),
-    ),
-  ]);
-
-  // Add port declaration JSDoc comment
-  portDeclaration.comments = [
-    b.commentBlock(
-      "*\n * Get port from environment and store in Express.\n ",
-      true,
-      false,
-    ),
+  // Create the port declaration statement
+  const portDeclarationExpr = buildExpression(BIN_PRESET.PORT_DECLARATION);
+  portDeclarationExpr.comments = [
+    b.commentBlock(BIN_PRESET.COMMENTS.PORT_DECLARATION, true, false),
   ];
 
-  // Create server declaration
-  const serverDeclaration = b.variableDeclaration("const", [
-    b.variableDeclarator(
-      b.identifier("server"),
-      b.callExpression(
-        b.memberExpression(b.identifier("Server"), b.identifier("bootstrap")),
-        [],
-      ),
-    ),
-  ]);
-
-  // Add server declaration JSDoc comment
-  serverDeclaration.comments = [
-    b.commentBlock("*\n * Create HTTP server.\n ", true, false),
+  // Create the server declaration statement
+  const serverDeclarationExpr = buildExpression(BIN_PRESET.SERVER_DECLARATION);
+  serverDeclarationExpr.comments = [
+    b.commentBlock(BIN_PRESET.COMMENTS.SERVER_DECLARATION, true, false),
   ];
 
-  // Create server.listen statement
-  const listenStatement = b.expressionStatement(
-    b.callExpression(
-      b.memberExpression(b.identifier("server"), b.identifier("listen")),
-      [b.identifier("port")],
-    ),
-  );
-
-  // Add JSDoc comment for listen statements
-  listenStatement.comments = [
-    b.commentBlock(
-      "*\n * Listen on provided port, on all network interfaces.\n ",
-      true,
-      false,
-    ),
+  // Create the listen statement
+  const listenExpr = buildExpression(BIN_PRESET.LISTEN_STATEMENT);
+  listenExpr.comments = [
+    b.commentBlock(BIN_PRESET.COMMENTS.LISTEN_STATEMENT, true, false),
   ];
 
   // Build the AST program
   const program = b.program([
     shebang,
+    // @ts-expect-error Recast type issues with Statement types
     ...imports,
+    // @ts-expect-error Recast type issues with Statement types
     normalizePortFunction,
-    portDeclaration,
-    serverDeclaration,
-    listenStatement,
+    // @ts-expect-error Recast type issues
+    portDeclarationExpr,
+    // @ts-expect-error Recast type issues
+    serverDeclarationExpr,
+    // @ts-expect-error Recast type issues
+    listenExpr,
   ]);
 
   // Return the AST program

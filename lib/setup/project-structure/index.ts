@@ -342,7 +342,7 @@ async function createEnvironmentFile(options: GeneratorOptions): Promise<void> {
     PORT: APP.DEFAULTS.PORT.toString(),
     NODE_ENV: APP.ENV.DEVELOPMENT,
   };
-  console.log(`Database: ${options.database}`);
+
   // Add database-specific environment variables
   if (options.database) {
     if (!options.dialect || !options.databaseOrm) {
@@ -357,7 +357,7 @@ async function createEnvironmentFile(options: GeneratorOptions): Promise<void> {
 
     // Use the utility function to get standardized database env vars
     const dbEnvVars = getDatabaseEnvVars(options.databaseOrm, dbName);
-    console.log(dbEnvVars);
+
     Object.assign(envVars, dbEnvVars);
   }
 

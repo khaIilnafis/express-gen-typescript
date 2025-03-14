@@ -7,7 +7,7 @@
     "build": "rimraf dist && tsc && yarn copy-templates",
     "copy-templates": "rsync -a --exclude='*.ts' lib/templates dist/lib",
     "start": "node dist/bin/cli.js",
-    "dev": "ts-node bin/cli.ts",
+    "dev": "tsc-watch --onSuccess \"sh -c 'yarn copy-templates\"",
     "prepare": "husky",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -80,6 +80,7 @@
     "rimraf": "^6.0.1",
     "semver": "^7.7.1",
     "ts-node": "^10.9.2",
+    "tsc-watch": "6.2.1",
     "typescript": "^5.4.3",
     "typescript-eslint": "^8.25.0"
   },

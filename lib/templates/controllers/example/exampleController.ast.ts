@@ -7,39 +7,10 @@ import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { COMMENTS } from "../../constants/index.js";
 import { GeneratorOptions } from "../../../types/index.js";
-import { astConfig } from "../../../configs/templates.js";
+import { CONTROLLER_PRESET } from "../../../presets/index.js";
+import { astConfig } from "../../../utils/builders/index.js";
 
 const b = recast.types.builders;
-
-const imports = {
-  //   CONTROLLER: {
-  //     NAME: "./exampleController",
-  //     DEFAULT: {},
-  //     NAMED: {
-  //       GETALL: "getAllController",
-  //       GETBYID: "getByIdController",
-  //       CREATE: "createController",
-  //       UPDATE: "updateController",
-  //       DELETE: "deleteController",
-  //     },
-  //   },
-  SOCKETIO: {
-    NAME: "socket.io",
-    DEFAULT: {},
-    NAMED: {
-      SERVER: ["Server", "SocketIOServer"],
-    },
-  },
-  EXPRESS: {
-    NAME: "express",
-    DEFAULT: {},
-    NAMED: {
-      REQUEST: "Request",
-      RESPONSE: "Response",
-      NEXT: "NextFunction",
-    },
-  },
-};
 
 /**
  * Generates the example controller AST with provided options
@@ -50,7 +21,9 @@ export default function generateExampleControllerAST(
   options: GeneratorOptions,
 ) {
   // Import declarations
-  const controllerImports = astConfig.CONTROLLER.generateImports(imports);
+  const controllerImports = astConfig.generateImports(
+    CONTROLLER_PRESET.IMPORTS,
+  );
 
   // Create Example interface
   const exampleInterface = b.tsInterfaceDeclaration(

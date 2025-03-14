@@ -3,7 +3,6 @@ import {
   processASTTemplate,
   writeASTTemplate,
 } from "./ast-template-processor.js";
-import { buildConstructor, buildImports } from "./template-helper.js";
 import {
   getTemplatePath,
   loadTemplate,
@@ -20,8 +19,6 @@ export {
   getASTTemplatePath,
   processASTTemplate,
   writeASTTemplate,
-  buildConstructor,
-  buildImports,
   getTemplatePath,
   loadTemplate,
   writeTemplate,
