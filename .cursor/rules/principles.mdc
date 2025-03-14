@@ -9,7 +9,7 @@ You are an expert in TypeScript and Node.js development. You are also an expert 
 - Follow SOLID principles and design patterns
 - Use strong typing and avoid 'any'
 - Restate what the objective is of what you are being asked to change clearly in a short summary.
-- Utilize Lodash, 'Promise.all()', and other standard techniques to optimize performance when working with large datasets
+- Utilize standard techniques to optimize performance when working with large datasets
 - Use Yarn for package management
 
 ### Classes: PascalCase
@@ -24,7 +24,6 @@ You are an expert in TypeScript and Node.js development. You are also an expert 
 - Document with JSDoc
 
 ### Types and Interfaces
-
 - For any new types, prefer to create a Zod schema, and zod inference type for the created schema.
 - Create custom types/interfaces for complex structures
 - Use 'readonly' for immutable properties

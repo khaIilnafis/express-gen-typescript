@@ -3,66 +3,59 @@ description: This rule provides context to the application, its structure, archi
 globs: ./**/**/*
 alwaysApply: true
 ---
-# Application Context
+ # Application Context
 
 ## Overview
 This is an Express Generator for TypeScript applications. It generates a complete Express.js application with TypeScript configured from the start. The generator allows customization through both an interactive CLI and a configuration-driven approach, helping developers scaffold new Express.js applications with various features and configurations.
 
 ## Architecture
-The project follows a configuration-driven architecture with three key components:
+The project follows a spec-based architecture with these key components:
 
-1. **Presets**: High-level, user-facing configurations that define what features to include in generated applications
-2. **Generators**: Internal implementation details that define how to generate specific parts of code
-3. **Builders**: Utility functions that convert configurations into actual AST nodes
+1. **Specs**: Define what needs to be generated, creating a clear representation of user choices
+2. **Presets**: Define the configurations for generation based on specs
+3. **Generators**: Use specs and presets to generate the actual code
+4. **Builders**: Utility functions that convert configurations into actual AST nodes
 
-## Project Structure
-- `/bin`: CLI entry point for the generator
-- `/lib`: Core generator code
-  - `/configs`: Template configurations, dynamically express generated application features
-  - `/setup`: Setup modules for different parts of the generated application
-  - `/templates`: Template files used for code generation
-  - `/presets`: User-customizable configurations for generated applications
-  - `/generators`: Internal implementation details for code generation
-    - `/server`: Server code generators
-    - `/auth`: Authentication code generators
-    - `/database`: Database code generators
-    - And other feature-specific generators
-  - `/builders`: AST construction utilities
-  - `/utils`: Utility functions for the generator
-  - `/types`: Type definitions
-- `/dist`: Compiled JavaScript output (generated during build)
+## Execution Flow
+The generator's execution follows this pattern:
 
-## Key Components
+1. **User Input**: Collect inputs via CLI args or interactive prompts (in `bin/cli.ts` & `lib/prompt.ts`)
+2. **Spec Creation**: Convert user options into standardized spec objects (`lib/specs/factory.ts`)
+3. **Preset Selection**: Use specs to determine which presets to apply (`lib/presets/factory.ts`)
+4. **Code Generation**: Pass specs and presets to generators that create AST using builders
+5. **File Output**: Write the generated code to the appropriate files
+
+## Component Locations
 - **CLI Entry Point**: Located in `bin/cli.ts`
-- **Generator Core**: Located in `lib/index.ts`
 - **User Prompts**: Managed through `lib/prompt.ts`
-- **Templates**: Stored in `lib/templates` directory for code generation
+- **Specs**: Located in `lib/specs/`
+  - Base specs: `lib/specs/types.ts`
+  - Component-specific specs: `lib/specs/server.ts`, etc.
+  - Factory for creating specs: `lib/specs/factory.ts`
+- **Presets**: Located in `lib/presets/`
+  - Component-specific presets: `lib/presets/server.ts`, etc.
+  - Factory for creating presets: `lib/presets/factory.ts`
+- **Generators**: Located in `lib/generators/`
+  - Each component has its own directory: `server/`, `database/`, etc.
+  - Generators implement the code generation logic
+- **Builders**: Located in `lib/utils/builders/`
+  - AST node creation utilities
+
+## Generator Structure
+Each major component (server, database, etc.) follows a standard structure:
+
+```
+/generators/<component>
+  /index.ts                     # Entry point & exports
+  /generator.ts                 # Main generator implementation
+  /...                          # Additional functionality
+```
 
 ## Main Functionality
 - **Project Scaffolding**: Generates a complete Express.js application with TypeScript
 - **Interactive Configuration**: Prompts users for project options
 - **Feature Selection**: Allows choosing databases, authentication, websockets, and view engines
-- **Code Generation**: Creates properly structured TypeScript files based on templates
-
-## Generator Options
-- **Database Integration**: Supports MongoDB (Mongoose), SQL databases (Sequelize, TypeORM, Prisma)
-- **Authentication**: Integrates Passport or Express-session with different strategies
-- **WebSockets**: Adds Socket.io or WS library support
-- **View Engines**: Configures EJS, Pug, or Handlebars
-
-
-## Code Generation Flow
-1. User selects or customizes a preset through the CLI or by providing a configuration file
-2. The generator uses this preset to determine what to generate
-3. The generator calls the appropriate generators for each component
-4. The generators use builders to construct AST nodes
-5. The AST nodes are written to files in the target directory
-
-## Generator Options
-- **Database Integration**: Supports MongoDB (Mongoose), SQL databases (Sequelize, TypeORM, Prisma)
-- **Authentication**: Integrates Passport or Express-session with different strategies
-- **WebSockets**: Adds Socket.io or WS library support
-- **View Engines**: Configures EJS, Pug, or Handlebars
+- **Code Generation**: Creates properly structured TypeScript files based on specs and presets
 
 ## Usage Modes
 - **CLI Mode**: Users run the generator and answer interactive prompts to configure their application
@@ -70,6 +63,17 @@ The project follows a configuration-driven architecture with three key component
 - **Library Mode**: Developers can use the generator as a library, programmatically creating applications
 
 ## Extension Patterns
-- New features are added by creating generators in the appropriate subdirectory
-- Presets can be customized to include or exclude specific features
-- Custom generators can be created by implementing the generator interfaces
+To add a new feature (e.g., a new database type), contributors should:
+1. Create a new spec type in the appropriate spec file
+2. Add factory methods to create the spec from user options
+3. Create presets for the new feature
+4. Implement a generator that uses the spec and presets
+5. Update the main execution flow to include the new feature
+
+## Relationship Between Components
+- **Specs** describe *what* needs to be generated (e.g., "a server with these properties")
+- **Presets** define *how* it should be configured (e.g., "use these imports, methods, etc.")
+- **Generators** handle *where* and *when* the code is created
+- **Builders** create the actual AST nodes that represent the code
+
+This architecture separates concerns and makes it easier to extend the generator without needing to understand the AST details.
