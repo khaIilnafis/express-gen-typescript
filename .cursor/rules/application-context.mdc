@@ -1,19 +1,35 @@
 ---
 description: This rule provides context to the application, its structure, architecture, and purpose.
 globs: ./**/**/*
+alwaysApply: true
 ---
 # Application Context
 
 ## Overview
-This is an Express Generator for TypeScript applications. It generates a complete Express.js application with TypeScript configured from the start. The generator allows customization through an interactive CLI that helps developers scaffold a new Express.js application with various features and configurations.
+This is an Express Generator for TypeScript applications. It generates a complete Express.js application with TypeScript configured from the start. The generator allows customization through both an interactive CLI and a configuration-driven approach, helping developers scaffold new Express.js applications with various features and configurations.
+
+## Architecture
+The project follows a configuration-driven architecture with three key components:
+
+1. **Presets**: High-level, user-facing configurations that define what features to include in generated applications
+2. **Generators**: Internal implementation details that define how to generate specific parts of code
+3. **Builders**: Utility functions that convert configurations into actual AST nodes
 
 ## Project Structure
 - `/bin`: CLI entry point for the generator
 - `/lib`: Core generator code
-  - `/constants`: Constants and configuration values
+  - `/configs`: Template configurations, dynamically express generated application features
   - `/setup`: Setup modules for different parts of the generated application
-  - `/templates`: Template files in AST format used for code generation
+  - `/templates`: Template files used for code generation
+  - `/presets`: User-customizable configurations for generated applications
+  - `/generators`: Internal implementation details for code generation
+    - `/server`: Server code generators
+    - `/auth`: Authentication code generators
+    - `/database`: Database code generators
+    - And other feature-specific generators
+  - `/builders`: AST construction utilities
   - `/utils`: Utility functions for the generator
+  - `/types`: Type definitions
 - `/dist`: Compiled JavaScript output (generated during build)
 
 ## Key Components
@@ -34,15 +50,26 @@ This is an Express Generator for TypeScript applications. It generates a complet
 - **WebSockets**: Adds Socket.io or WS library support
 - **View Engines**: Configures EJS, Pug, or Handlebars
 
+
 ## Code Generation Flow
-1. User is prompted for project options via interactive CLI
-2. Project structure is created in the target directory
-3. Package.json and dependencies are configured based on selected options
-4. Template files are generated customized according to selected features
-5. Git repository is initialized and package manager setup is completed
+1. User selects or customizes a preset through the CLI or by providing a configuration file
+2. The generator uses this preset to determine what to generate
+3. The generator calls the appropriate generators for each component
+4. The generators use builders to construct AST nodes
+5. The AST nodes are written to files in the target directory
 
-## Common Developer Workflows
-- To add new templates: Add files to the `/lib/templates` directory
-- To modify generation logic: Edit the appropriate setup modules in `/lib/setup`
-- To add new features: Update prompts in `lib/prompt.ts` and add corresponding setup code
+## Generator Options
+- **Database Integration**: Supports MongoDB (Mongoose), SQL databases (Sequelize, TypeORM, Prisma)
+- **Authentication**: Integrates Passport or Express-session with different strategies
+- **WebSockets**: Adds Socket.io or WS library support
+- **View Engines**: Configures EJS, Pug, or Handlebars
 
+## Usage Modes
+- **CLI Mode**: Users run the generator and answer interactive prompts to configure their application
+- **Configuration Mode**: Users provide a preset configuration file to generate an application with predefined settings
+- **Library Mode**: Developers can use the generator as a library, programmatically creating applications
+
+## Extension Patterns
+- New features are added by creating generators in the appropriate subdirectory
+- Presets can be customized to include or exclude specific features
+- Custom generators can be created by implementing the generator interfaces
