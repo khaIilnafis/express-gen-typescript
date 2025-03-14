@@ -5,9 +5,10 @@
 
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
-import { GeneratorOptions } from "../../types/setup.js";
-import { astConfig } from "../../utils/builders/index.js";
-import { routesConfig } from "../../presets/routes.js";
+import { GeneratorOptions } from "../../types/index.js";
+import { ROUTES_PRESET } from "../../presets/index.js";
+import { astConfig } from "../../utils/builders/builder-config.js";
+import { buildExpression } from "../../utils/builders/expressions.js";
 
 const b = recast.types.builders;
 
@@ -18,8 +19,7 @@ const b = recast.types.builders;
  */
 export default function generateExampleRoutesAST(options: GeneratorOptions) {
   // Build the imports section based on options
-  const routeImports = astConfig.generateImports(routesConfig.example.imports);
-  // Add WebSocket imports if needed
+  const routeImports = astConfig.generateImports(ROUTES_PRESET.EXAMPLE.imports);
 
   // Create the create method parameters
   const createMethodParams = [b.identifier("router")];
@@ -30,7 +30,7 @@ export default function generateExampleRoutesAST(options: GeneratorOptions) {
   );
 
   // Add WebSocket parameter if needed
-  if (options.webSockets) {
+  if (options.websocketLib) {
     const ioParam = b.identifier("io");
     ioParam.optional = true; // Mark the parameter as optional
     ioParam.typeAnnotation = b.tsTypeAnnotation(
@@ -39,6 +39,31 @@ export default function generateExampleRoutesAST(options: GeneratorOptions) {
     createMethodParams.push(ioParam);
   }
 
+  // Create the method body based on options
+  const methodBody = [
+    // Create controller instance with socket server if available
+    options.websocketLib
+      ? buildExpression(ROUTES_PRESET.EXAMPLE.controller_with_socket)
+      : buildExpression(ROUTES_PRESET.EXAMPLE.controller_instance),
+
+    // Get all examples
+    buildExpression(ROUTES_PRESET.EXAMPLE.get_all_route),
+
+    // Get example by ID
+    buildExpression(ROUTES_PRESET.EXAMPLE.get_by_id_route),
+
+    // Create new example, with authentication if enabled
+    options.authentication
+      ? buildExpression(ROUTES_PRESET.EXAMPLE.create_route_with_auth)
+      : buildExpression(ROUTES_PRESET.EXAMPLE.create_route),
+
+    // Update example
+    buildExpression(ROUTES_PRESET.EXAMPLE.update_route),
+
+    // Delete example
+    buildExpression(ROUTES_PRESET.EXAMPLE.delete_route),
+  ];
+
   // Create the class body with the create method
   const createMethod = b.methodDefinition(
     "method",
@@ -46,103 +71,8 @@ export default function generateExampleRoutesAST(options: GeneratorOptions) {
     b.functionExpression(
       null,
       createMethodParams,
-      b.blockStatement([
-        // Create controller instance with socket server if available
-        b.variableDeclaration("const", [
-          b.variableDeclarator(
-            b.identifier("controller"),
-            b.newExpression(
-              b.identifier("ExampleController"),
-              options.webSockets ? [b.identifier("io")] : [],
-            ),
-          ),
-        ]),
-
-        // Get all examples
-        b.expressionStatement(
-          b.callExpression(
-            b.memberExpression(b.identifier("router"), b.identifier("get")),
-            [
-              b.stringLiteral("/examples"),
-              b.memberExpression(
-                b.identifier("controller"),
-                b.identifier("getAll"),
-              ),
-            ],
-          ),
-        ),
-
-        // Get example by ID
-        b.expressionStatement(
-          b.callExpression(
-            b.memberExpression(b.identifier("router"), b.identifier("get")),
-            [
-              b.stringLiteral("/examples/:id"),
-              b.memberExpression(
-                b.identifier("controller"),
-                b.identifier("getById"),
-              ),
-            ],
-          ),
-        ),
-
-        // Create new example, with authentication if enabled
-        b.expressionStatement(
-          b.callExpression(
-            b.memberExpression(b.identifier("router"), b.identifier("post")),
-            options.authentication
-              ? [
-                  b.stringLiteral("/examples"),
-                  b.callExpression(
-                    b.memberExpression(
-                      b.identifier("passport"),
-                      b.identifier("authenticate"),
-                    ),
-                    [b.stringLiteral("jwt")],
-                  ),
-                  b.memberExpression(
-                    b.identifier("controller"),
-                    b.identifier("create"),
-                  ),
-                ]
-              : [
-                  b.stringLiteral("/examples"),
-                  b.memberExpression(
-                    b.identifier("controller"),
-                    b.identifier("create"),
-                  ),
-                ],
-          ),
-        ),
-
-        // Update example
-        b.expressionStatement(
-          b.callExpression(
-            b.memberExpression(b.identifier("router"), b.identifier("put")),
-            [
-              b.stringLiteral("/examples/:id"),
-              b.memberExpression(
-                b.identifier("controller"),
-                b.identifier("update"),
-              ),
-            ],
-          ),
-        ),
-
-        // Delete example
-        b.expressionStatement(
-          b.callExpression(
-            b.memberExpression(b.identifier("router"), b.identifier("delete")),
-            [
-              b.stringLiteral("/examples/:id"),
-              b.memberExpression(
-                b.identifier("controller"),
-                b.identifier("delete"),
-              ),
-            ],
-          ),
-        ),
-      ]),
+      //@ts-expect-error recast type issues
+      b.blockStatement(methodBody), // Type assertion to fix TS error
     ),
     true, // static method
   );

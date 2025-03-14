@@ -5,9 +5,10 @@
 
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
-import { GeneratorOptions } from "../../types/setup.js";
-import { ROUTES_CONFIG } from "../../presets/index.js";
-import { astConfig } from "../../utils/builders/index.js";
+import { GeneratorOptions } from "../../types/index.js";
+import { ROUTES_PRESET } from "../../presets/index.js";
+import { astConfig } from "../../utils/builders/builder-config.js";
+import { buildExpression } from "../../utils/builders/expressions.js";
 
 const b = recast.types.builders;
 
@@ -25,12 +26,10 @@ export default function generateRoutesIndexAST(options: GeneratorOptions) {
   };
 
   // Build the imports section based on options
-  const routeImports = astConfig.generateImports(
-    ROUTES_CONFIG.routesConfig.module.imports,
-  );
+  const routeImports = astConfig.generateImports(ROUTES_PRESET.INDEX.imports);
 
   // Create the initializeRoutes function with appropriate parameters
-  const functionParams: unknown[] = [];
+  const functionParams: recast.types.namedTypes.Identifier[] = [];
   if (opts.websocketLib === "socketio") {
     const ioParam = b.identifier("io");
     ioParam.optional = true;
@@ -46,73 +45,30 @@ export default function generateRoutesIndexAST(options: GeneratorOptions) {
     functionParams.push(wssParam);
   }
 
-  // Build the root route handler
-  // Default JSON response
-  const rootRouteHandler = b.blockStatement([
-    b.expressionStatement(
-      b.callExpression(
-        b.memberExpression(b.identifier("res"), b.identifier("json")),
-        [
-          b.objectExpression([
-            b.objectProperty(
-              b.identifier("message"),
-              b.stringLiteral("Welcome to Express TypeScript API"),
-            ),
-          ]),
-        ],
-      ),
-    ),
-  ]);
-
-  // Create the function body
+  // Create the function body using the route configuration
   const functionBody = [
-    // const router = Router();
-    b.variableDeclaration("const", [
-      b.variableDeclarator(
-        b.identifier("router"),
-        b.callExpression(b.identifier("Router"), []),
-      ),
-    ]),
+    // Router declaration - const router = Router();
+    buildExpression(ROUTES_PRESET.INDEX.router_declaration),
 
-    // Base route handler
-    b.expressionStatement(
-      b.callExpression(
-        b.memberExpression(b.identifier("router"), b.identifier("get")),
-        [
-          b.stringLiteral("/"),
-          b.arrowFunctionExpression(
-            [b.identifier("req"), b.identifier("res")],
-            rootRouteHandler,
-          ),
-        ],
-      ),
-    ),
+    // Root route handler
+    buildExpression(ROUTES_PRESET.INDEX.root_handler),
 
     // Register example routes
-    b.expressionStatement(
-      b.callExpression(
-        b.memberExpression(
-          b.identifier("ExampleRoutes"),
-          b.identifier("create"),
-        ),
-        opts.websocketLib !== "none"
-          ? [
-              b.identifier("router"),
-              b.identifier(opts.websocketLib === "socketio" ? "io" : "wss"),
-            ]
-          : [b.identifier("router")],
-      ),
+    buildExpression(
+      opts.websocketLib !== "none"
+        ? ROUTES_PRESET.INDEX.example_routes_with_sockets
+        : ROUTES_PRESET.INDEX.example_routes,
     ),
 
-    // Return the router
-    b.returnStatement(b.identifier("router")),
+    // Return router
+    buildExpression(ROUTES_PRESET.INDEX.return_router),
   ];
 
   // Create the initialize routes function
   const functionDecl = b.functionDeclaration(
     b.identifier("initializeRoutes"),
-    //@ts-expect-error: recast type issues
     functionParams,
+    //@ts-expect-error recast type issues
     b.blockStatement(functionBody),
     false, // not async
     false, // not generator
@@ -127,12 +83,10 @@ export default function generateRoutesIndexAST(options: GeneratorOptions) {
   const initializeRoutes = b.exportNamedDeclaration(functionDecl, []);
 
   // Create default export
-  //   const routeDefaultExport = b.exportDefaultDeclaration(
-  //     b.identifier("initializeRoutes"),
-  //   );
-  const routeDefaultExport = astConfig.generateExports(
-    ROUTES_CONFIG.routesConfig.module.exports,
-  ).DEFAULT!;
+  const routeDefaultExport = b.exportDefaultDeclaration(
+    b.identifier("initializeRoutes"),
+  );
+
   // Build the AST program
   return b.program([...routeImports, initializeRoutes, routeDefaultExport]);
 }
