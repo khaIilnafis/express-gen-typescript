@@ -1,12 +1,15 @@
 import * as fs from "fs/promises";
 import * as path from "path";
 import { ExpressServerSpec } from "../../specs/server.js";
-import { createPreset, ServerPreset } from "../../presets/factory.js";
+import { createServerPreset, ServerPreset } from "../../presets/factory.js";
 import * as recast from "recast";
-import { buildImports } from "../../utils/builders/imports.js";
-import { buildConstructor } from "../../utils/builders/constructors.js";
-import { buildMethod } from "../../utils/builders/method.js";
-import { buildProperty } from "../../utils/builders/properties.js";
+import * as tsParser from "recast/parsers/typescript.js";
+import {
+  buildImports,
+  buildConstructor,
+  buildMethod,
+  buildProperty,
+} from "../../utils/builders/index.js";
 
 /**
  * Generator for Express server
@@ -19,13 +22,14 @@ export class ExpressServerGenerator {
   constructor(spec: ExpressServerSpec) {
     this.spec = spec;
     this.outputPath = spec.path;
-    this.preset = createPreset(spec);
+    this.preset = createServerPreset(spec);
   }
 
   /**
    * Generate the server files
    */
   async generate(): Promise<void> {
+    // Note: No need to transform routes here since we're using preset methods
     try {
       // Create the necessary directories
       await this.createDirectories();
@@ -106,7 +110,9 @@ export class ExpressServerGenerator {
       ]);
 
       // Convert the AST to code
-      const serverClassCode = recast.print(serverClass).code;
+      const serverClassCode = recast.print(serverClass, {
+        parser: tsParser,
+      }).code;
 
       // Write the file
       const serverFilePath = path.join(this.outputPath, "src", "server.ts");

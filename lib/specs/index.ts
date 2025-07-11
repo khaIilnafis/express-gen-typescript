@@ -5,4 +5,4 @@ export * from "./types.js";
 export * from "./server.js";
 
 // Export factory methods
-export * from "./factory.js";
+export * from "./server/factory.js";

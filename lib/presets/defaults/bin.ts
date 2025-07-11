@@ -1,5 +1,5 @@
-import { ImportsIR, MethodDefinitionIR } from "../types/index.js";
-import { BIN_CONFIG } from "../generators/bin/index.js";
+import { ImportsIR, MethodDefinitionIR } from "../../types/index.js";
+import { BIN_CONFIG } from "../../generators/bin/index.js";
 
 // Define the bin/www imports
 const binImports: ImportsIR = {

@@ -1,4 +1,4 @@
-import { ImportConfig, MethodExpressionIR } from "../types/config.js";
+import { ImportConfig, MethodExpressionIR } from "../../types/config.js";
 
 const expressImports: ImportConfig = {
   NAME: "express",

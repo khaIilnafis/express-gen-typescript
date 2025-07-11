@@ -1,5 +1,5 @@
 import path from "path";
-import fs from "fs";
+import fs from "fs/promises";
 import { promises as fsPromises } from "fs";
 import { promisify } from "util";
 import { exec } from "child_process";
@@ -27,7 +27,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Convert callback-based functions to promise-based
-const mkdir = fsPromises.mkdir;
+// const mkdir = fsPromises.mkdir;
 const writeFile = fsPromises.writeFile;
 const readFile = fsPromises.readFile;
 const copyFile = fsPromises.copyFile;
@@ -47,8 +47,11 @@ export async function generateExpressTypeScriptApp(
     console.log("Starting express-generator-typescript...");
 
     // Check if destination exists, if not create it
-    if (!fs.existsSync(options.destination)) {
-      await mkdir(options.destination, { recursive: true });
+    try {
+      await fs.mkdir(options.destination, { recursive: true });
+    } catch (error) {
+      console.error("Error creating destination directory:", error);
+      throw error;
     }
     // Normalize options to ensure consistent casing and values
     options = normalizeOptions(options);
@@ -166,23 +169,23 @@ async function initPackageManager(options: GeneratorOptions): Promise<void> {
 
     // Check for stored database scripts and add them
     const dbScriptsPath = path.join(options.destination, ".db-scripts.json");
-    if (fs.existsSync(dbScriptsPath)) {
-      try {
-        const dbScripts = JSON.parse(fs.readFileSync(dbScriptsPath, "utf-8"));
-        if (!generatedPackageJson.scripts) {
-          generatedPackageJson.scripts = {};
-        }
-
-        // Merge database scripts with existing scripts
-        Object.assign(generatedPackageJson.scripts, dbScripts);
-
-        // Remove the temporary file
-        fs.unlinkSync(dbScriptsPath);
-        console.log("Added stored database scripts to package.json");
-      } catch (error) {
-        console.warn("Error loading stored database scripts:", error);
+    // if (fs.(dbScriptsPath)) {
+    try {
+      const dbScripts = JSON.parse(await fs.readFile(dbScriptsPath, "utf-8"));
+      if (!generatedPackageJson.scripts) {
+        generatedPackageJson.scripts = {};
       }
+
+      // Merge database scripts with existing scripts
+      Object.assign(generatedPackageJson.scripts, dbScripts);
+
+      // Remove the temporary file
+      fs.unlink(dbScriptsPath);
+      console.log("Added stored database scripts to package.json");
+    } catch (error) {
+      console.warn("Error loading stored database scripts:", error);
     }
+    // }
 
     // Read our template package.json file
     const templatePath = path.join(
@@ -353,7 +356,7 @@ async function initializeGitRepository(destination: string): Promise<void> {
 
     // Create a .gitignore file if it doesn't exist
     const gitignorePath = path.join(destination, ".gitignore");
-    if (!fs.existsSync(gitignorePath)) {
+    if (!fs.access(gitignorePath)) {
       // Read the gitignore template file
       const templatePath = path.join(
         __dirname,
@@ -417,7 +420,7 @@ async function createEnvFile(destination: string): Promise<void> {
   const envContent = await readFile(templatePath, "utf-8");
 
   // Don't overwrite if exists
-  if (!fs.existsSync(envPath)) {
+  if (!fs.access(envPath)) {
     await writeFile(envPath, envContent);
     console.log("Created .env file");
   }
@@ -443,10 +446,10 @@ async function copyYarnFiles(destination: string): Promise<void> {
     );
     const yarnrcDestPath = path.join(destination, ".yarnrc.yml");
 
-    if (fs.existsSync(yarnrcTemplatePath)) {
-      await copyFile(yarnrcTemplatePath, yarnrcDestPath);
-      //   console.log("Copied .yarnrc.yaml");
-    }
+    // if (fs.access(yarnrcTemplatePath)) {
+    await copyFile(yarnrcTemplatePath, yarnrcDestPath);
+    //   console.log("Copied .yarnrc.yaml");
+    // }
   } catch (error) {
     console.warn("Failed to copy Yarn configuration files:", error);
     console.warn("You may need to configure Yarn manually");

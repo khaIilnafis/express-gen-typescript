@@ -17,6 +17,7 @@ import {
   DependencyIR,
   PropertiesIR,
   PropertyIR,
+  FunctionExpressionIR,
 } from "./config.js";
 import {
   TemplateOptions,
@@ -57,6 +58,7 @@ export {
   MethodArgumentIR,
   MethodDefinitionIR,
   MethodExpressionIR,
+  FunctionExpressionIR,
   MiddlewareConfig,
   DependencyIR,
   TemplateOptions,

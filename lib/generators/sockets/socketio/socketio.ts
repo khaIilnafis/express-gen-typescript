@@ -3,8 +3,8 @@ import {
   ImportsFromConfig,
   MethodExpressionIR,
   MethodDefinitionIR,
-} from "../../types/index.js";
-
+} from "../../../types/index.js";
+import INIT from "./init.js";
 /**
  * Socket.IO imports
  */
@@ -220,6 +220,7 @@ const setupSocketHandlersFunction: MethodDefinitionIR = {
  */
 export const SOCKETIO = Object.freeze({
   IMPORTS: socketIoImports,
+  INIT,
   LOG_CONNECTION: logConnection,
   LOG_MESSAGE: logMessage,
   BROADCAST_MESSAGE: broadcastMessage,

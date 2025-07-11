@@ -1,12 +1,12 @@
-import { ImportsIR, MethodDefinitionIR } from "../types/index.js";
-import { ConstructorDefinitionIR } from "../types/index.js";
+import { ImportsIR, MethodDefinitionIR } from "../../types/index.js";
+import { ConstructorDefinitionIR } from "../../types/index.js";
 import { EXPRESS } from "./express.js";
-import { MIDDLEWARE_CONFIG } from "../generators/middlwares/index.js";
-import { SERVER_CONFIG } from "../generators/server/index.js";
-import { MODELS } from "../generators/models/index.js";
-import { AUTH_CONFIG } from "../generators/auth/index.js";
-import { SOCKETS_CONFIG } from "../generators/sockets/index.js";
-import { VIEWS_CONFIG } from "../generators/views/index.js";
+import { MIDDLEWARE_CONFIG } from "../../generators/middlwares/index.js";
+import { SERVER_CONFIG } from "../../templates/server/index.js";
+import { MODELS } from "../../generators/models/index.js";
+import { AUTH_CONFIG } from "../../generators/auth/index.js";
+import { SOCKETS_CONFIG } from "../../generators/sockets/index.js";
+import { VIEWS_CONFIG } from "../../generators/views/index.js";
 
 const serverImports: ImportsIR = {
   ENV: SERVER_CONFIG.IMPORTS.ENV,
@@ -89,8 +89,8 @@ const initializeErrorHandling: MethodDefinitionIR = {
   name: "initializeErrorHandling",
   parameters: [],
   expressions: [
-    SERVER_CONFIG.ERROR_HANDLING.NOT_FOUND_HANDLER,
-    SERVER_CONFIG.ERROR_HANDLING.GLOBAL_ERROR_HANDLER,
+    SERVER_CONFIG.ERROR_HANDLER.NOT_FOUND_HANDLER,
+    SERVER_CONFIG.ERROR_HANDLER.GLOBAL_ERROR_HANDLER,
   ],
 };
 const listener: MethodDefinitionIR = {

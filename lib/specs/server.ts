@@ -4,7 +4,6 @@ import { ServerSpec, MiddlewareSpec } from "./types.js";
  * Extended server specification with more details
  */
 export interface ExpressServerSpec extends ServerSpec {
-  framework: "express";
   host: string;
   path: string; // Path to output directory
   env: "development" | "production" | "test";
@@ -14,8 +13,49 @@ export interface ExpressServerSpec extends ServerSpec {
   middleware: ExtendedMiddlewareSpec;
   webSockets?: boolean; // Flag indicating if websockets are enabled
   database?: boolean; // Flag indicating if database is enabled
+  useDefaultRoutes: boolean;
 }
-
+export interface KoaServerSpec extends ServerSpec {
+  host: string;
+  path: string; // Path to output directory
+  env: "development" | "production" | "test";
+  routes: RouteSpec[];
+  properties: ServerPropertySpec[];
+  methods: ServerMethodSpec[];
+  middleware: ExtendedMiddlewareSpec;
+  webSockets?: boolean; // Flag indicating if websockets are enabled
+  database?: boolean; // Flag indicating if database is enabled
+  useDefaultRoutes: boolean;
+}
+export interface HapiServerSpec extends ServerSpec {
+  host: string;
+  path: string; // Path to output directory
+  env: "development" | "production" | "test";
+  routes: RouteSpec[];
+  properties: ServerPropertySpec[];
+  methods: ServerMethodSpec[];
+  middleware: ExtendedMiddlewareSpec;
+  webSockets?: boolean; // Flag indicating if websockets are enabled
+  database?: boolean; // Flag indicating if database is enabled
+  useDefaultRoutes: boolean;
+}
+export interface FastifyServerSpec extends ServerSpec {
+  host: string;
+  path: string; // Path to output directory
+  env: "development" | "production" | "test";
+  routes: RouteSpec[];
+  properties: ServerPropertySpec[];
+  methods: ServerMethodSpec[];
+  middleware: ExtendedMiddlewareSpec;
+  webSockets?: boolean; // Flag indicating if websockets are enabled
+  database?: boolean; // Flag indicating if database is enabled
+  useDefaultRoutes: boolean;
+}
+export type FrameworkSpec =
+  | ExpressServerSpec
+  | KoaServerSpec
+  | HapiServerSpec
+  | FastifyServerSpec;
 /**
  * Extended middleware specification with more details
  */

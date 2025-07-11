@@ -15,6 +15,7 @@ export interface ProjectSpec {
  * Base specification for server component
  */
 export interface ServerSpec {
+  framework: "express" | "koa" | "hapi" | "fastify";
   port: number | string;
   middleware: MiddlewareSpec;
   errorHandling: boolean;

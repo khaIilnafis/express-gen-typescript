@@ -1,4 +1,4 @@
-import { ExportConfig } from "../types/index.js";
+import { ExportConfig } from "../../types/index.js";
 
 export const authImports = {
   ALL: {

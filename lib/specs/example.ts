@@ -1,6 +1,6 @@
 import { GeneratorOptions } from "../types/setup.js";
-import { createProjectSpec } from "./factory.js";
-import { ExpressServerGenerator } from "../generators/server/index.js";
+import { createProjectSpec } from "./project/factory.js";
+import { ExpressServerGenerator } from "../generators/server/generator.js";
 import { ExpressServerSpec } from "./server.js";
 
 /**
@@ -16,9 +16,29 @@ export async function generateWithSpecs(
     const projectSpec = createProjectSpec(options);
 
     // 2. Generate the server using the spec
-    const serverGenerator = new ExpressServerGenerator(
-      projectSpec.server as ExpressServerSpec, // Cast to the specific server spec type
-    );
+    let serverGenerator: ExpressServerGenerator;
+    switch (options.framework) {
+      case "express":
+        serverGenerator = new ExpressServerGenerator(
+          projectSpec.server as ExpressServerSpec, // Cast to the specific server spec type
+        );
+        break;
+      //   case "koa":
+      //     serverGenerator = new KoaServerGenerator(
+      //       projectSpec.server as KoaServerSpec, // Cast to the specific server spec type
+      //     );
+      //     break;
+      //   case "hapi":
+      //     serverGenerator = new HapiServerGenerator(
+      //       projectSpec.server as HapiServerSpec, // Cast to the specific server spec type
+      //     );
+      //     break;
+      default:
+        serverGenerator = new ExpressServerGenerator(
+          projectSpec.server as ExpressServerSpec, // Cast to the specific server spec type
+        );
+    }
+
     await serverGenerator.generate();
 
     // 3. Generate additional components as needed based on specs

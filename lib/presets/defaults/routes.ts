@@ -1,4 +1,4 @@
-import { ROUTES_CONFIG } from "../generators/routes/index.js";
+import { ROUTES_CONFIG } from "../../generators/routes/index.js";
 
 export const ROUTES = {
   INDEX: {
@@ -59,7 +59,7 @@ export const routesConfig = {
   example: {
     imports: {
       CONTROLLERS: {
-        NAME: "../controllers/example",
+        NAME: "../../controllers/example",
         DEFAULT: {},
         NAMED: {
           EXAMPLE: "ExampleController",

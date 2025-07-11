@@ -13,3 +13,10 @@ test/
 .yarn
 
 express-typescript-app/
+test-express-app/
+test-generator.ts
+
+ARCHITECTURE_IMPROVEMENTS.md
+IMPLEMENTATION_ROADMAP.md
+SPEC_TRANSITION_ASSESSMENT.md
+SPEC_TRANSITION_PLAN.md

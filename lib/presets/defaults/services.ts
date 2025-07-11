@@ -1,4 +1,4 @@
-import { SERVICES_CONFIG } from "../generators/services/index.js";
+import { SERVICES_CONFIG } from "../../generators/services/index.js";
 
 export const SERVICES = {
   MODEL: {

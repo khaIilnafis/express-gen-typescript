@@ -75,6 +75,7 @@ async function run(): Promise<void> {
     // Get user options via interactive prompts or use CLI options
     let options: GeneratorOptions;
     if (cliOptions.skipPrompt) {
+      //@ts-expect-error temp
       options = {
         projectName: cliOptions.projectName || "express-typescript-app",
         destination: path.join(

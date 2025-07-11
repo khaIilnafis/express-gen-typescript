@@ -1,4 +1,5 @@
-import { ExpressServerSpec } from "../specs/server.js";
+import { SERVER_CONFIG } from "../templates/server/index.js";
+import { FrameworkSpec } from "../specs/server.js";
 import {
   ProjectSpec,
   DatabaseSpec as DatabaseSpecType,
@@ -107,7 +108,7 @@ export interface ProjectPreset {
 /**
  * Create server preset from server spec
  */
-export function createServerPreset(spec: ExpressServerSpec): ServerPreset {
+export function createServerPreset(spec: FrameworkSpec): ServerPreset {
   // Start with base imports
   const imports: ImportsIR = {
     EXPRESS: {
@@ -380,7 +381,7 @@ export function createViewPreset(_spec: ViewSpecType): ViewPreset {
 export function createProjectPreset(spec: ProjectSpec): ProjectPreset {
   // Start with empty preset
   const preset: ProjectPreset = {
-    server: createServerPreset(spec.server as ExpressServerSpec),
+    server: createServerPreset(spec.server as FrameworkSpec),
   };
 
   // Add optional component presets based on project spec
@@ -407,7 +408,7 @@ export function createProjectPreset(spec: ProjectSpec): ProjectPreset {
  * Convert spec properties to preset properties
  */
 function convertSpecPropertiesToPresetProperties(
-  properties: ExpressServerSpec["properties"],
+  properties: FrameworkSpec["properties"],
 ): PropertyIR[] {
   return properties.map((prop) => ({
     key: prop.key,
@@ -421,7 +422,7 @@ function convertSpecPropertiesToPresetProperties(
 /**
  * Create middleware method definition
  */
-function createMiddlewareMethod(spec: ExpressServerSpec): MethodDefinitionIR {
+function createMiddlewareMethod(spec: FrameworkSpec): MethodDefinitionIR {
   const expressions: MethodExpressionIR[] = [];
 
   if (spec.middleware.helmet) {
@@ -492,11 +493,17 @@ function createMiddlewareMethod(spec: ExpressServerSpec): MethodDefinitionIR {
 /**
  * Create routes method definition
  */
-function createRoutesMethod(spec: ExpressServerSpec): MethodDefinitionIR {
-  // Default route expressions
-  const expressions: MethodExpressionIR[] = [
-    // API routes
-    {
+function createRoutesMethod(spec: FrameworkSpec): MethodDefinitionIR {
+  const expressions: MethodExpressionIR[] = [];
+  if (spec.useDefaultRoutes) {
+    expressions.push(
+      SERVER_CONFIG.ROUTES.ROUTER_DECLARATION,
+      SERVER_CONFIG.ROUTES.ROOT_HANDLER,
+      SERVER_CONFIG.ROUTES.API_ROUTES,
+      SERVER_CONFIG.ROUTES.API_404_HANDLER,
+    );
+  } else {
+    const apiRoute: MethodExpressionIR = {
       expressionType: "method_call",
       target: { object: "this.app", property: "use" },
       arguments: [
@@ -519,9 +526,8 @@ function createRoutesMethod(spec: ExpressServerSpec): MethodDefinitionIR {
           },
         },
       ],
-    },
-    // Root route
-    {
+    };
+    const notFoundRoute: MethodExpressionIR = {
       expressionType: "method_call",
       target: { object: "this.app", property: "get" },
       arguments: [
@@ -546,8 +552,9 @@ function createRoutesMethod(spec: ExpressServerSpec): MethodDefinitionIR {
           },
         },
       ],
-    },
-  ];
+    };
+    expressions.push(apiRoute, notFoundRoute);
+  }
 
   // Add custom routes from spec if available
   if (spec.routes && spec.routes.length > 0) {
@@ -565,9 +572,7 @@ function createRoutesMethod(spec: ExpressServerSpec): MethodDefinitionIR {
 /**
  * Create error handling method definition
  */
-function createErrorHandlingMethod(
-  _spec: ExpressServerSpec,
-): MethodDefinitionIR {
+function createErrorHandlingMethod(_spec: FrameworkSpec): MethodDefinitionIR {
   return {
     name: "initializeErrorHandling",
     parameters: [],
@@ -719,7 +724,7 @@ function createErrorHandlingMethod(
 /**
  * Create listen method definition
  */
-function createListenMethod(_spec: ExpressServerSpec): MethodDefinitionIR {
+function createListenMethod(_spec: FrameworkSpec): MethodDefinitionIR {
   return {
     name: "listen",
     parameters: [],
@@ -771,7 +776,7 @@ function createListenMethod(_spec: ExpressServerSpec): MethodDefinitionIR {
 /**
  * Create bootstrap method definition
  */
-function createBootstrapMethod(_spec: ExpressServerSpec): MethodDefinitionIR {
+function createBootstrapMethod(_spec: FrameworkSpec): MethodDefinitionIR {
   return {
     name: "bootstrap",
     parameters: [],
@@ -803,7 +808,7 @@ function createBootstrapMethod(_spec: ExpressServerSpec): MethodDefinitionIR {
  * Create connect to database method definition
  */
 function createConnectToDatabaseMethod(
-  _spec: ExpressServerSpec,
+  _spec: FrameworkSpec,
 ): MethodDefinitionIR {
   return {
     name: "connectToDatabase",
@@ -859,7 +864,7 @@ function createConnectToDatabaseMethod(
 /**
  * Create WebSockets method definition
  */
-function createWebSocketsMethod(_spec: ExpressServerSpec): MethodDefinitionIR {
+function createWebSocketsMethod(_spec: FrameworkSpec): MethodDefinitionIR {
   return {
     name: "initializeWebSockets",
     parameters: [],
@@ -966,12 +971,4 @@ function createWebSocketsMethod(_spec: ExpressServerSpec): MethodDefinitionIR {
     ],
     returnType: "void",
   };
-}
-
-/**
- * Create preset for server generation
- * This is a placeholder - will be expanded later
- */
-export function createPreset(spec: ExpressServerSpec): ServerPreset {
-  return createServerPreset(spec);
 }

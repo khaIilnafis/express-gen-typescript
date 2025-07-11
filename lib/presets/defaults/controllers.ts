@@ -1,6 +1,6 @@
-import { ImportsIR } from "../types/config.js";
-import { ConstructorDefinitionIR } from "../types/index.js";
-import { CONTROLLER_CONFIG } from "../generators/controllers/index.js";
+import { ImportsIR } from "../../types/config.js";
+import { ConstructorDefinitionIR } from "../../types/index.js";
+import { CONTROLLER_CONFIG } from "../../generators/controllers/index.js";
 
 const moduleImports: ImportsIR = {
   CONTROLLER: CONTROLLER_CONFIG.MODULE.IMPORTS.CONTROLLER,

@@ -105,6 +105,7 @@ export async function promptForOptions(): Promise<GeneratorOptions> {
     },
   ])) as unknown as GeneratorOptions;
   // Transform answers into the expected format
+  //@ts-expect-error temp - haven't added new generator options yet
   const options: GeneratorOptions = {
     destination: "",
     projectName: answers.projectName,

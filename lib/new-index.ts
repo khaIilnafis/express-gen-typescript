@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { GeneratorOptions } from "./types/index.js";
-import { createProjectSpec } from "./specs/factory.js";
+import { createProjectSpec } from "./specs/project/factory.js";
 import { ExpressServerGenerator } from "./generators/server/generator.js";
 import { ExpressServerSpec } from "./specs/server.js";
 
@@ -98,13 +98,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     projectName: path.basename(destination),
     database: false,
     authentication: false,
+    framework: "express",
     webSockets: false,
     view: false,
     viewEngine: "none",
     websocketLib: "none",
-    databaseLib: "none",
     databaseName: "",
+    customSpec: true,
     logger: "morgan",
+    routes: [],
   };
 
   generateExpressTypeScriptApp(options)

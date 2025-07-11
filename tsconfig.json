@@ -21,7 +21,8 @@
     "node_modules",
     "dist",
     "lib/templates/views/**",
-    "express-typescript-app"
+    "express-typescript-app",
+    "test-express-app"
   ],
   "ts-node": {
     "esm": true

@@ -6,7 +6,7 @@
 import * as recast from "recast";
 import * as tsParser from "recast/parsers/typescript.js";
 import { GeneratorOptions } from "../../../types/index.js";
-import { SOCKETS } from "../../../presets/sockets.js";
+import { SOCKETS } from "../../../presets/index.js";
 import { astConfig } from "../../../utils/builders/builder-config.js";
 
 /**

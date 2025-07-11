@@ -1,4 +1,4 @@
-import { SOCKETS_CONFIG } from "../generators/sockets/index.js";
+import { SOCKETS_CONFIG } from "../../generators/sockets/index.js";
 
 /**
  * Socket.IO preset configuration
